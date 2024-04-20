@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -54,7 +55,9 @@ TextInputEditText etPassword;
                         if (task.isSuccessful()) {
                             // Account creation successful
                             // Handle success scenario (e.g., navigate to home screen)
-                            DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference().getDatabase().getReference("users").push();
+                            String userId = mAuth.getUid();
+                            Log.e("userId ",userId);
+                            DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference().getDatabase().getReference("users").child(userId);
                             User user = new User();
                             user.setEmail(email);
                             user.setName(etName.getText().toString().trim());

@@ -42,6 +42,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
             android:layout_marginTop="12dp"
+            android:id="@+id/btn_google_sign_in"
             android:background="@drawable/btn_sign_in_opts"
             >
             <ImageView
