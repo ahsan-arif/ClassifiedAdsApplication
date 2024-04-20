@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">ClassifiedApp</string>
+    <string name="sign_up_or_login">Sign up or login.</string>
+    <string name="we_are_waiting_for_you">We are waiting for you!</string>
+    <string name="google">Google</string>
+    <string name="facebook">Facebook</string>
+    <string name="signup">Signup</string>
+    <string name="or">or</string>
+    <string name="login">log in</string>
+    <string name="with_email">with email</string>
+    <string name="join_us">Join Us!</string>
+    <string name="full_name">Full Name</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="create_account">Create Account</string>
+    <string name="create_an_account">Create an Account</string>
+</resources>
