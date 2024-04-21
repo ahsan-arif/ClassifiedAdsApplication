@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:title="@string/home"
+        android:icon="@drawable/outline_home_24"
+        android:id="@+id/home"
+        />
+    <item
+        android:title="@string/random"
+        android:id="@+id/random"
+        android:icon="@drawable/dice"
+        />
+    <item
+        android:title="@string/sell"
+android:icon="@drawable/baseline_add_24"
+        android:id="@+id/item_sell"
+        />
+    <item
+        android:title="@string/chat"
+        android:id="@+id/item_chat"
+        />
+    <item
+        android:title="@string/profile"
+        android:icon="@drawable/outline_account_circle_24"
+       android:id="@+id/item_profile"
+        />
+</menu>
