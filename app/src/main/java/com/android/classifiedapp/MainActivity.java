@@ -21,6 +21,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.ToastUtils;
 import com.google.android.gms.auth.api.identity.SignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -28,6 +30,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 //import com.google.firebase.FirebaseApp;
 
@@ -44,6 +48,13 @@ LinearLayout btnGoogleSignIn;
         tvSignup = findViewById(R.id.tv_signup);
         btnGoogleSignIn = findViewById(R.id.btn_google_sign_in);
         FirebaseApp.initializeApp(getApplicationContext());
+        FirebaseUser user= FirebaseAuth.getInstance().getCurrentUser();
+        if (user!=null){
+            LogUtils.e(user.getEmail());
+            startActivity(new Intent(MainActivity.this,Home.class));
+        }else{
+            ToastUtils.showShort("no user logged in");
+        }
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 //.requestIdToken(getString(R.string.google_client_id))
                 .requestEmail()
