@@ -85,6 +85,7 @@ LinearLayout btnGoogleSignIn;
             public void onClick(View view) {
                 // Add your login functionality here
                 Toast.makeText(MainActivity.this, "Login Clicked", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(MainActivity.this,ActivityLogin.class));
             }
             @Override
             public void updateDrawState(@NonNull TextPaint ds) {

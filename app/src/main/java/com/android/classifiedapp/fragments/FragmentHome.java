@@ -2,13 +2,27 @@ package com.android.classifiedapp.fragments;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.android.classifiedapp.Home;
 import com.android.classifiedapp.R;
+import com.android.classifiedapp.adapters.HomeCategoriesAdapter;
+import com.android.classifiedapp.models.Category;
+import com.blankj.utilcode.util.LogUtils;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -16,7 +30,8 @@ import com.android.classifiedapp.R;
  * create an instance of this fragment.
  */
 public class FragmentHome extends Fragment {
-
+    HomeCategoriesAdapter homeCategoriesAdapter;
+    RecyclerView rvCategories;
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -62,6 +77,29 @@ public class FragmentHome extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_home, container, false);
+        rvCategories = view.findViewById(R.id.rv_categories);
+        getCategories();
         return view;
+    }
+
+    void getCategories(){
+        FirebaseDatabase.getInstance().getReference().child("categories").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<Category> categories = new ArrayList<>();
+                for (DataSnapshot s : snapshot.getChildren()){
+                    Category category = s.getValue(Category.class);
+                    categories.add(category);
+                }
+                homeCategoriesAdapter = new HomeCategoriesAdapter(categories, getContext());
+                rvCategories.setAdapter(homeCategoriesAdapter);
+                rvCategories.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.HORIZONTAL,false));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 }
