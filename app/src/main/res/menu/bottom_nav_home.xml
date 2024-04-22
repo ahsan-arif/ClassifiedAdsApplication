@@ -4,11 +4,11 @@
     <item
         android:title="@string/home"
         android:icon="@drawable/outline_home_24"
-        android:id="@+id/home"
+        android:id="@+id/item_home"
         />
     <item
         android:title="@string/random"
-        android:id="@+id/random"
+        android:id="@+id/item_random"
         android:icon="@drawable/dice"
         />
     <item
