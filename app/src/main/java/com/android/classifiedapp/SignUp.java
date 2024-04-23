@@ -34,6 +34,16 @@ TextInputEditText etPassword;
         etName = findViewById(R.id.et_name);
         etEmail = findViewById(R.id.et_email);
         etPassword = findViewById(R.id.et_password);
+        boolean isEmailSignIn = getIntent().getBooleanExtra("isEmailSignIn",false);
+        if (isEmailSignIn){
+            String email = getIntent().getStringExtra("email");
+            String name = getIntent().getStringExtra("fname");
+
+            etEmail.setText(email);
+            etName.setText(name);
+            etEmail.setEnabled(false);
+            etName.setEnabled(false);
+        }
         //FirebaseApp.initializeApp(SignUp.this);
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         imgBack.setOnClickListener(new View.OnClickListener() {
