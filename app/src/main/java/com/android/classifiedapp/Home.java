@@ -15,6 +15,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.android.classifiedapp.adapters.HomeCategoriesAdapter;
 import com.android.classifiedapp.fragments.FragmentHome;
+import com.android.classifiedapp.fragments.FragmentProfile;
 import com.android.classifiedapp.models.Category;
 import com.blankj.utilcode.util.LogUtils;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -44,14 +45,17 @@ public class Home extends AppCompatActivity {
             return insets;
         });
 
-        bottomNavigation.setOnNavigationItemReselectedListener(new BottomNavigationView.OnNavigationItemReselectedListener() {
+        bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public void onNavigationItemReselected(@NonNull MenuItem menuItem) {
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                 if (menuItem.getItemId()==R.id.item_home){
                     androidx.fragment.app.FragmentManager manager = getSupportFragmentManager(); // or getFragmentManager() if using android.app.Fragment
                     FragmentHome fragmentHome = new FragmentHome();
                     startFragment(manager, fragmentHome);
+                }else if(menuItem.getItemId()==R.id.item_profile){
+                    startFragment(getSupportFragmentManager(),new FragmentProfile());
                 }
+                return true;
             }
         });
     }

@@ -13,6 +13,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.ToastUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
@@ -23,7 +24,7 @@ import com.google.firebase.auth.FirebaseUser;
 public class ActivityLogin extends AppCompatActivity {
 TextInputEditText etEmail,etPassword;
 TextView tvHaveAccount;
-TextView btnLogin;
+TextView btnLogin,tvForgot;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,6 +38,7 @@ TextView btnLogin;
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         etEmail = findViewById(R.id.et_email);
         etPassword = findViewById(R.id.et_password);
+        tvForgot = findViewById(R.id.tv_forgot);
         btnLogin = findViewById(R.id.btn_login);
         tvHaveAccount = findViewById(R.id.tv_have_account);
 
@@ -46,6 +48,15 @@ TextView btnLogin;
                 LogUtils.e("btn pressed");
                 String email = etEmail.getText().toString();
                 String password = etPassword.getText().toString();
+
+                if (email.trim().isEmpty()){
+                    etEmail.setError("Cannot be empty");
+                    return;
+                }
+                if (password.trim().isEmpty()){
+                    etPassword.setError("Cannot be empty");
+                    return;
+                }
                 mAuth.signInWithEmailAndPassword(email, password)
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override
@@ -59,6 +70,7 @@ TextView btnLogin;
                                     // Login failed, handle error
                                     Exception e = task.getException();
                                     LogUtils.e(e.getMessage());
+                                    ToastUtils.showShort(e.getMessage());
                                     // Display error message to the user
                                 }
                                 // Hide progress bar (optional)
@@ -71,6 +83,13 @@ TextView btnLogin;
             public void onClick(View v) {
                 startActivity(new Intent(ActivityLogin.this,MainActivity.class));
                 finish();
+            }
+        });
+
+        tvForgot.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(ActivityLogin.this,ActivityForgotPassword.class));
             }
         });
 

@@ -34,4 +34,6 @@
     <string name="login_failed">"Login failed"</string>
     <string name="forgot_password">Forgot Password</string>
     <string name="already_have_an_account_signup">Already have an account? Signup</string>
+    <string name="my_profile">My Profile</string>
+    <string name="logout">Logout</string>
 </resources>
