@@ -1,5 +1,6 @@
 package com.android.classifiedapp;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -57,10 +58,16 @@ TextView btnLogin,tvForgot;
                     etPassword.setError("Cannot be empty");
                     return;
                 }
+                ProgressDialog progressDialog = new ProgressDialog(ActivityLogin.this);
+                progressDialog.setTitle("Please Wait");
+                progressDialog.setMessage("Logging in");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
                 mAuth.signInWithEmailAndPassword(email, password)
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
+                                progressDialog.dismiss();
                                 if (task.isSuccessful()) {
                                     // Login successful, navigate to main activity
                                     FirebaseUser user = mAuth.getCurrentUser();

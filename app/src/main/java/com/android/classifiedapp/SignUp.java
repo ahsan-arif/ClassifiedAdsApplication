@@ -3,6 +3,7 @@ package com.android.classifiedapp;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -73,6 +74,8 @@ TextInputEditText etPassword;
                             user.setName(etName.getText().toString().trim());
                             databaseRef.setValue(user);
                             Toast.makeText(getApplicationContext(), "Account created!", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(SignUp.this, Home.class));
+                            finish();
                         } else {
                             // Account creation failed
                             // Handle failure scenario (e.g., show error message)
