@@ -14,6 +14,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.android.classifiedapp.adapters.HomeCategoriesAdapter;
+import com.android.classifiedapp.fragments.FragmentAddProduct;
 import com.android.classifiedapp.fragments.FragmentHome;
 import com.android.classifiedapp.fragments.FragmentProfile;
 import com.android.classifiedapp.models.Category;
@@ -54,6 +55,8 @@ public class Home extends AppCompatActivity {
                     startFragment(manager, fragmentHome);
                 }else if(menuItem.getItemId()==R.id.item_profile){
                     startFragment(getSupportFragmentManager(),new FragmentProfile());
+                }else if(menuItem.getItemId() == R.id.item_sell){
+                    startFragment(getSupportFragmentManager(),new FragmentAddProduct());
                 }
                 return true;
             }

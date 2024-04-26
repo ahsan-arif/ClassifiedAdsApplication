@@ -36,4 +36,20 @@
     <string name="already_have_an_account_signup">Already have an account? Signup</string>
     <string name="my_profile">My Profile</string>
     <string name="logout">Logout</string>
+    <string name="sell_item">Sell Item</string>
+    <string name="provide_details_about_your_product_to_attract_potential_buyers">Provide details about your product to attract potential buyers</string>
+    <string name="product_title">Product Title</string>
+    <string name="subcategory">Subcategory</string>
+    <string name="category">Category</string>
+    <string name="description">Description</string>
+    <string name="price">Price</string>
+    <string name="location">Location</string>
+    <string name="shipping_available">Shipping available?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="who_will_pay_for_shipping">Who will pay for shipping?</string>
+    <string name="me">Me</string>
+    <string name="buyer">Buyer</string>
+    <string name="product_images">Product Images</string>
+    <string name="pick_images">Pick Images</string>
 </resources>
