@@ -52,4 +52,6 @@
     <string name="buyer">Buyer</string>
     <string name="product_images">Product Images</string>
     <string name="pick_images">Pick Images</string>
+    <string name="currency">Currency</string>
+    <string name="places_api_key">AIzaSyBIic63KF0zzQppdWg6ociHJG5cX6JwGL4</string>
 </resources>

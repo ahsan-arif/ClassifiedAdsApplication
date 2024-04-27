@@ -29,6 +29,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.android.libraries.places.api.Places;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -55,6 +56,9 @@ LinearLayout btnGoogleSignIn;
         btnGoogleSignIn = findViewById(R.id.btn_google_sign_in);
         FirebaseApp.initializeApp(getApplicationContext());
         FirebaseUser user= FirebaseAuth.getInstance().getCurrentUser();
+        if (!Places.isInitialized()) {
+            Places.initialize(getApplicationContext(), getString(R.string.places_api_key));
+        }
         if (user!=null){
             LogUtils.e(user.getEmail());
             startActivity(new Intent(MainActivity.this,Home.class));
