@@ -41,7 +41,7 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPersonName"
+                android:inputType="text"
                 android:id="@+id/et_product_title"
                 />
 
@@ -59,9 +59,9 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text"
+                android:inputType="none"
                 android:id="@+id/et_category"
-
+               android:focusable="false"
                 />
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -72,14 +72,17 @@
             android:hint="@string/subcategory"
             android:layout_marginTop="16dp"
             app:endIconMode="custom"
+            android:visibility="gone"
+            android:id="@+id/ti_subcat"
             app:endIconDrawable="@drawable/outline_arrow_drop_down_24"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text"
+                android:inputType="none"
                 android:id="@+id/et_sub_category"
+                android:focusable="false"
                 />
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -147,6 +150,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/location"
+            android:visibility="gone"
             android:layout_marginTop="16dp"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -180,6 +184,7 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:checked="true"
             android:text="@string/yes"/>
         <RadioButton
             android:id="@+id/rb_no"
@@ -188,34 +193,8 @@
             android:layout_height="wrap_content"
             android:text="@string/no"/>
         </RadioGroup>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/who_will_pay_for_shipping"
-            android:layout_marginTop="12dp"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            />
-        <RadioGroup
-            android:id="@+id/radioGroup"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal"
-            android:checkedButton="@+id/radio_button_1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <RadioButton
-                android:id="@+id/rb_me"
-                android:layout_weight="1"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:text="@string/me"/>
-            <RadioButton
-                android:id="@+id/rb_buyer"
-                android:layout_weight="1"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:text="@string/buyer"/>
-        </RadioGroup>
+
+
 
         <TextView
             android:layout_width="match_parent"
@@ -225,22 +204,122 @@
             android:textColor="@color/black"
             android:textSize="16sp"
             />
-        <androidx.recyclerview.widget.RecyclerView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/rv_product_images"
+            android:orientation="horizontal"
             android:layout_marginTop="8dp"
-            />
+            >
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp"
+                    android:id="@+id/image_1"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/add_image"
+                    />
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/bin"
+                    android:layout_gravity="end"
+                    android:id="@+id/delete_1"
+                    android:visibility="gone"
+                    app:tint="@color/darkgray" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp"
+                    android:id="@+id/image_2"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/add_image"
+                    />
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/bin"
+                    android:layout_gravity="end"
+                    android:id="@+id/delete_2"
+                    android:visibility="gone"
+                    app:tint="@color/darkgray" />
+            </FrameLayout>
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp"
+                    android:id="@+id/image_3"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/add_image"
+                    />
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/bin"
+                    android:layout_gravity="end"
+                    android:id="@+id/delete_3"
+                    android:visibility="gone"
+                    app:tint="@color/darkgray" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/vg_shipping_payer"
+            android:orientation="vertical"
+            >
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/who_will_pay_for_shipping"
+                android:layout_marginTop="12dp"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                />
+            <RadioGroup
+                android:id="@+id/rg_shipping_payer"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:checkedButton="@+id/radio_button_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <RadioButton
+                    android:id="@+id/rb_me"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/me"/>
+                <RadioButton
+                    android:id="@+id/rb_buyer"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/buyer"/>
+            </RadioGroup>
+        </LinearLayout>
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="@string/create_ad"
             android:layout_marginTop="12dp"
-            android:gravity="center_horizontal"
-            android:background="@drawable/btn_sign_in_opts"
-            android:text="@string/pick_images"
             android:padding="8dp"
-            android:textColor="@color/black"
-            android:textSize="16sp"
+            android:id="@+id/btn_create_ad"
+            android:background="@drawable/btn_sign_in_opts"
+            android:gravity="center"
             />
 
     </LinearLayout>

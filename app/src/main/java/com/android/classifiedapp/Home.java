@@ -66,6 +66,7 @@ public class Home extends AppCompatActivity {
                 return true;
             }
         });
+        bottomNavigation.setSelectedItemId(R.id.item_home);
     }
 
     void insertData(String currency,String country,String url){

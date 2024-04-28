@@ -13,11 +13,14 @@ import android.view.ViewGroup;
 
 import com.android.classifiedapp.Home;
 import com.android.classifiedapp.R;
+import com.android.classifiedapp.adapters.AdsAdapter;
 import com.android.classifiedapp.adapters.HomeCategoriesAdapter;
+import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.Category;
 import com.blankj.utilcode.util.LogUtils;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
@@ -31,7 +34,7 @@ import java.util.List;
  */
 public class FragmentHome extends Fragment {
     HomeCategoriesAdapter homeCategoriesAdapter;
-    RecyclerView rvCategories;
+    RecyclerView rvCategories,rv_ads;
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -78,7 +81,9 @@ public class FragmentHome extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         rvCategories = view.findViewById(R.id.rv_categories);
+        rv_ads = view.findViewById(R.id.rv_ads);
         getCategories();
+        getAds();
         return view;
     }
 
@@ -88,12 +93,39 @@ public class FragmentHome extends Fragment {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<Category> categories = new ArrayList<>();
                 for (DataSnapshot s : snapshot.getChildren()){
-                    Category category = s.getValue(Category.class);
+                    Category category = new Category();
+                    category.setId(s.child("id").getValue(String.class));
+                    category.setName(s.child("name").getValue(String.class));
+                    category.setId(s.child("id").getValue(String.class));
+
                     categories.add(category);
                 }
                 homeCategoriesAdapter = new HomeCategoriesAdapter(categories, getContext());
                 rvCategories.setAdapter(homeCategoriesAdapter);
                 rvCategories.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.HORIZONTAL,false));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    void getAds(){
+       FirebaseDatabase.getInstance().getReference().child("ads").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    ArrayList<Ad> ads = new ArrayList<>();
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                        Ad ad = dataSnapshot.getValue(Ad.class);
+                        ads.add(ad);
+                    }
+                    rv_ads.setLayoutManager(new LinearLayoutManager(getContext()));
+                    rv_ads.setAdapter(new AdsAdapter(ads,getContext()));
+
+                }
             }
 
             @Override

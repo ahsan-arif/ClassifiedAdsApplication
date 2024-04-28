@@ -54,4 +54,14 @@
     <string name="pick_images">Pick Images</string>
     <string name="currency">Currency</string>
     <string name="places_api_key">AIzaSyBIic63KF0zzQppdWg6ociHJG5cX6JwGL4</string>
+    <string name="create_ad">Create Ad</string>
+    <string name="select_category">Select Category</string>
+    <string name="select_subcategory">Select Subcategory</string>
+    <string name="please_wait">Please Wait</string>
+    <string name="fetching_categories">Fetching categories</string>
+    <string name="seller">seller</string>
+    <string name="cannot_be_empty">Cannot be empty</string>
+    <string name="ad_created">Ad Created Successfully</string>
+    <string name="creating_ad">Creating Ad</string>
+    <string name="discover">Discover</string>
 </resources>
