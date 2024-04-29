@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.android.classifiedapp.Home;
 import com.android.classifiedapp.R;
@@ -32,7 +33,7 @@ import java.util.List;
  * Use the {@link FragmentHome#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class FragmentHome extends Fragment {
+public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListener {
     HomeCategoriesAdapter homeCategoriesAdapter;
     RecyclerView rvCategories,rv_ads;
     // TODO: Rename parameter arguments, choose names that match
@@ -113,7 +114,7 @@ public class FragmentHome extends Fragment {
     }
 
     void getAds(){
-       FirebaseDatabase.getInstance().getReference().child("ads").addListenerForSingleValueEvent(new ValueEventListener() {
+       FirebaseDatabase.getInstance().getReference().child("ads").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()){
@@ -122,8 +123,7 @@ public class FragmentHome extends Fragment {
                         Ad ad = dataSnapshot.getValue(Ad.class);
                         ads.add(ad);
                     }
-                    rv_ads.setLayoutManager(new LinearLayoutManager(getContext()));
-                    rv_ads.setAdapter(new AdsAdapter(ads,getContext()));
+                   setAdsAdapter(ads);
 
                 }
             }
@@ -133,5 +133,15 @@ public class FragmentHome extends Fragment {
 
             }
         });
+    }
+
+    void setAdsAdapter(ArrayList<Ad> ads){
+        rv_ads.setLayoutManager(new LinearLayoutManager(getContext()));
+        rv_ads.setAdapter(new AdsAdapter(ads,getContext(),this));
+    }
+
+    @Override
+    public void onLikeClicked(Ad ad, ImageView imageView) {
+
     }
 }

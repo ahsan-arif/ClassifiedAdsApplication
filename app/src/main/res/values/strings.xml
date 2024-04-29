@@ -53,7 +53,7 @@
     <string name="product_images">Product Images</string>
     <string name="pick_images">Pick Images</string>
     <string name="currency">Currency</string>
-    <string name="places_api_key">AIzaSyBIic63KF0zzQppdWg6ociHJG5cX6JwGL4</string>
+    <string name="places_api_key">AIzaSyABOR5tw9x2o7Jm9WcaNe3wxNxr_Phh_4I</string>
     <string name="create_ad">Create Ad</string>
     <string name="select_category">Select Category</string>
     <string name="select_subcategory">Select Subcategory</string>
@@ -64,4 +64,5 @@
     <string name="ad_created">Ad Created Successfully</string>
     <string name="creating_ad">Creating Ad</string>
     <string name="discover">Discover</string>
+    <string name="posted">Posted</string>
 </resources>

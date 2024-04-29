@@ -42,6 +42,7 @@ import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.Category;
 import com.android.classifiedapp.models.Currency;
 import com.android.classifiedapp.models.SubCategory;
+import com.android.classifiedapp.models.User;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.github.dhaval2404.imagepicker.ImagePicker;
@@ -54,22 +55,24 @@ import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.permissionx.guolindev.PermissionX;
 import com.permissionx.guolindev.callback.RequestCallback;
-import com.sangcomz.fishbun.FishBun;
-import com.sangcomz.fishbun.adapter.image.impl.GlideAdapter;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -128,6 +131,8 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
     String shippingPayer;
 
     TextView btnCreateAd;
+
+    User currentUser;
 
     public FragmentAddProduct() {
         // Required empty public constructor
@@ -371,6 +376,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
             }
         });
         getCurrencies();
+        //getCurrentUser();
         getCategories();
 
         return view;
@@ -588,6 +594,8 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                 ad.setTitle(etProductTitle.getText().toString());
                 ad.setCurrency(selectedCurrency.getCurrency());
                 ad.setPrice(etPrice.getText().toString());
+                ad.setPostedOn(String.valueOf(System.currentTimeMillis()));
+                ad.setPostedBy(FirebaseAuth.getInstance().getCurrentUser().getUid());
                 if (selectedCategory!=null){
                     ad.setSubcategoryId(selectedSubcategory.getId());
                 }
@@ -693,6 +701,37 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
             return false;
         }
         return true;
+    }
+
+    void getCurrentUser(){
+        String userEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+        LogUtils.e(userEmail);
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users");
+        Query query = databaseReference.orderByChild("email").equalTo(userEmail);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    LogUtils.e(snapshot);
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                        currentUser = new User();
+                        currentUser.setEmail(dataSnapshot.child("email").getValue(String.class));
+                       // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
+                        currentUser.setName(dataSnapshot.child("name").getValue(String.class));
+                        if (dataSnapshot.hasChild("profileImage")){
+                            currentUser.setProfileImage(dataSnapshot.child("profileImage").getValue(String.class));
+                        }
+                    }
+
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 
 }

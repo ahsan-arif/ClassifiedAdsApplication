@@ -16,6 +16,10 @@ public class Ad {
     String description;
     String title;
 
+    String postedBy;
+    String postedOn;
+    List<String> likedByUsers;
+
     public String getId() {
         return id;
     }
@@ -94,5 +98,29 @@ public class Ad {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getPostedBy() {
+        return postedBy;
+    }
+
+    public void setPostedBy(String postedBy) {
+        this.postedBy = postedBy;
+    }
+
+    public String getPostedOn() {
+        return postedOn;
+    }
+
+    public void setPostedOn(String postedOn) {
+        this.postedOn = postedOn;
+    }
+
+    public List<String> getLikedByUsers() {
+        return likedByUsers;
+    }
+
+    public void setLikedByUsers(List<String> likedByUsers) {
+        this.likedByUsers = likedByUsers;
     }
 }
