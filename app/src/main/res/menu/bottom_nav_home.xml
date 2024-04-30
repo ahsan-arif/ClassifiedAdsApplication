@@ -19,6 +19,7 @@ android:icon="@drawable/baseline_add_24"
     <item
         android:title="@string/chat"
         android:id="@+id/item_chat"
+        android:icon="@drawable/mail"
         />
     <item
         android:title="@string/profile"

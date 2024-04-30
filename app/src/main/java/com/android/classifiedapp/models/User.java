@@ -1,7 +1,7 @@
 package com.android.classifiedapp.models;
 
 public class User {
-    String name,email;
+    String name,email,profileImage;
 
     public String getName() {
         return name;
@@ -17,5 +17,13 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 }

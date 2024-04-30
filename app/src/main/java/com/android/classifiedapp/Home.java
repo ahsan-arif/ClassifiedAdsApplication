@@ -14,9 +14,11 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.android.classifiedapp.adapters.HomeCategoriesAdapter;
+import com.android.classifiedapp.fragments.FragmentAddProduct;
 import com.android.classifiedapp.fragments.FragmentHome;
 import com.android.classifiedapp.fragments.FragmentProfile;
 import com.android.classifiedapp.models.Category;
+import com.android.classifiedapp.models.Currency;
 import com.blankj.utilcode.util.LogUtils;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.database.DataSnapshot;
@@ -36,9 +38,13 @@ public class Home extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home);
         bottomNavigation = findViewById(R.id.bottom_navigation);
-        //insertData("Cars","https://firebasestorage.googleapis.com/v0/b/ecommerceapp-65596.appspot.com/o/icons%2Fcar.svg?alt=media&token=a49f5eda-92bf-41a9-a6a6-64b75c7616ca");
-        //insertData("Motorbikes","https://firebasestorage.googleapis.com/v0/b/ecommerceapp-65596.appspot.com/o/icons%2Fmotorcycle.svg?alt=media&token=5f7a58d1-30bf-4cac-882a-b4a56d492eb5");
-        //insertData("Real Estate","https://firebasestorage.googleapis.com/v0/b/ecommerceapp-65596.appspot.com/o/icons%2Freal%20estate.svg?alt=media&token=487a5548-dee3-4cec-a8db-dbaa25311995");
+  /*     insertData("ARS","Argentina","https://firebasestorage.googleapis.com/v0/b/ecommerceapp-65596.appspot.com/o/flags%2Fargentina_flag.svg?alt=media&token=7a28bf15-4773-4e3f-b906-d6acb25300e1");
+       insertData("MXN","Mexico","https://firebasestorage.googleapis.com/v0/b/ecommerceapp-65596.appspot.com/o/flags%2Fmexico_flag.svg?alt=media&token=76c14093-9531-49e1-b6b5-d4b9f11d6de1");
+       insertData("COP","Colombia","https://firebasestorage.googleapis.com/v0/b/ecommerceapp-65596.appspot.com/o/flags%2Fcolombia_flag.svg?alt=media&token=caa181c5-3b98-4171-8a0c-c138106cc534");
+       insertData("EUR","Europe","https://firebasestorage.googleapis.com/v0/b/ecommerceapp-65596.appspot.com/o/flags%2Feuro.svg?alt=media&token=ae74105f-8432-46b5-ae73-33d4ab7443df");
+       insertData("$","USA","https://firebasestorage.googleapis.com/v0/b/ecommerceapp-65596.appspot.com/o/flags%2Fusa_flag.svg?alt=media&token=5dcb7eb1-107e-4593-b004-674dd1bad77f");
+       insertData("GBP","United Kingdom","https://firebasestorage.googleapis.com/v0/b/ecommerceapp-65596.appspot.com/o/flags%2Fuk_flag.svg?alt=media&token=006e938c-470f-4941-bdd3-292101aa47c8");
+       insertData("BRL","Brazil","https://firebasestorage.googleapis.com/v0/b/ecommerceapp-65596.appspot.com/o/flags%2Fbrazil_flag.svg?alt=media&token=8dd84eaf-abc4-43a9-86a6-46fca08dc3a2");*/
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -54,20 +60,23 @@ public class Home extends AppCompatActivity {
                     startFragment(manager, fragmentHome);
                 }else if(menuItem.getItemId()==R.id.item_profile){
                     startFragment(getSupportFragmentManager(),new FragmentProfile());
+                }else if(menuItem.getItemId() == R.id.item_sell){
+                    startFragment(getSupportFragmentManager(),new FragmentAddProduct());
                 }
                 return true;
             }
         });
+        bottomNavigation.setSelectedItemId(R.id.item_home);
     }
 
-    void insertData(String name,String url){
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("categories").push();
+    void insertData(String currency,String country,String url){
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("currencies").push();
         String id= databaseReference.getKey();
-        Category category = new Category();
-        category.setId(id);
-        category.setName(name);
-        category.setImageUrl(url);
-        databaseReference.setValue(category);
+        Currency cur = new Currency();
+        cur.setCurrency(currency);
+        cur.setCountry(country);
+        cur.setImageUrl(url);
+        databaseReference.setValue(cur);
     }
 
     public void startFragment(FragmentManager manager, Fragment fragment) {
