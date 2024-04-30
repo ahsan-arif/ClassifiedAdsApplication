@@ -1,8 +1,13 @@
 package com.android.classifiedapp.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import androidx.annotation.NonNull;
+
 import java.util.List;
 
-public class Ad {
+public class Ad implements Parcelable {
 
     String id;
     String categoryId;
@@ -19,6 +24,37 @@ public class Ad {
     String postedBy;
     String postedOn;
     List<String> likedByUsers;
+
+    public Ad() {
+    }
+
+    protected Ad(Parcel in) {
+        id = in.readString();
+        categoryId = in.readString();
+        subcategoryId = in.readString();
+        Urls = in.createStringArrayList();
+        price = in.readString();
+        isShippingAvailable = in.readByte() != 0;
+        shippingPayer = in.readString();
+        currency = in.readString();
+        description = in.readString();
+        title = in.readString();
+        postedBy = in.readString();
+        postedOn = in.readString();
+        likedByUsers = in.createStringArrayList();
+    }
+
+    public static final Creator<Ad> CREATOR = new Creator<Ad>() {
+        @Override
+        public Ad createFromParcel(Parcel in) {
+            return new Ad(in);
+        }
+
+        @Override
+        public Ad[] newArray(int size) {
+            return new Ad[size];
+        }
+    };
 
     public String getId() {
         return id;
@@ -122,5 +158,27 @@ public class Ad {
 
     public void setLikedByUsers(List<String> likedByUsers) {
         this.likedByUsers = likedByUsers;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(@NonNull Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeString(categoryId);
+        dest.writeString(subcategoryId);
+        dest.writeStringList(Urls);
+        dest.writeString(price);
+        dest.writeByte((byte) (isShippingAvailable ? 1 : 0));
+        dest.writeString(shippingPayer);
+        dest.writeString(currency);
+        dest.writeString(description);
+        dest.writeString(title);
+        dest.writeString(postedBy);
+        dest.writeString(postedOn);
+        dest.writeStringList(likedByUsers);
     }
 }

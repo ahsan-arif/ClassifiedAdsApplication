@@ -1,6 +1,7 @@
 package com.android.classifiedapp.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.classifiedapp.ActivityAdDetails;
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.User;
@@ -88,6 +90,13 @@ long timestamp = Long.parseLong(ad.getPostedOn());
         });
 
        // holder.tvPostedBy.setText(user.getName());
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                context.startActivity(new Intent(context, ActivityAdDetails.class).putExtra("ad",ad));
+            }
+        });
 
     }
 

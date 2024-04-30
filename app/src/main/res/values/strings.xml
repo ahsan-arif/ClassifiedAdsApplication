@@ -65,4 +65,9 @@
     <string name="creating_ad">Creating Ad</string>
     <string name="discover">Discover</string>
     <string name="posted">Posted</string>
+    <string name="can_be_shipped">Can be shipped</string>
+    <string name="can__not_be_shipped">Shipping not applicable</string>
+    <string name="report_item">Report Item</string>
+    <string name="chats">Chats</string>
+    <string name="type_som_ething">Type som«ething...</string>
 </resources>

@@ -48,6 +48,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-storage:20.3.0'
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation 'androidx.activity:activity:1.8.0'
+    implementation 'com.google.firebase:firebase-dynamic-links:21.2.0'
+    implementation 'com.google.firebase:firebase-analytics:21.6.2'
 
     //implementation 'com.github.nguyenhoanglam:ImagePicker:1.6.3'
 /*    implementation 'androidx.activity:activity:1.8.0'
