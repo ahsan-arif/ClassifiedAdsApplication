@@ -150,7 +150,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/location"
-            android:visibility="gone"
+            android:visibility="visible"
             android:layout_marginTop="16dp"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -161,6 +161,7 @@
                 android:id="@+id/et_location"
                 android:gravity="start"
                 android:editable="false"
+                android:focusable="false"
                 />
 
         </com.google.android.material.textfield.TextInputLayout>

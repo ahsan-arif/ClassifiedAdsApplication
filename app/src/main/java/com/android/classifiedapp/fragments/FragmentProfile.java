@@ -3,6 +3,7 @@ package com.android.classifiedapp.fragments;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
@@ -13,9 +14,14 @@ import android.widget.TextView;
 
 import com.android.classifiedapp.MainActivity;
 import com.android.classifiedapp.R;
+import com.android.classifiedapp.models.User;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -76,7 +82,8 @@ public class FragmentProfile extends Fragment {
         tvLogout = view.findViewById(R.id.tv_logout);
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        etName.setText(user.getDisplayName());
+        getUserDetails(user.getUid());
+        //etName.setText(user.getDisplayName());
         etEmail.setText(user.getEmail());
 
         tvLogout.setOnClickListener(new View.OnClickListener() {
@@ -89,5 +96,22 @@ public class FragmentProfile extends Fragment {
         });
 
         return view;
+    }
+
+    void getUserDetails(String userId){
+        FirebaseDatabase.getInstance().getReference().child("users").child(userId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    User user = snapshot.getValue(User.class);
+                    etName.setText(user.getName());
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 }

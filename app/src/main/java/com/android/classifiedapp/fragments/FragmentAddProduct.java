@@ -133,6 +133,8 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
     TextView btnCreateAd;
 
     User currentUser;
+    Double latitude,longitude;
+    String address;
 
     public FragmentAddProduct() {
         // Required empty public constructor
@@ -197,6 +199,9 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                 if (o.getResultCode() == RESULT_OK){
                     Intent data = o.getData();
                     Place place  = Autocomplete.getPlaceFromIntent(data);
+                    latitude= place.getLatLng().latitude;
+                    longitude = place.getLatLng().longitude;
+                    address = place.getAddress();
                     LogUtils.e(place);
                     etLocation.setText(place.getAddress());
                 }
@@ -260,12 +265,11 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                 }
             }
         });
-        etLocation.setOnTouchListener((v, event) -> {
+        etLocation.setOnClickListener((v) -> {
             @SuppressLint("ClickableViewAccessibility") Intent intent = new Autocomplete.IntentBuilder(
                     AutocompleteActivityMode.FULLSCREEN, fields)
                     .build(getContext());
             placesIntent.launch(intent);
-            return true;
         });
         image1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -596,6 +600,9 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                 ad.setPrice(etPrice.getText().toString());
                 ad.setPostedOn(String.valueOf(System.currentTimeMillis()));
                 ad.setPostedBy(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                ad.setAddress(address);
+                ad.setLatitude(latitude);
+                ad.setLongitude(longitude);
                 if (selectedCategory!=null){
                     ad.setSubcategoryId(selectedSubcategory.getId());
                 }
@@ -690,7 +697,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         String cannotBeEmpty = getString(R.string.cannot_be_empty);
         if (!isImage3Selected&&!isImage2Selected&&!isImage1Selected){
             return false;
-        }else if (etPrice.getText().toString().isEmpty()){
+        }else if (etPrice.getText().toString().trim().isEmpty()){
             etPrice.setError(cannotBeEmpty);
             return false;
         }else if(selectedCurrency==null){
@@ -698,6 +705,12 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
             return false;
         }else if (selectedCategory == null){
             etCategory.setError(cannotBeEmpty);
+            return false;
+        }else if (latitude ==null){
+            etLocation.setError(cannotBeEmpty);
+            return false;
+        }else if (etDetails.getText().toString().trim().isEmpty()){
+            etDetails.setError(cannotBeEmpty);
             return false;
         }
         return true;

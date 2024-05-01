@@ -19,6 +19,7 @@ import com.android.classifiedapp.adapters.HomeCategoriesAdapter;
 import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.Category;
 import com.blankj.utilcode.util.LogUtils;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;

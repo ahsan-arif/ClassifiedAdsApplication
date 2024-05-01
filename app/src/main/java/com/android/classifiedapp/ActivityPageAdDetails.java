@@ -1,5 +1,6 @@
 package com.android.classifiedapp;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -7,6 +8,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -14,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.android.classifiedapp.adapters.ImagePagerAdapter;
@@ -38,7 +39,6 @@ import com.google.firebase.dynamiclinks.DynamicLink;
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
 import com.google.firebase.dynamiclinks.ShortDynamicLink;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -46,19 +46,21 @@ import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class ActivityAdDetails extends AppCompatActivity {
+public class ActivityPageAdDetails extends AppCompatActivity {
+ImageView imgBack;
     ViewPager2 pagerImages;
     TabLayout tabsImg;
     TextView tvTitle,tvPrice;
     TextView tvDescription,tvShipping,tvName;
     CircleImageView imgUser;
-    ImageView imgLike,imgBack,imgShare;
+    ImageView imgLike,imgShare;
     ImageView imgChat;
+    TextView tvReport;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_ad_details);
+        setContentView(R.layout.activity_page_ad_details);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -77,64 +79,108 @@ public class ActivityAdDetails extends AppCompatActivity {
         imgBack = findViewById(R.id.img_back);
         imgChat = findViewById(R.id.img_chat);
         imgShare = findViewById(R.id.img_share);
-
-        Ad ad = getIntent().getParcelableExtra("ad");
-        ImagePagerAdapter adapter = new ImagePagerAdapter(this,ad.getUrls());
-        pagerImages.setAdapter(adapter);
-
-        // Setup TabLayout with ViewPager
-        new TabLayoutMediator(tabsImg, pagerImages, (tab, position) -> {
-            // You can set custom tab view here if needed, for now, just add empty text
-            tab.setText("");
-        }).attach();
-
-        tvTitle.setText(ad.getTitle());
-        tvPrice.setText(ad.getCurrency()+" "+ad.getPrice());
-        tvDescription.setText(ad.getDescription());
-        if (ad.isShippingAvailable()){
-            tvShipping.setText(getString(R.string.can_be_shipped));
+        tvReport = findViewById(R.id.tv_report);
+        String lastPathSeg = getIntent().getStringExtra("adId");
+        String[] segs = lastPathSeg.split(":");
+        String adId="";
+        if (segs.length==2){
+            adId = segs[1];
         }else{
-            tvShipping.setText(getString(R.string.can__not_be_shipped));
+            ToastUtils.showShort("Invalid link");
+            startActivity(new Intent(ActivityPageAdDetails.this,MainActivity.class));
+            finish();
         }
+        imgBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(ActivityPageAdDetails.this,MainActivity.class));
+                finish();
+            }
+        });
 
-        if (ad.getLikedByUsers()!=null){
-            if (!ad.getLikedByUsers().isEmpty()){
-                if (ad.getLikedByUsers().contains(fIrebaseUser.getUid())){
-                    imgLike.setImageResource(R.drawable.heart_red);
-                }else{
-                    imgLike.setImageResource(R.drawable.heart);
+        getAdDetails(adId);
+    }
+
+    void getAdDetails(String adId){
+        ProgressDialog progressDialog = new ProgressDialog(ActivityPageAdDetails.this);
+        progressDialog.setCancelable(false);
+        progressDialog.setTitle(getString(R.string.please_wait));
+        progressDialog.setMessage(getString(R.string.fetching_ad));
+        progressDialog.show();
+
+        FirebaseDatabase.getInstance().getReference().child("ads").child(adId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                progressDialog.dismiss();
+                if (snapshot.exists()){
+                    LogUtils.e(snapshot);
                 }
+                FirebaseUser fIrebaseUser  = FirebaseAuth.getInstance().getCurrentUser();
+                if (fIrebaseUser==null){
+                    imgLike.setVisibility(View.INVISIBLE);
+                    tvReport.setVisibility(View.INVISIBLE);
+                    imgChat.setVisibility(View.INVISIBLE);
+
+                }
+                Ad ad = snapshot.getValue(Ad.class);
+                tvTitle.setText(ad.getTitle());
+                tvPrice.setText(ad.getCurrency()+" "+ad.getPrice());
+                tvDescription.setText(ad.getDescription());
+                if (ad.isShippingAvailable()){
+                    tvShipping.setText(getString(R.string.can_be_shipped));
+                }else{
+                    tvShipping.setText(getString(R.string.can__not_be_shipped));
+                }
+if (fIrebaseUser!=null){
+    if (ad.getLikedByUsers()!=null){
+        if (!ad.getLikedByUsers().isEmpty()){
+            if (ad.getLikedByUsers().contains(fIrebaseUser.getUid())){
+                imgLike.setImageResource(R.drawable.heart_red);
             }else{
                 imgLike.setImageResource(R.drawable.heart);
             }
         }else{
             imgLike.setImageResource(R.drawable.heart);
         }
+    }else{
+        imgLike.setImageResource(R.drawable.heart);
+    }
+}
 
-        getPostedBy(this,ad.getPostedBy(),tvName,imgUser);
-        imgLike.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleLike(ad,fIrebaseUser.getUid(),imgLike);
+
+                getPostedBy(ActivityPageAdDetails.this,ad.getPostedBy(),tvName,imgUser);
+                imgLike.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        toggleLike(ad,fIrebaseUser.getUid(),imgLike);
+                    }
+                });
+                imgChat.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        startActivity(new Intent(ActivityPageAdDetails.this,ActivityChat.class).putExtra("sellerId",ad.getPostedBy()));
+                    }
+                });
+                imgShare.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        ToastUtils.showShort("Please wait generating shareable link");
+                        createLinkWithMeta(ad,imgShare);
+                    }
+                });
+                ImagePagerAdapter adapter = new ImagePagerAdapter(ActivityPageAdDetails.this,ad.getUrls());
+                pagerImages.setAdapter(adapter);
+
+                // Setup TabLayout with ViewPager
+                new TabLayoutMediator(tabsImg, pagerImages, (tab, position) -> {
+                    // You can set custom tab view here if needed, for now, just add empty text
+                    tab.setText("");
+                }).attach();
             }
-        });
-        imgBack.setOnClickListener(new View.OnClickListener() {
+
             @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
-        imgChat.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(ActivityAdDetails.this,ActivityChat.class).putExtra("sellerId",ad.getPostedBy()));
-            }
-        });
-        imgShare.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ToastUtils.showShort("Please wait generating shareable link");
-                createLinkWithMeta(ad,imgShare);
+            public void onCancelled(@NonNull DatabaseError error) {
+                progressDialog.dismiss();
             }
         });
     }
@@ -146,16 +192,16 @@ public class ActivityAdDetails extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()){
-                            // LogUtils.e(snapshot);
-                            //   for (DataSnapshot dataSnapshot : snapshot.getChildren()){
-                            User user = new User();
-                            user.setEmail(snapshot.child("email").getValue(String.class));
-                            // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
-                            user.setName(snapshot.child("name").getValue(String.class));
-                            postedBy.setText(user.getName());
-                            if (snapshot.hasChild("profileImage")){
-                                user.setProfileImage(snapshot.child("profileImage").getValue(String.class));
-                                Glide.with(context).load(user.getProfileImage()).into(circleImageView);
+                    // LogUtils.e(snapshot);
+                    //   for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                    User user = new User();
+                    user.setEmail(snapshot.child("email").getValue(String.class));
+                    // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
+                    user.setName(snapshot.child("name").getValue(String.class));
+                    postedBy.setText(user.getName());
+                    if (snapshot.hasChild("profileImage")){
+                        user.setProfileImage(snapshot.child("profileImage").getValue(String.class));
+                        Glide.with(context).load(user.getProfileImage()).into(circleImageView);
                     }else{
                         circleImageView.setImageResource(R.drawable.outline_account_circle_24);
                     }
@@ -217,7 +263,7 @@ public class ActivityAdDetails extends AppCompatActivity {
         btnShare.setClickable(false);
         btnShare.setEnabled(false);
         String mediaUrl;
-        mediaUrl = ad.getUrls().get(0);
+        mediaUrl = ad.getUrls().get(0);LogUtils.e(mediaUrl);
 
         FirebaseDynamicLinks.getInstance().createDynamicLink()
                 .setLink(Uri.parse("https://classifiedadsapplication.page.link/ad-view:" + ad.getId()))

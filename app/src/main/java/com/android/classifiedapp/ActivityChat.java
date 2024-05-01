@@ -69,13 +69,16 @@ public class ActivityChat extends AppCompatActivity {
                     return;
                 }
                 DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats").child(sellerId).push();
+                DatabaseReference sellerChatRef = FirebaseDatabase.getInstance().getReference().child("users").child(sellerId).child("chats").child(currentUserId).push();
             String messageId = databaseReference.getKey();
                 Message message = new Message();
                 message.setSenderId(currentUserId);
                 message.setReceiverId(sellerId);
                 message.setMessage(etMessage.getText().toString().trim());
                 message.setMessageId(messageId);
+                message.setTimestamp(System.currentTimeMillis());
                 databaseReference.setValue(message);
+                sellerChatRef.setValue(message);
             }
         });
         imgBack.setOnClickListener(new View.OnClickListener() {

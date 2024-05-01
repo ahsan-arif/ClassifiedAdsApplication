@@ -25,6 +25,9 @@ public class Ad implements Parcelable {
     String postedOn;
     List<String> likedByUsers;
 
+    Double latitude,longitude;
+    String address;
+
     public Ad() {
     }
 
@@ -42,6 +45,9 @@ public class Ad implements Parcelable {
         postedBy = in.readString();
         postedOn = in.readString();
         likedByUsers = in.createStringArrayList();
+        latitude = in.readDouble();
+        longitude = in.readDouble();
+        address = in.readString();
     }
 
     public static final Creator<Ad> CREATOR = new Creator<Ad>() {
@@ -160,6 +166,30 @@ public class Ad implements Parcelable {
         this.likedByUsers = likedByUsers;
     }
 
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -180,5 +210,8 @@ public class Ad implements Parcelable {
         dest.writeString(postedBy);
         dest.writeString(postedOn);
         dest.writeStringList(likedByUsers);
+        dest.writeDouble(latitude);
+        dest.writeDouble(longitude);
+        dest.writeString(address);
     }
 }

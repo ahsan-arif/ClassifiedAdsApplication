@@ -6,6 +6,7 @@ public class Message {
     String message;
 
     String messageId;
+    long timestamp;
 
     public String getSenderId() {
         return senderId;
@@ -37,5 +38,13 @@ public class Message {
 
     public void setMessageId(String messageId) {
         this.messageId = messageId;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 }

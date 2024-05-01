@@ -15,6 +15,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.android.classifiedapp.adapters.HomeCategoriesAdapter;
 import com.android.classifiedapp.fragments.FragmentAddProduct;
+import com.android.classifiedapp.fragments.FragmentChats;
 import com.android.classifiedapp.fragments.FragmentHome;
 import com.android.classifiedapp.fragments.FragmentProfile;
 import com.android.classifiedapp.models.Category;
@@ -62,6 +63,8 @@ public class Home extends AppCompatActivity {
                     startFragment(getSupportFragmentManager(),new FragmentProfile());
                 }else if(menuItem.getItemId() == R.id.item_sell){
                     startFragment(getSupportFragmentManager(),new FragmentAddProduct());
+                }else if (menuItem.getItemId() == R.id.item_chat){
+                    startFragment(getSupportFragmentManager(),new FragmentChats());
                 }
                 return true;
             }
@@ -82,7 +85,6 @@ public class Home extends AppCompatActivity {
     public void startFragment(FragmentManager manager, Fragment fragment) {
         FragmentTransaction transaction = manager.beginTransaction();
         transaction.replace(R.id.container, fragment);
-        transaction.addToBackStack(null);
         transaction.commit();
     }
 

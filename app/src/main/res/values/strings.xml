@@ -53,7 +53,7 @@
     <string name="product_images">Product Images</string>
     <string name="pick_images">Pick Images</string>
     <string name="currency">Currency</string>
-    <string name="places_api_key">AIzaSyABOR5tw9x2o7Jm9WcaNe3wxNxr_Phh_4I</string>
+    <string name="places_api_key">AIzaSyDiRMCKUJpeycJlUxxN8GWzcYAGC3vodrs</string>
     <string name="create_ad">Create Ad</string>
     <string name="select_category">Select Category</string>
     <string name="select_subcategory">Select Subcategory</string>
@@ -70,4 +70,5 @@
     <string name="report_item">Report Item</string>
     <string name="chats">Chats</string>
     <string name="type_som_ething">Type som«ething...</string>
+    <string name="fetching_ad">Fetching Classified Advertisement</string>
 </resources>
