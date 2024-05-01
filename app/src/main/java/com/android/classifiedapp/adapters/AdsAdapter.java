@@ -58,6 +58,7 @@ public class AdsAdapter extends RecyclerView.Adapter<AdsAdapter.ProductsViewHold
 Ad ad = ads.get(position);
 holder.tvTitle.setText(ad.getTitle());
 holder.tvPrice.setText(ad.getCurrency()+" "+ad.getPrice());
+holder.tvAddress.setText(ad.getAddress());
         Glide.with(context).load(ad.getUrls().get(0)).into(holder.imgProduct);
 String posted = context.getString(R.string.posted);
 long timestamp = Long.parseLong(ad.getPostedOn());
@@ -106,7 +107,7 @@ long timestamp = Long.parseLong(ad.getPostedOn());
     }
 
     class ProductsViewHolder extends RecyclerView.ViewHolder{
-TextView tvTitle,tvPrice,tvPostedOn,tvPostedBy;
+TextView tvTitle,tvPrice,tvPostedOn,tvPostedBy,tvAddress;
 ImageView imgProduct,imgLike;
 CircleImageView imgUser;
         public ProductsViewHolder(@NonNull View itemView) {
@@ -118,6 +119,7 @@ CircleImageView imgUser;
             tvPostedBy = itemView.findViewById(R.id.tv_postedBy);
             imgUser = itemView.findViewById(R.id.img_user);
             imgLike = itemView.findViewById(R.id.img_like);
+            tvAddress = itemView.findViewById(R.id.tv_address);
         }
     }
 
