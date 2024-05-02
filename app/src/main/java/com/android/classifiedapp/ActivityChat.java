@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.android.classifiedapp.adapters.MessagesAdapter;
 import com.android.classifiedapp.models.Message;
 import com.android.classifiedapp.models.User;
+import com.android.classifiedapp.utilities.FCMSender;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -143,5 +144,11 @@ public class ActivityChat extends AppCompatActivity {
 
             }
         });
+    }
+
+    void sendPushNotification(String receiverFCM,String message){
+        FCMSender sender = new FCMSender();
+        sender.send(message);
+
     }
 }

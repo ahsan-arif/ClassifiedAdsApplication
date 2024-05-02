@@ -136,6 +136,7 @@ CircleImageView imgUser;
                         user.setEmail(snapshot.child("email").getValue(String.class));
                         // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
                         user.setName(snapshot.child("name").getValue(String.class));
+                        user.setFcmToken(snapshot.child("fcmToken").getValue(String.class));
                         postedBy.setText(user.getName());
                         if (snapshot.hasChild("profileImage")){
                             user.setProfileImage(snapshot.child("profileImage").getValue(String.class));

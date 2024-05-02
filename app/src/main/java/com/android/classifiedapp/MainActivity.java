@@ -152,7 +152,7 @@ signIn(gso);
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()){
-                        startActivity(new Intent(MainActivity.this,ActivityLogin.class));
+                        startActivity(new Intent(MainActivity.this,ActivityVerifyLogin.class).putExtra("email",account.getEmail()));
                     }else{
                         startActivity(new Intent(MainActivity.this,SignUp.class)
                                 .putExtra("fname",account.getDisplayName())

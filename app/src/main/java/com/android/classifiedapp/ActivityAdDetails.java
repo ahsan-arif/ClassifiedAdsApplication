@@ -23,6 +23,11 @@ import com.android.classifiedapp.models.User;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.tabs.TabLayout;
@@ -54,6 +59,7 @@ public class ActivityAdDetails extends AppCompatActivity {
     CircleImageView imgUser;
     ImageView imgLike,imgBack,imgShare;
     ImageView imgChat;
+    private GoogleMap googleMap;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +87,19 @@ public class ActivityAdDetails extends AppCompatActivity {
         Ad ad = getIntent().getParcelableExtra("ad");
         ImagePagerAdapter adapter = new ImagePagerAdapter(this,ad.getUrls());
         pagerImages.setAdapter(adapter);
+
+        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map_fragment);
+        // Initialize the map
+        mapFragment.getMapAsync(googleMap -> {
+            this.googleMap = googleMap;
+
+            // Add a marker at a specific location
+            LatLng markerLocation = new LatLng(ad.getLatitude(), ad.getLongitude()); // San Francisco, CA
+            googleMap.addMarker(new MarkerOptions().position(markerLocation).title(ad.getTitle()));
+
+            // Move the camera to the marker location and zoom in
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerLocation, 12));
+        });
 
         // Setup TabLayout with ViewPager
         new TabLayoutMediator(tabsImg, pagerImages, (tab, position) -> {
@@ -152,6 +171,7 @@ public class ActivityAdDetails extends AppCompatActivity {
                             user.setEmail(snapshot.child("email").getValue(String.class));
                             // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
                             user.setName(snapshot.child("name").getValue(String.class));
+                    user.setFcmToken(snapshot.child("fcmToken").getValue(String.class));
                             postedBy.setText(user.getName());
                             if (snapshot.hasChild("profileImage")){
                                 user.setProfileImage(snapshot.child("profileImage").getValue(String.class));

@@ -21,12 +21,16 @@ import com.android.classifiedapp.fragments.FragmentProfile;
 import com.android.classifiedapp.models.Category;
 import com.android.classifiedapp.models.Currency;
 import com.blankj.utilcode.util.LogUtils;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,6 +74,7 @@ public class Home extends AppCompatActivity {
             }
         });
         bottomNavigation.setSelectedItemId(R.id.item_home);
+        getFCMToken();
     }
 
     void insertData(String currency,String country,String url){
@@ -86,6 +91,25 @@ public class Home extends AppCompatActivity {
         FragmentTransaction transaction = manager.beginTransaction();
         transaction.replace(R.id.container, fragment);
         transaction.commit();
+    }
+
+    void getFCMToken(){
+        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
+            @Override
+            public void onComplete(@NonNull Task<String> task) {
+                if (task.isSuccessful()){
+                    String token = task.getResult();
+                    updateUserToken(token);
+                    LogUtils.e(token);
+                }
+            }
+        });
+    }
+
+    void updateUserToken(String token){
+        DatabaseReference reference =  FirebaseDatabase.getInstance().getReference().child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("fcmToken");
+        reference.setValue(token);
+
     }
 
 }

@@ -191,16 +191,30 @@
                 />
         </RelativeLayout>
 
+        <fragment
+            android:id="@+id/map_fragment"
+            android:name="com.google.android.gms.maps.MapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:layout_below="@+id/vg_user"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="?actionBarSize"
+            />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="@string/report_item"
-            android:layout_below="@+id/vg_user"
+            android:layout_alignParentBottom="true"
             android:layout_margin="8dp"
-            android:textColor="@color/teal_700"
+            android:textColor="@color/red"
             android:textStyle="bold"
             android:textSize="16sp"
+            android:padding="8dp"
+            android:background="@drawable/bg_report_btn"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
             />
 
     </RelativeLayout>
