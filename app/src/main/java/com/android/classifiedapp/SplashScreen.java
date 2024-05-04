@@ -28,9 +28,16 @@ public class SplashScreen extends AppCompatActivity {
         Uri appLinkData = appLinkIntent.getData();
         if (appLinkData!=null){
             String adId = appLinkData.getLastPathSegment();
-            LogUtils.e(adId);
-            startActivity(new Intent(this,ActivityPageAdDetails.class).putExtra("adId",adId));
-            finish();
+            if (adId.contains("ad")){
+                LogUtils.e(adId);
+                startActivity(new Intent(this,ActivityPageAdDetails.class).putExtra("adId",adId));
+                finish();
+            }else if (adId.contains("chat")){
+                String[] ids = adId.split(":");
+                startActivity(new Intent(this,ActivityChat.class).putExtra("sellerId",ids[1]));
+                finish();
+            }
+
         }else{
             startActivity(new Intent(SplashScreen.this,MainActivity.class));
             finish();

@@ -1,5 +1,7 @@
 package com.android.classifiedapp;
 
+import static com.android.classifiedapp.utilities.FireNotification.getAccessToken;
+
 import android.os.Bundle;
 import android.view.MenuItem;
 
@@ -18,12 +20,15 @@ import com.android.classifiedapp.fragments.FragmentAddProduct;
 import com.android.classifiedapp.fragments.FragmentChats;
 import com.android.classifiedapp.fragments.FragmentHome;
 import com.android.classifiedapp.fragments.FragmentProfile;
+import com.android.classifiedapp.fragments.FragmentRandom;
 import com.android.classifiedapp.models.Category;
 import com.android.classifiedapp.models.Currency;
+import com.android.classifiedapp.utilities.SharedPrefManager;
 import com.blankj.utilcode.util.LogUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -32,11 +37,19 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Home extends AppCompatActivity {
     BottomNavigationView bottomNavigation;
+    private static final String[] SCOPES = {"https://www.googleapis.com/auth/firebase.messaging"};
+    private GoogleCredentials googleCredentials;
+    private InputStream jasonfile;
+    private String beaerertoken;
+    private String BEARERTOKEN;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,6 +68,12 @@ public class Home extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        try {
+            getAccessToken();
+        } catch (IOException e) {
+            LogUtils.e(e);
+            //throw new RuntimeException(e);
+        }
 
         bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -69,6 +88,8 @@ public class Home extends AppCompatActivity {
                     startFragment(getSupportFragmentManager(),new FragmentAddProduct());
                 }else if (menuItem.getItemId() == R.id.item_chat){
                     startFragment(getSupportFragmentManager(),new FragmentChats());
+                }else if (menuItem.getItemId() == R.id.item_random){
+                    startFragment(getSupportFragmentManager(),new FragmentRandom());
                 }
                 return true;
             }
@@ -100,7 +121,7 @@ public class Home extends AppCompatActivity {
                 if (task.isSuccessful()){
                     String token = task.getResult();
                     updateUserToken(token);
-                    LogUtils.e(token);
+                   // LogUtils.e(token);
                 }
             }
         });
@@ -110,6 +131,27 @@ public class Home extends AppCompatActivity {
         DatabaseReference reference =  FirebaseDatabase.getInstance().getReference().child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("fcmToken");
         reference.setValue(token);
 
+    }
+
+    private void getAccessToken() throws IOException {
+        LogUtils.e(getPackageName());
+        jasonfile = getResources().openRawResource(getApplicationContext().getResources().getIdentifier("service_account", "raw", getPackageName()));
+        new Thread(() -> {
+            try {
+                googleCredentials = GoogleCredentials
+                        .fromStream(jasonfile)
+                        .createScoped(Arrays.asList(SCOPES));
+                googleCredentials.refreshAccessToken().getTokenValue();
+                beaerertoken = googleCredentials.refreshAccessToken().getTokenValue();
+                //LogUtils.e("beaerertoken:  " + beaerertoken);
+                BEARERTOKEN = beaerertoken;
+                SharedPrefManager.getInstance(Home.this).setAccessToken(beaerertoken);
+                LogUtils.e(beaerertoken);
+            } catch (IOException e) {
+                LogUtils.e("In error statement");
+                e.printStackTrace();
+            }
+        }).start();
     }
 
 }

@@ -70,9 +70,18 @@
     <string name="can__not_be_shipped">Shipping not applicable</string>
     <string name="report_item">Report Item</string>
     <string name="chats">Chats</string>
-    <string name="type_som_ething">Type som«ething...</string>
+    <string name="type_som_ething">Type something...</string>
     <string name="fetching_ad">Fetching Classified Advertisement</string>
     <string name="verifying_its_you">Verifying its you</string>
     <string name="please_enter_your_password_to_login_to_the_system">Please enter password for </string>
     <string name="invalid_email">Invalid email</string>
+    <string name="creating_account">Creating account</string>
+    <string name="quick_filters">Quick Filters</string>
+    <string name="tap_here_to_select_location">Tap here to select a location</string>
+    <string name="select_a_category_to_see_subcategories">Select a category to see corresponding categories</string>
+    <string name="price_range">Price Range</string>
+    <string name="to">To</string>
+    <string name="apply_filters">Apply Filters</string>
+    <string name="filtered_ads">Filtered Ads</string>
+    <string name="no_ads_filter">No Listings Match Your Filter</string>
 </resources>

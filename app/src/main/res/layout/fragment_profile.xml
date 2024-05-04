@@ -27,6 +27,39 @@
             android:layout_marginEnd="16dp"
             android:layout_weight="1"
             >
+
+                <androidx.coordinatorlayout.widget.CoordinatorLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    >
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:id="@+id/img_profile"
+                            android:layout_gravity="center_horizontal"
+                            android:src="@drawable/outline_account_circle_24"
+                            />
+                        <ProgressBar
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
+                            android:id="@+id/progress_circular"
+                            android:visibility="gone"
+                            />
+                        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/fab_update_profile_img"
+                            app:fabSize="mini"
+                            app:layout_anchor="@id/img_profile"
+                            app:layout_anchorGravity="bottom|right|end"
+                            android:src="@drawable/baseline_add_24"
+                            app:tint="@color/white"
+                            app:fabCustomSize="28dp"
+                            android:layout_marginTop="12dp"
+                            />
+
+                </androidx.coordinatorlayout.widget.CoordinatorLayout>
                 <com.google.android.material.textfield.TextInputLayout
 
                     android:layout_width="match_parent"
@@ -49,6 +82,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/email"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
                     android:layout_marginTop="16dp"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -57,6 +92,8 @@
                             android:layout_height="wrap_content"
                             android:inputType="textEmailAddress"
                             android:id="@+id/et_email"
+                            android:focusable="false"
+                            android:focusableInTouchMode="false"
                             />
 
                 </com.google.android.material.textfield.TextInputLayout>

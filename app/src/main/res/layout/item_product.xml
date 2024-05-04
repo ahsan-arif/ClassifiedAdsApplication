@@ -96,16 +96,16 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content">
                     <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@drawable/location"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_outline_location_on_24"
                         />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/app_name"
                         android:id="@+id/tv_address"
-                        android:maxLength="15"
+                        android:singleLine="true"
                         />
                 </LinearLayout>
             </LinearLayout>

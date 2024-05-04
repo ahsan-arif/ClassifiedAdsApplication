@@ -1,5 +1,7 @@
 package com.android.classifiedapp;
 
+import static com.android.classifiedapp.utilities.FireNotification.getAccessToken;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -22,16 +24,19 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.classifiedapp.utilities.SharedPrefManager;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.google.android.gms.auth.api.identity.SignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.ActionCodeSettings;
 import com.google.firebase.auth.AuthResult;
@@ -44,6 +49,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+
 //import com.google.firebase.FirebaseApp;
 
 public class MainActivity extends AppCompatActivity {
@@ -52,7 +61,6 @@ LinearLayout btnGoogleSignIn;
     private static final int RC_SIGN_IN = 9001;
     private ActivityResultLauncher<Intent> signInLauncher;
     private static final String TAG = "MainActivity";
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -60,6 +68,7 @@ LinearLayout btnGoogleSignIn;
         btnGoogleSignIn = findViewById(R.id.btn_google_sign_in);
         FirebaseApp.initializeApp(getApplicationContext());
         FirebaseUser user= FirebaseAuth.getInstance().getCurrentUser();
+
         if (!Places.isInitialized()) {
             Places.initialize(getApplicationContext(), getString(R.string.places_api_key));
         }
@@ -74,7 +83,8 @@ LinearLayout btnGoogleSignIn;
                 //.requestIdToken(getString(R.string.google_client_id))
                 .requestEmail()
                 .build();
-        GoogleSignIn.getClient(this, gso);
+        GoogleSignInClient signInClient = GoogleSignIn.getClient(this, gso);
+        signInClient.signOut();
         SpannableString spannableString = new SpannableString("Signup or login with email");
 
         // Create ClickableSpan for "Signup"
@@ -131,13 +141,13 @@ LinearLayout btnGoogleSignIn;
         btnGoogleSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-signIn(gso);
+signIn(signInClient);
             }
         });
 
     }
-    private void signIn(GoogleSignInOptions gso) {
-        Intent signInIntent = GoogleSignIn.getClient(this, gso).getSignInIntent();
+    private void signIn(GoogleSignInClient signInClient) {
+        Intent signInIntent = signInClient.getSignInIntent();
         signInLauncher.launch(signInIntent);
     }
 
@@ -171,5 +181,7 @@ signIn(gso);
             Toast.makeText(this, "Sign in failed "+e.getStatusCode(), Toast.LENGTH_SHORT).show();
         }
     }
+
+
 }
 

@@ -3,6 +3,7 @@ package com.android.classifiedapp;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -60,9 +61,25 @@ TextInputEditText etPassword;
                 String email = etEmail.getText().toString().trim();
                 String password = etPassword.getText().toString().trim();
 
+                if (email.isEmpty()){
+                    etEmail.setError(getString(R.string.cannot_be_empty));
+                    return;
+                }if (password.isEmpty()){
+                    etPassword.setError(getString(R.string.cannot_be_empty));
+                    return;
+                }
+
+                ProgressDialog progressDialog = new ProgressDialog(SignUp.this);
+                progressDialog.setCancelable(false);
+                progressDialog.setTitle(getString(R.string.please_wait));
+                progressDialog.setMessage(getString(R.string.creating_account));
+                progressDialog.show();
+
+
                 mAuth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
+                        progressDialog.dismiss();
                         if (task.isSuccessful()) {
                             // Account creation successful
                             // Handle success scenario (e.g., navigate to home screen)
@@ -77,6 +94,7 @@ TextInputEditText etPassword;
                             startActivity(new Intent(SignUp.this, Home.class));
                             finish();
                         } else {
+                            progressDialog.dismiss();
                             // Account creation failed
                             // Handle failure scenario (e.g., show error message)
                             Exception e = task.getException();

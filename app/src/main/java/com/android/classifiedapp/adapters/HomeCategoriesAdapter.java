@@ -37,7 +37,7 @@ Context context;
         Category category = categories.get(position);
 
         holder.tvCategory.setText(category.getName());
-        LogUtils.e(category.getImageUrl());
+        //LogUtils.e(category.getImageUrl());
         Glide.with(context).load(category.getImageUrl()).into(holder.imgCategory);
     }
 

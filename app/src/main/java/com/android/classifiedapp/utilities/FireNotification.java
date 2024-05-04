@@ -15,6 +15,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.blankj.utilcode.util.LogUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
@@ -30,8 +31,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FireNotification {
-    public static void prepNotification(String token, Context context, String title, String body, String authID) {
-
+    public static void prepNotification(String token, Context context, String title, String body) {
+        LogUtils.e("prepNotification");
         JSONObject message = new JSONObject();
         JSONObject to = new JSONObject();
         JSONObject data = new JSONObject();
@@ -45,12 +46,12 @@ public class FireNotification {
             message.put("message", to);
             if (token != null) {
                 sentNotification(message, context);
-            Log.e("PostDetail_makeOffer", "sentNotification:-------------------------------------------------------- "+token );
+            LogUtils.e("PostDetail_makeOffer", "sentNotification:-------------------------------------------------------- "+token );
 
 
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            LogUtils.e(e.getMessage()) ;
         }
 
 
@@ -60,11 +61,11 @@ public class FireNotification {
     private static void sentNotification(JSONObject to, Context context) {
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, NOTIFICATION_URL,to, response -> {
-            Log.e("PostDetail_makeOffer", "sentNotification:--------------------------------------------------------response "+response );
+            LogUtils.e("PostDetail_makeOffer", "sentNotification:--------------------------------------------------------response "+response );
 
         },error -> {
-            Log.e("PostDetail_makeOffer", "sentNotification:--------------------------------------------------------error network response  "+error.networkResponse );
-            Log.e("PostDetail_makeOffer", "sentNotification:--------------------------------------------------------error response "+error );
+            LogUtils.e("PostDetail_makeOffer", "sentNotification:--------------------------------------------------------error network response  "+error.networkResponse );
+            LogUtils.e("PostDetail_makeOffer", "sentNotification:--------------------------------------------------------error response "+error );
         }){
             @Override
             public Map<String, String> getHeaders() {
@@ -97,7 +98,7 @@ public class FireNotification {
 
     }
 
-    private static String getAccessToken(Context context) throws IOException {
+    public static String getAccessToken(Context context) throws IOException {
         InputStream inputStream = context.getResources().openRawResource(R.raw.service_account);
 
         GoogleCredentials googleCredential = GoogleCredentials
@@ -105,7 +106,7 @@ public class FireNotification {
                 .createScoped(Arrays.asList(SCOPES));
         googleCredential.refresh();
 
-        Log.i("PostDetail_makeOffer", "FireNotification java class getAccessToken: " + googleCredential.toString());
+        LogUtils.e("PostDetail_makeOffer", "FireNotification java class getAccessToken: " + googleCredential.toString());
         return googleCredential.getAccessToken().getTokenValue();
     }
 

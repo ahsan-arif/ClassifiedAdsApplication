@@ -1,77 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<ScrollView
+    android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
+    android:nestedScrollingEnabled="false"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     tools:context=".ActivityChat">
-
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="12dp"
-        android:gravity="center_vertical"
-        android:id="@+id/view_chats"
-        >
-        <ImageView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-
-            android:src="@drawable/ic_baseline_keyboard_backspace_24"
-            android:id="@+id/img_back"
-            />
-
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:id="@+id/img_user"
-            />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/chats"
-            android:id="@+id/tv_userName"
-            android:textSize="16sp"
-            android:textColor="@color/black"
-            android:textStyle="bold"
-            android:layout_marginStart="12dp"
-            />
-    </LinearLayout>
-   <androidx.recyclerview.widget.RecyclerView
-       android:layout_width="match_parent"
-       android:layout_height="match_parent"
-       android:layout_below="@+id/view_chats"
-       android:layout_marginStart="12dp"
-       android:layout_marginEnd="12dp"
-       android:id="@+id/rv_messages"
-       android:layout_marginBottom="?attr/actionBarSize"
-       />
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:gravity="center_vertical"
-        >
-        <EditText
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:id="@+id/et_message"
+        android:orientation="vertical"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="12dp"
-            android:hint="@string/type_som_ething"
+            android:gravity="center_vertical"
+            android:id="@+id/view_chats"
+            >
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+
+                android:src="@drawable/ic_baseline_keyboard_backspace_24"
+                android:id="@+id/img_back"
+                />
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:id="@+id/img_user"
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/chats"
+                android:id="@+id/tv_userName"
+                android:textSize="16sp"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:layout_marginStart="12dp"
+                />
+        </LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/view_chats"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:id="@+id/rv_messages"
+            android:layout_marginBottom="60dp"
             />
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/send"
-            android:id="@+id/btn_send"
-            android:layout_marginEnd="8dp"
-            />
-    </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_gravity="bottom"
+            android:gravity="center_vertical"
+            android:layout_alignParentBottom="true"
+            >
+            <EditText
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:id="@+id/et_message"
+                android:layout_height="wrap_content"
+                android:layout_margin="12dp"
+                android:windowSoftInputMode="adjustPan"
+                android:hint="@string/type_som_ething"
+                />
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/send"
+                android:id="@+id/btn_send"
+                android:padding="4dp"
+                app:fabSize="mini"
+                app:tint="@color/white"
+                android:layout_marginEnd="8dp"
+                />
+        </LinearLayout>
+    </RelativeLayout>
 
 
 
 
-</RelativeLayout>
+
+
+</ScrollView>

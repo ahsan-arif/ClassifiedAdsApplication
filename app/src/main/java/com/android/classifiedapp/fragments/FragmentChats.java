@@ -145,7 +145,7 @@ public class FragmentChats extends Fragment {
     }*/
 
     void getChats(){
-        FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats").addListenerForSingleValueEvent(new ValueEventListener() {
+        FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()){
