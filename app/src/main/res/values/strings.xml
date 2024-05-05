@@ -84,4 +84,8 @@
     <string name="apply_filters">Apply Filters</string>
     <string name="filtered_ads">Filtered Ads</string>
     <string name="no_ads_filter">No Listings Match Your Filter</string>
+    <string name="my_wishlist">My Wishlist</string>
+    <string name="you_donot_have_any_listing_in_your_wishlist">You don\'t have any listing in your wishlist</string>
+    <string name="no_listing_posted">You have not posted any listing yet</string>
+    <string name="my_listings">My Listings</string>
 </resources>

@@ -38,7 +38,15 @@ public class AdsAdapter extends RecyclerView.Adapter<AdsAdapter.ProductsViewHold
     Context context;
     OnAdClickListener listener;
 
-    public AdsAdapter(ArrayList<Ad> ads, Context context,OnAdClickListener listener) {
+    boolean isWishlist;
+
+    public AdsAdapter(ArrayList<Ad> ads, Context context, boolean isWishlist) {
+        this.ads = ads;
+        this.context = context;
+        this.isWishlist = isWishlist;
+    }
+
+    public AdsAdapter(ArrayList<Ad> ads, Context context, OnAdClickListener listener) {
         this.ads = ads;
         this.context = context;
         this.listener = listener;
@@ -86,7 +94,7 @@ long timestamp = Long.parseLong(ad.getPostedOn());
         holder.imgLike.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-             toggleLike(ad,fIrebaseUser.getUid(),holder.getAdapterPosition(),holder.imgLike);
+             toggleLike(ad,fIrebaseUser.getUid(),holder.getAdapterPosition(),holder.imgLike,isWishlist);
             }
         });
 
@@ -159,7 +167,7 @@ CircleImageView imgUser;
         void onLikeClicked(Ad ad, ImageView imageView);
     }
 
-    private void toggleLike(Ad ad, String currentUserId,int position,ImageView imageView) {
+    private void toggleLike(Ad ad, String currentUserId,int position,ImageView imageView,boolean isWishlist) {
         LogUtils.e(position);
         DatabaseReference postRef = FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId()).child("likedByUsers");
         postRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -183,6 +191,9 @@ CircleImageView imgUser;
                     likedByUsers.remove(currentUserId);
                     imageView.setImageResource(R.drawable.heart);
                     LogUtils.e("removing");
+                    if (isWishlist){
+                        removeAd(ad);
+                    }
                     postRef.setValue(likedByUsers);
                 }
                 else {
@@ -201,5 +212,9 @@ CircleImageView imgUser;
 
             }
         });
+    }
+    public void removeAd(Ad ad) {
+      ads.remove(ad);
+      notifyDataSetChanged();
     }
 }

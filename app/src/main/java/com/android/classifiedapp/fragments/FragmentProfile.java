@@ -14,6 +14,7 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 
 import android.provider.MediaStore;
@@ -24,6 +25,8 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.android.classifiedapp.ActivityMyAds;
+import com.android.classifiedapp.ActivityMyWishlist;
 import com.android.classifiedapp.MainActivity;
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.models.User;
@@ -84,6 +87,8 @@ public class FragmentProfile extends Fragment {
 
     ProgressBar progressCircular;
     CircleImageView imgProfile;
+    CardView cardWishlist;
+    CardView cardMyListings;
 
     public FragmentProfile() {
         // Required empty public constructor
@@ -127,6 +132,8 @@ public class FragmentProfile extends Fragment {
         fabUpdateProfileImg = view.findViewById(R.id.fab_update_profile_img);
         progressCircular = view.findViewById(R.id.progress_circular);
         imgProfile = view.findViewById(R.id.img_profile);
+        cardWishlist = view.findViewById(R.id.card_wishlist);
+        cardMyListings = view.findViewById(R.id.card_my_listings);
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         getUserDetails(user.getUid());
@@ -173,6 +180,19 @@ public class FragmentProfile extends Fragment {
                         }
                     }
                 });
+            }
+        });
+
+        cardWishlist.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getContext(), ActivityMyWishlist.class));
+            }
+        });
+        cardMyListings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getContext(), ActivityMyAds.class));
             }
         });
 
