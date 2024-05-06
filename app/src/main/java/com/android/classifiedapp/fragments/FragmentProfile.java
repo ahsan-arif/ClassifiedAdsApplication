@@ -3,6 +3,9 @@ package com.android.classifiedapp.fragments;
 import static android.app.Activity.RESULT_OK;
 
 import android.Manifest;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -14,6 +17,7 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 
@@ -24,20 +28,28 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.classifiedapp.ActivityMyAds;
 import com.android.classifiedapp.ActivityMyWishlist;
+import com.android.classifiedapp.ActivityVerifyLogin;
 import com.android.classifiedapp.MainActivity;
 import com.android.classifiedapp.R;
+import com.android.classifiedapp.adapters.MyAdsAdapter;
+import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.User;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.bumptech.glide.Glide;
 import com.github.dhaval2404.imagepicker.ImagePicker;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -68,7 +80,7 @@ import kotlin.jvm.internal.Intrinsics;
  * Use the {@link FragmentProfile#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class FragmentProfile extends Fragment {
+public class FragmentProfile extends Fragment  {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -89,6 +101,8 @@ public class FragmentProfile extends Fragment {
     CircleImageView imgProfile;
     CardView cardWishlist;
     CardView cardMyListings;
+
+    TextView tvDeleteAccount;
 
     public FragmentProfile() {
         // Required empty public constructor
@@ -134,6 +148,7 @@ public class FragmentProfile extends Fragment {
         imgProfile = view.findViewById(R.id.img_profile);
         cardWishlist = view.findViewById(R.id.card_wishlist);
         cardMyListings = view.findViewById(R.id.card_my_listings);
+        tvDeleteAccount = view.findViewById(R.id.tv_delete_account);
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         getUserDetails(user.getUid());
@@ -193,6 +208,12 @@ public class FragmentProfile extends Fragment {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(getContext(), ActivityMyAds.class));
+            }
+        });
+        tvDeleteAccount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+showAlert();
             }
         });
 
@@ -302,11 +323,29 @@ public class FragmentProfile extends Fragment {
 
                 }
             });
-
     }
 
     void updaterUserImage(String imgUrl,String currentUserId){
         DatabaseReference databaseReference= FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("profileImage");
         databaseReference.setValue(imgUrl);
+    }
+
+    void showAlert(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+
+        builder.setTitle(getString(R.string.are_you_sure));
+
+        builder.setMessage(getString(R.string.do_you_really));
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+               // ToastUtils.showShort("yes");
+                startActivity(new Intent(getContext(), ActivityVerifyLogin.class)
+                        .putExtra("email",FirebaseAuth.getInstance().getCurrentUser().getEmail())
+                        .putExtra("isDeleteProfile",true));
+            }
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
     }
 }

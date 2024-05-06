@@ -95,6 +95,9 @@ public class ActivityAdDetails extends AppCompatActivity {
         imgShare = findViewById(R.id.img_share);
 
         Ad ad = getIntent().getParcelableExtra("ad");
+        if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
+            imgChat.setVisibility(View.GONE);
+        }
         ImagePagerAdapter adapter = new ImagePagerAdapter(this,ad.getUrls());
         pagerImages.setAdapter(adapter);
 

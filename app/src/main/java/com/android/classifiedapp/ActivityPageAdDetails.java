@@ -139,6 +139,9 @@ ImageView imgBack;
 
                 }
                 Ad ad = snapshot.getValue(Ad.class);
+                if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
+                    imgChat.setVisibility(View.GONE);
+                }
                 LogUtils.e(ad.getTitle());
                 tvTitle.setText(ad.getTitle());
                 tvPrice.setText(ad.getCurrency()+" "+ad.getPrice());

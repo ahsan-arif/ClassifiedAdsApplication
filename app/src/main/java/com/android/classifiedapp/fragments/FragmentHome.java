@@ -1,5 +1,6 @@
 package com.android.classifiedapp.fragments;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -13,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.android.classifiedapp.ActivitySelectFilters;
 import com.android.classifiedapp.Home;
@@ -41,6 +43,7 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
     HomeCategoriesAdapter homeCategoriesAdapter;
     RecyclerView rvCategories,rv_ads;
     LinearLayout vgFilters;
+    TextView tvNoListing;
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -89,6 +92,7 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
         rvCategories = view.findViewById(R.id.rv_categories);
         rv_ads = view.findViewById(R.id.rv_ads);
         vgFilters = view.findViewById(R.id.vg_filters);
+        tvNoListing = view.findViewById(R.id.tv_no_listing);
         vgFilters.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -126,22 +130,32 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
     }
 
     void getAds(){
+        ProgressDialog progressDialog = new ProgressDialog(getContext());
+        progressDialog.setTitle(getString(R.string.please_wait));
+        progressDialog.setMessage(getString(R.string.fetching_ad));
+        progressDialog.setCancelable(false);
+        progressDialog.show();
        FirebaseDatabase.getInstance().getReference().child("ads").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                progressDialog.dismiss();
                 if (snapshot.exists()){
                     ArrayList<Ad> ads = new ArrayList<>();
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()){
                         Ad ad = dataSnapshot.getValue(Ad.class);
                         ads.add(ad);
+                        tvNoListing.setVisibility(View.GONE);
                     }
                    setAdsAdapter(ads);
 
+                }else{
+                    tvNoListing.setVisibility(View.VISIBLE);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                progressDialog.dismiss();
 
             }
         });

@@ -196,7 +196,7 @@ Context context;
         });
     }
 
-    interface OnDeleteImageListener {
+    public interface OnDeleteImageListener {
         void onDeleteImageSuccess();
         void onDeleteImageFailure(String errorMessage);
     }

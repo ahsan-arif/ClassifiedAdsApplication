@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.adapters.ChatsAdapter;
@@ -17,6 +18,7 @@ import com.android.classifiedapp.models.Chat;
 import com.android.classifiedapp.models.Message;
 import com.android.classifiedapp.models.User;
 import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.ToastUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -40,6 +42,7 @@ public class FragmentChats extends Fragment {
     String currentUserId;
     ArrayList<Chat> chats;
     RecyclerView rvChats;
+    TextView tvNoChats;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -84,6 +87,7 @@ public class FragmentChats extends Fragment {
         getChats();
         View view = inflater.inflate(R.layout.fragment_chats, container, false);
         rvChats = view.findViewById(R.id.rv_chats);
+        tvNoChats = view.findViewById(R.id.tv_no_chats);
         return view;
     }
 
@@ -204,6 +208,12 @@ public class FragmentChats extends Fragment {
 
     // Method to set adapter after all user details are fetched
     private void setAdapter(List<Chat> chats) {
+        LogUtils.e(chats.size());
+        if (chats.isEmpty()){
+          tvNoChats.setVisibility(View.VISIBLE);
+        }else{
+            tvNoChats.setVisibility(View.GONE);
+        }
         ChatsAdapter adapter = new ChatsAdapter(chats, getContext());
         rvChats.setLayoutManager(new LinearLayoutManager(getContext()));
         rvChats.setAdapter(adapter);

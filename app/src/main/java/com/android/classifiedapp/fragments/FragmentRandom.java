@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.adapters.AdsAdapter;
@@ -40,6 +41,7 @@ public class FragmentRandom extends Fragment implements AdsAdapter.OnAdClickList
     private String mParam2;
 
     RecyclerView rvAds;
+    TextView tvNoListing;
 
     public FragmentRandom() {
         // Required empty public constructor
@@ -78,6 +80,7 @@ public class FragmentRandom extends Fragment implements AdsAdapter.OnAdClickList
         // Inflate the layout for this fragment
         View view =inflater.inflate(R.layout.fragment_random, container, false);
         rvAds = view.findViewById(R.id.rv_ads);
+        tvNoListing = view.findViewById(R.id.tv_no_listing);
         getAds();
         return view;
     }
@@ -109,6 +112,10 @@ public class FragmentRandom extends Fragment implements AdsAdapter.OnAdClickList
     }
 
     void setAdsAdapter(ArrayList<Ad> ads){
+        if (ads!=null){
+            tvNoListing.setVisibility(View.VISIBLE);
+        }
+        tvNoListing.setVisibility(View.GONE);
         rvAds.setLayoutManager(new LinearLayoutManager(getContext()));
         rvAds.setAdapter(new AdsAdapter(ads,getContext(),this));
     }

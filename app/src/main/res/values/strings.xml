@@ -88,4 +88,12 @@
     <string name="you_donot_have_any_listing_in_your_wishlist">You don\'t have any listing in your wishlist</string>
     <string name="no_listing_posted">You have not posted any listing yet</string>
     <string name="my_listings">My Listings</string>
+    <string name="no_listings">No listings posted. Be the first to post a listing by visiting the Sell tab.</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="do_you_really">Do you really want to delete your profile and all the related data including listings and chats?</string>
+    <string name="do_you_really2">This is an irreversible process and will result in the deletion of all your profile data. Do you wish to continue?</string>
+    <string name="are_you_sure">Are you sure?</string>
+    <string name="deleting_account">Deleting account. Please be patient this can take longer in case of large dataset.</string>
+    <string name="authenticating">Authenticating please wait</string>
+    <string name="select_a_product_and_start_chat_with_the_seller">Select a product and start chat with the seller.</string>
 </resources>
