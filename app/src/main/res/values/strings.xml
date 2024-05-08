@@ -63,6 +63,7 @@
     <string name="seller">seller</string>
     <string name="cannot_be_empty">Cannot be empty</string>
     <string name="ad_created">Ad Created Successfully</string>
+    <string name="ad_updated">Ad Updated Successfully</string>
     <string name="creating_ad">Creating Ad</string>
     <string name="discover">Discover</string>
     <string name="posted">Posted</string>
@@ -96,4 +97,14 @@
     <string name="deleting_account">Deleting account. Please be patient this can take longer in case of large dataset.</string>
     <string name="authenticating">Authenticating please wait</string>
     <string name="select_a_product_and_start_chat_with_the_seller">Select a product and start chat with the seller.</string>
+    <string name="tap_an_image_to_replace_with_new_picture">Tap an image to replace with new picture.</string>
+    <string name="edit_ad">Edit Ad</string>
+    <string name="specify_shipping_payer">Please specify who will pay for shipping.</string>
+    <string name="please_select_subcategory">Please select subcategory.</string>
+    <string name="image_updated">Image updated</string>
+    <string name="grant_all_permissions">Grant all permission to proceed</string>
+    <string name="select_image_2">Please select 2nd image</string>
+    <string name="select_image_1">Please select 1st image</string>
+    <string name="uploading_image">Uploading Image</string>
+    <string name="do_you_want_to_del_ad">Do you really want to delete this listing</string>
 </resources>

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginBottom="?attr/actionBarSize"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".fragments.FragmentAddProduct">
+    tools:context=".ActivityEditAd">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,15 +14,29 @@
         android:layout_marginStart="12dp"
         android:layout_marginEnd="12dp"
         >
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/sell_item"
             android:layout_marginTop="12dp"
-            android:textColor="@color/black"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            />
+            android:gravity="center_vertical"
+            >
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:id="@+id/img_back"
+                android:src="@drawable/ic_baseline_keyboard_backspace_24"
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/edit_ad"
+               android:layout_marginStart="8dp"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                />
+        </LinearLayout>
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -53,6 +67,7 @@
             android:hint="@string/category"
             android:layout_marginTop="16dp"
             app:endIconMode="custom"
+            android:clickable="false"
             app:endIconDrawable="@drawable/outline_arrow_drop_down_24"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -61,7 +76,7 @@
                 android:layout_height="wrap_content"
                 android:inputType="none"
                 android:id="@+id/et_category"
-               android:focusable="false"
+                android:focusable="false"
                 />
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -72,6 +87,7 @@
             android:hint="@string/subcategory"
             android:layout_marginTop="16dp"
             app:endIconMode="custom"
+            android:clickable="false"
             android:visibility="gone"
             android:id="@+id/ti_subcat"
             app:endIconDrawable="@drawable/outline_arrow_drop_down_24"
@@ -180,19 +196,18 @@
             android:checkedButton="@+id/radio_button_1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-        <RadioButton
-            android:id="@+id/rb_yes"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="@string/yes"/>
-        <RadioButton
-            android:id="@+id/rb_no"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:checked="true"
-            android:layout_height="wrap_content"
-            android:text="@string/no"/>
+            <RadioButton
+                android:id="@+id/rb_yes"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/yes"/>
+            <RadioButton
+                android:id="@+id/rb_no"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/no"/>
         </RadioGroup>
 
 
@@ -205,6 +220,12 @@
             android:textColor="@color/black"
             android:textSize="16sp"
             />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/tap_an_image_to_replace_with_new_picture"
+            />
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -215,13 +236,19 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content">
+                <ProgressBar
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:id="@+id/progress_img_1"
+                    android:visibility="gone"
+                    />
                 <ImageView
+                    android:id="@+id/image_1"
                     android:layout_width="match_parent"
                     android:layout_height="100dp"
-                    android:id="@+id/image_1"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/add_image"
-                    />
+                    android:src="@drawable/add_image" />
                 <ImageView
                     android:layout_width="32dp"
                     android:layout_height="32dp"
@@ -237,6 +264,13 @@
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
                 android:layout_height="wrap_content">
+                <ProgressBar
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:id="@+id/progress_img_2"
+                    android:visibility="gone"
+                    />
                 <ImageView
                     android:layout_width="match_parent"
                     android:layout_height="100dp"
@@ -258,6 +292,13 @@
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
                 android:layout_height="wrap_content">
+                <ProgressBar
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:id="@+id/progress_img_3"
+                    android:visibility="gone"
+                    />
                 <ImageView
                     android:layout_width="match_parent"
                     android:layout_height="100dp"
@@ -281,7 +322,6 @@
             android:layout_height="wrap_content"
             android:id="@+id/vg_shipping_payer"
             android:orientation="vertical"
-            android:visibility="gone"
             >
             <TextView
                 android:layout_width="match_parent"
@@ -316,10 +356,10 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/create_ad"
+            android:text="@string/edit_ad"
             android:layout_marginTop="12dp"
             android:padding="8dp"
-            android:id="@+id/btn_create_ad"
+            android:id="@+id/btn_edit_ad"
             android:background="@drawable/btn_sign_in_opts"
             android:gravity="center"
             />

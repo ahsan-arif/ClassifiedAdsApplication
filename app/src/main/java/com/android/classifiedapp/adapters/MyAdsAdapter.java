@@ -2,6 +2,7 @@ package com.android.classifiedapp.adapters;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
@@ -12,9 +13,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.classifiedapp.ActivityAdDetails;
+import com.android.classifiedapp.ActivityEditAd;
+import com.android.classifiedapp.ActivityVerifyLogin;
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.User;
@@ -73,7 +77,27 @@ Context context;
         holder.imgDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                removeAd(ad,context);
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+
+                builder.setTitle(context.getString(R.string.are_you_sure));
+
+                builder.setMessage(context.getString(R.string.do_you_want_to_del_ad));
+                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // ToastUtils.showShort("yes");
+                        removeAd(ad,context);
+                    }
+                });
+                builder.setNegativeButton("Cancel", null);
+                builder.show();
+            }
+        });
+
+        holder.imgEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                context.startActivity(new Intent(context, ActivityEditAd.class).putExtra("ad",ad));
             }
         });
     }
@@ -85,7 +109,7 @@ Context context;
 
     class ViewHolder extends RecyclerView.ViewHolder{
         TextView tvTitle,tvPrice,tvPostedOn,tvPostedBy,tvAddress;
-        ImageView imgProduct,imgDelete;
+        ImageView imgProduct,imgDelete,imgEdit;
         CircleImageView imgUser;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -97,6 +121,7 @@ Context context;
             imgUser = itemView.findViewById(R.id.img_user);
             tvAddress = itemView.findViewById(R.id.tv_address);
             imgDelete = itemView.findViewById(R.id.img_delete);
+            imgEdit = itemView.findViewById(R.id.img_edit);
         }
     }
 
@@ -226,6 +251,7 @@ Context context;
     }
 
     public void removeAdfromList(Ad ad) {
+
         ads.remove(ad);
         notifyDataSetChanged();
     }

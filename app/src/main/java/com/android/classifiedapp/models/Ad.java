@@ -28,6 +28,8 @@ public class Ad implements Parcelable {
     Double latitude,longitude;
     String address;
 
+    String updatedOn;
+
     public Ad() {
     }
 
@@ -48,6 +50,7 @@ public class Ad implements Parcelable {
         latitude = in.readDouble();
         longitude = in.readDouble();
         address = in.readString();
+        updatedOn = in.readString();
     }
 
     public static final Creator<Ad> CREATOR = new Creator<Ad>() {
@@ -190,6 +193,14 @@ public class Ad implements Parcelable {
         this.address = address;
     }
 
+    public String getUpdatedOn() {
+        return updatedOn;
+    }
+
+    public void setUpdatedOn(String updatedOn) {
+        this.updatedOn = updatedOn;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -213,5 +224,6 @@ public class Ad implements Parcelable {
         dest.writeDouble(latitude);
         dest.writeDouble(longitude);
         dest.writeString(address);
+        dest.writeString(updatedOn);
     }
 }

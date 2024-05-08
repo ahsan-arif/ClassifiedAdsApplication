@@ -282,7 +282,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                             requestPermissionsBasedOnSdk(imagePickerLauncher1);
 
                         }else{
-                            ToastUtils.showShort("Grant all permission to proceed");
+                            ToastUtils.showShort(getString(R.string.grant_all_permissions));
                             LogUtils.e(list1);
                         }
                     }
@@ -292,6 +292,10 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         image2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (!isImage1Selected){
+                    ToastUtils.showShort(getString(R.string.select_image_1));
+                    return;
+                }
                 PermissionX.init(getActivity()).permissions().request(new RequestCallback() {
                     @Override
                     public void onResult(boolean b, @NonNull List<String> list, @NonNull List<String> list1) {
@@ -303,6 +307,10 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         image3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (!isImage2Selected){
+                    ToastUtils.showShort(getString(R.string.select_image_2));
+                    return;
+                }
                 PermissionX.init(getActivity()).permissions().request(new RequestCallback() {
                     @Override
                     public void onResult(boolean b, @NonNull List<String> list, @NonNull List<String> list1) {
@@ -353,6 +361,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                 if (selectedText.equals(getString(R.string.no))){
                     vgShippingPayer.setVisibility(View.INVISIBLE);
                     isShippingAvailable = false;
+                    shippingPayer = null;
                 }else{
                     vgShippingPayer.setVisibility(View.VISIBLE);
                     isShippingAvailable = true;
@@ -459,7 +468,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                                 });
 
                     } else {
-                        ToastUtils.showShort("Grant all permissions to proceed");
+                        ToastUtils.showShort(getString(R.string.grant_all_permissions));
                         LogUtils.e(deniedList);
                     }
                 }
@@ -485,11 +494,12 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                         category.setId(categoryShot.child("id").getValue(String.class));
 
                         List<SubCategory> subCategories = new ArrayList<>();
-
-                        for (DataSnapshot ds : categoryShot.child("subCategories").getChildren()){
-                            SubCategory subCategory = ds.getValue(SubCategory.class);
-                            subCategories.add(subCategory);
-                           // LogUtils.e(subCategory.getName());
+                        if (categoryShot.child("subCategories").exists()){
+                            for (DataSnapshot ds : categoryShot.child("subCategories").getChildren()){
+                                SubCategory subCategory = ds.getValue(SubCategory.class);
+                                subCategories.add(subCategory);
+                                // LogUtils.e(subCategory.getName());
+                            }
                         }
                         category.setSubCategories(subCategories);
                         categories.add(category);
@@ -595,14 +605,19 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                 Ad ad = new Ad();
                 ad.setId(adId);
                 ad.setCategoryId(selectedCategory.getId());
-                ad.setTitle(etProductTitle.getText().toString());
+                ad.setTitle(etProductTitle.getText().toString().trim());
                 ad.setCurrency(selectedCurrency.getCurrency());
-                ad.setPrice(etPrice.getText().toString());
+                ad.setPrice(etPrice.getText().toString().trim());
                 ad.setPostedOn(String.valueOf(System.currentTimeMillis()));
                 ad.setPostedBy(FirebaseAuth.getInstance().getCurrentUser().getUid());
                 ad.setAddress(address);
                 ad.setLatitude(latitude);
                 ad.setLongitude(longitude);
+                if (isShippingAvailable){
+                    ad.setShippingPayer(shippingPayer);
+                }
+                ad.setShippingAvailable(isShippingAvailable);
+                ad.setDescription(etDetails.getText().toString().trim());
                 if (selectedCategory!=null){
                     ad.setSubcategoryId(selectedSubcategory.getId());
                 }
@@ -712,6 +727,17 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         }else if (etDetails.getText().toString().trim().isEmpty()){
             etDetails.setError(cannotBeEmpty);
             return false;
+        }
+        if (isShippingAvailable && shippingPayer==null){
+            ToastUtils.showShort(getString(R.string.specify_shipping_payer));
+            return false;
+        }
+
+        if (!selectedCategory.getSubCategories().isEmpty()){
+            if (selectedSubcategory==null){
+                ToastUtils.showShort(getString(R.string.please_select_subcategory));
+                return false;
+            }
         }
         return true;
     }

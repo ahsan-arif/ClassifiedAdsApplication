@@ -23,15 +23,29 @@
                 android:id="@+id/img_product"
                 android:scaleType="centerCrop"
                 />
-            <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_margin="8dp"
-                android:id="@+id/img_delete"
-                android:src="@drawable/bin"
+                android:background="@drawable/vector_blur"
+                >
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_margin="8dp"
+                    android:id="@+id/img_edit"
+                    android:src="@drawable/edit"
+                    app:tint="@color/white" />
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_margin="8dp"
+                    android:id="@+id/img_delete"
+                    android:src="@drawable/bin"
+                    app:tint="@color/white" />
+            </LinearLayout>
 
-                app:tint="@color/white" />
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
