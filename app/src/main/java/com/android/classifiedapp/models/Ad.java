@@ -30,6 +30,11 @@ public class Ad implements Parcelable {
 
     String updatedOn;
 
+    List<Report> reports;
+
+    String status;
+    List<String> blockedBy;
+
     public Ad() {
     }
 
@@ -51,6 +56,9 @@ public class Ad implements Parcelable {
         longitude = in.readDouble();
         address = in.readString();
         updatedOn = in.readString();
+        reports = in.createTypedArrayList(Report.CREATOR);
+        status = in.readString();
+        blockedBy = in.createStringArrayList();
     }
 
     public static final Creator<Ad> CREATOR = new Creator<Ad>() {
@@ -201,6 +209,30 @@ public class Ad implements Parcelable {
         this.updatedOn = updatedOn;
     }
 
+    public List<Report> getReports() {
+        return reports;
+    }
+
+    public void setReports(List<Report> reports) {
+        this.reports = reports;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public List<String> getBlockedBy() {
+        return blockedBy;
+    }
+
+    public void setBlockedBy(List<String> blockedBy) {
+        this.blockedBy = blockedBy;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -225,5 +257,8 @@ public class Ad implements Parcelable {
         dest.writeDouble(longitude);
         dest.writeString(address);
         dest.writeString(updatedOn);
+        dest.writeTypedList(reports);
+        dest.writeString(status);
+        dest.writeStringList(blockedBy);
     }
 }

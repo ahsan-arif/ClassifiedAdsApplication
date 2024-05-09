@@ -45,9 +45,17 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
 ArrayList<Ad> ads;
 Context context;
 
+boolean unApprovedAd;
+
     public MyAdsAdapter(ArrayList<Ad> ads, Context context) {
         this.ads = ads;
         this.context = context;
+    }
+
+    public MyAdsAdapter(ArrayList<Ad> ads, Context context, boolean unApprovedAd) {
+        this.ads = ads;
+        this.context = context;
+        this.unApprovedAd = unApprovedAd;
     }
 
     @NonNull
@@ -97,7 +105,8 @@ Context context;
         holder.imgEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                context.startActivity(new Intent(context, ActivityEditAd.class).putExtra("ad",ad));
+                context.startActivity(new Intent(context, ActivityEditAd.class).putExtra("ad",ad)
+                        .putExtra("unApprovedAd",unApprovedAd));
             }
         });
     }

@@ -613,6 +613,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                 ad.setAddress(address);
                 ad.setLatitude(latitude);
                 ad.setLongitude(longitude);
+                ad.setStatus(getString(R.string.approved));
                 if (isShippingAvailable){
                     ad.setShippingPayer(shippingPayer);
                 }

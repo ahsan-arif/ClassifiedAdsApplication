@@ -106,6 +106,8 @@ public class ActivityEditAd extends AppCompatActivity {
     ProgressBar progressImg1,progressImg2,progressImg3;
     TextView btnEditAd;
     ImageView imgBack;
+
+    boolean isUnApprovedAd;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -117,6 +119,7 @@ public class ActivityEditAd extends AppCompatActivity {
             return insets;
         });
         ad = getIntent().getParcelableExtra("ad");
+        isUnApprovedAd = getIntent().getBooleanExtra("unApprovedAd",false);
         ddCurrency = findViewById(R.id.dd_currency);
         etLocation = findViewById(R.id.et_location);
         image1 = findViewById(R.id.image_1);
@@ -488,6 +491,11 @@ public class ActivityEditAd extends AppCompatActivity {
         ad.setPrice(etPrice.getText().toString().trim());
         ad.setUpdatedOn(String.valueOf(System.currentTimeMillis()));
         ad.setPostedBy(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        if (isUnApprovedAd){
+            ad.setStatus(getString(R.string.pending_approval));
+        }else{
+            ad.setStatus(getString(R.string.pending_approval));
+        }
         ad.setAddress(address);
         ad.setLatitude(latitude);
         ad.setLongitude(longitude);

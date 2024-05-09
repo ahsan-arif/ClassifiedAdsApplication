@@ -30,25 +30,24 @@
             android:textSize="18sp" />
 
     </LinearLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/vg"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:id="@+id/rv_ads"
+        android:orientation="vertical"
+        android:id="@+id/container"
+        android:layout_marginBottom="?actionBarSize"
         />
-
-    <TextView
+    <com.google.android.material.bottomnavigation.BottomNavigationView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/no_listing_posted"
-        android:layout_centerInParent="true"
-        android:gravity="center"
-        android:textSize="16sp"
-        android:textColor="@color/black"
-        android:id="@+id/tv_no_item"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/bottom_nav_my_ads"
+        app:menu="@menu/bottom_nav_my_ads"
+        app:labelVisibilityMode="labeled"
+        app:itemTextAppearanceInactive="@color/black"
+        app:itemIconTint="@color/bnv_tab_item_foreground"
+        app:itemTextColor="@color/bnv_tab_item_foreground"
         />
 
 </RelativeLayout>

@@ -69,7 +69,7 @@
     <string name="posted">Posted</string>
     <string name="can_be_shipped">Can be shipped</string>
     <string name="can__not_be_shipped">Shipping not applicable</string>
-    <string name="report_item">Report Item</string>
+    <string name="report_item">Report Listing</string>
     <string name="chats">Chats</string>
     <string name="type_som_ething">Type something...</string>
     <string name="fetching_ad">Fetching Classified Advertisement</string>
@@ -107,4 +107,16 @@
     <string name="select_image_1">Please select 1st image</string>
     <string name="uploading_image">Uploading Image</string>
     <string name="do_you_want_to_del_ad">Do you really want to delete this listing</string>
+    <string name="offensive_or_inappropriate">Offensive or Inappropriate</string>
+    <string name="targets_a_sect_or_group_of_people">Targets a sect or group of people</string>
+    <string name="adult_content">Adult content</string>
+    <string name="scam_or_fraud">Scam or fraud</string>
+    <string name="sale_of_illegal_or_regulatory_goods">Sale of illegal or regulatory goods</string>
+    <string name="i_just_don_t_like_it">I just don\'t like it</string>
+    <string name="please_tell_us">Please select a reason for reporting.</string>
+    <string name="cancel">Cancel</string>
+    <string name="feedback_recorded">Your feedback has been recorded</string>
+    <string name="pending_approval">pending approval</string>
+    <string name="require_update">requires update</string>
+    <string name="approved">approved</string>
 </resources>

@@ -135,7 +135,7 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
         progressDialog.setMessage(getString(R.string.fetching_ad));
         progressDialog.setCancelable(false);
         progressDialog.show();
-       FirebaseDatabase.getInstance().getReference().child("ads").addValueEventListener(new ValueEventListener() {
+        FirebaseDatabase.getInstance().getReference().child("ads").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 progressDialog.dismiss();
@@ -143,10 +143,12 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                     ArrayList<Ad> ads = new ArrayList<>();
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()){
                         Ad ad = dataSnapshot.getValue(Ad.class);
-                        ads.add(ad);
-                        tvNoListing.setVisibility(View.GONE);
+                        if (ad.getStatus().equals(getString(R.string.approved))){
+                            ads.add(ad);
+                            tvNoListing.setVisibility(View.GONE);
+                        }
                     }
-                   setAdsAdapter(ads);
+                    setAdsAdapter(ads);
 
                 }else{
                     tvNoListing.setVisibility(View.VISIBLE);

@@ -1,18 +1,23 @@
 package com.android.classifiedapp;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -23,6 +28,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.android.classifiedapp.adapters.ImagePagerAdapter;
 import com.android.classifiedapp.models.Ad;
+import com.android.classifiedapp.models.Report;
 import com.android.classifiedapp.models.User;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
@@ -63,7 +69,8 @@ public class ActivityAdDetails extends AppCompatActivity {
     CircleImageView imgUser;
     ImageView imgLike,imgBack,imgShare;
     ImageView imgChat;
-    private GoogleMap googleMap;
+   TextView tvReportListing;
+   GoogleMap googleMap;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,8 +100,12 @@ public class ActivityAdDetails extends AppCompatActivity {
         imgBack = findViewById(R.id.img_back);
         imgChat = findViewById(R.id.img_chat);
         imgShare = findViewById(R.id.img_share);
+        tvReportListing = findViewById(R.id.tv_report_listing);
 
         Ad ad = getIntent().getParcelableExtra("ad");
+        if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
+            tvReportListing.setVisibility(View.GONE);
+        }
         if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
             imgChat.setVisibility(View.GONE);
         }
@@ -167,6 +178,13 @@ public class ActivityAdDetails extends AppCompatActivity {
             public void onClick(View v) {
                 ToastUtils.showShort("Please wait generating shareable link");
                 createLinkWithMeta(ad,imgShare);
+            }
+        });
+
+        tvReportListing.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showReportDialog(ad.getId());
             }
         });
     }
@@ -309,5 +327,82 @@ public class ActivityAdDetails extends AppCompatActivity {
         sendIntent.setType("text/plain");
         // Show the Sharesheet
         startActivity(Intent.createChooser(sendIntent, null));
+    }
+
+    void showReportDialog(String adId){
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+// ...Irrelevant code for customizing the buttons and title
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.alert_report_listing, null);
+        dialogBuilder.setView(dialogView);
+        //TextView tvReportListing = dialogView.findViewById(R.id.tv_report_listing);
+        final String[] reason = new String[1];
+
+        RadioGroup rgReport = dialogView.findViewById(R.id.rg_report);
+
+        dialogBuilder.setNegativeButton(getString(R.string.report_item), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //report ad
+                ToastUtils.showShort("report");
+                if (!reason[0].isEmpty()){
+                    reportAd(adId,reason[0]);
+                }
+            }
+        });
+
+        dialogBuilder.setPositiveButton(getString(R.string.cancel), null);
+
+        rgReport.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                RadioButton radioButton =group.findViewById(checkedId);
+                reason[0] = radioButton.getText().toString();
+                ToastUtils.showShort(reason[0]);
+            }
+        });
+
+        AlertDialog alertDialog = dialogBuilder.create();
+        alertDialog.setTitle(getString(R.string.report_item));
+        alertDialog.setMessage(getString(R.string.please_tell_us));
+        alertDialog.show();
+    }
+
+    void reportAd(String adId,String reason){
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("ads").child(adId).child("reports");
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    List<Report> reports = new ArrayList<>();
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                        Report report = dataSnapshot.getValue(Report.class);
+                        reports.add(report);
+                    }
+                    Report report = new Report();
+                    report.setReportedBy(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    report.setReason(reason);
+                    report.setReportedOn(String.valueOf(System.currentTimeMillis()));
+                    reports.add(report);
+                    databaseReference.setValue(reports);
+                    ToastUtils.showShort(getString(R.string.feedback_recorded));
+                }else{
+                    List<Report> reports = new ArrayList<>();
+                    Report report = new Report();
+                    report.setReportedBy(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    report.setReason(reason);
+                    report.setReportedOn(String.valueOf(System.currentTimeMillis()));
+                    reports.add(report);
+                    databaseReference.setValue(reports);
+                    ToastUtils.showShort(getString(R.string.feedback_recorded));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
     }
 }

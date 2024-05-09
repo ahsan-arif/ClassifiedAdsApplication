@@ -2,6 +2,7 @@ package com.android.classifiedapp;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -15,13 +16,18 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.classifiedapp.adapters.MyAdsAdapter;
+import com.android.classifiedapp.fragments.MyListingsFragment;
 import com.android.classifiedapp.models.Ad;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -40,9 +46,7 @@ import java.util.List;
 
 public class ActivityMyAds extends AppCompatActivity {
 ImageView imgBack;
-ArrayList<Ad> ads;
-TextView tvNoItem;
-RecyclerView rvAds;
+BottomNavigationView bottomNavMyAds;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,48 +65,33 @@ RecyclerView rvAds;
         });
 
         imgBack = findViewById(R.id.img_back);
-        tvNoItem = findViewById(R.id.tv_no_item);
-        rvAds = findViewById(R.id.rv_ads);
+        bottomNavMyAds = findViewById(R.id.bottom_nav_my_ads);
         imgBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();
             }
         });
-        getMyListings(FirebaseAuth.getInstance().getCurrentUser().getUid());
-    }
-
-    void getMyListings(String currentUserId){
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("ads");
-        Query query = databaseReference.orderByChild("postedBy").equalTo(currentUserId);
-        query.addValueEventListener(new ValueEventListener() {
+        bottomNavMyAds.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                ads = new ArrayList<>();
-                if (snapshot.exists()){
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
-                        Ad ad = dataSnapshot.getValue(Ad.class);
-                        ads.add(ad);
-                    }
-                }
-                if (!ads.isEmpty()){
-                    tvNoItem.setVisibility(View.GONE);
-                    setMyListingsAdapter();
-                }else{
-                    tvNoItem.setVisibility(View.VISIBLE);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                if (menuItem.getItemId()==R.id.item_my_ads){
+                    startFragment(getSupportFragmentManager(),new MyListingsFragment(0));
+                }else if (menuItem.getItemId()==R.id.item_pending_approval)
+                    startFragment(getSupportFragmentManager(),new MyListingsFragment(1));
+                else
+                    startFragment(getSupportFragmentManager(),new MyListingsFragment(2));
+                return true;
             }
         });
+        bottomNavMyAds.setSelectedItemId(R.id.item_my_ads);
+
     }
 
-    void setMyListingsAdapter(){
-        rvAds.setAdapter(new MyAdsAdapter(ads,ActivityMyAds.this));
-        rvAds.setLayoutManager(new LinearLayoutManager(ActivityMyAds.this));
+    public void startFragment(FragmentManager manager, Fragment fragment) {
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.replace(R.id.container, fragment);
+        transaction.commit();
     }
 
 }

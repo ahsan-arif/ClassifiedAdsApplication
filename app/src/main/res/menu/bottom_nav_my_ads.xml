@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<item android:title="@string/my_listings"
+    android:id="@+id/item_my_ads"
+    />
+    <item android:title="@string/pending_approval"
+        android:id="@+id/item_pending_approval"
+        />
+    <item android:title="@string/require_update"
+        android:id="@+id/item_require_update"
+        />
+</menu>
