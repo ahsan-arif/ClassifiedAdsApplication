@@ -105,6 +105,8 @@ public class ActivityChat extends AppCompatActivity {
         imgUser = findViewById(R.id.img_user);
         tvUserName = findViewById(R.id.tv_userName);
         accessToken = SharedPrefManager.getInstance(ActivityChat.this).getAccessToken();
+        InputMethodManager mgr = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        mgr.showSoftInput(etMessage, InputMethodManager.SHOW_FORCED);
 //        LogUtils.e(accessToken);
         Bundle extras = getIntent().getExtras();
         if (extras!=null&&sellerId==null){
@@ -115,8 +117,6 @@ public class ActivityChat extends AppCompatActivity {
 
             etMessage.setInputType(InputType.TYPE_CLASS_TEXT);
             etMessage.requestFocus();
-            InputMethodManager mgr = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            mgr.showSoftInput(etMessage, InputMethodManager.SHOW_FORCED);
 
             imgBack.setOnClickListener(new View.OnClickListener() {
                 @Override

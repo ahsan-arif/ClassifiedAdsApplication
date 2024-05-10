@@ -1,5 +1,7 @@
 package com.android.classifiedapp;
 
+import static com.android.classifiedapp.utilities.Constants.NOTIFICATION_URL;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
@@ -37,6 +39,13 @@ import com.android.classifiedapp.models.Category;
 import com.android.classifiedapp.models.Currency;
 import com.android.classifiedapp.models.SubCategory;
 import com.android.classifiedapp.models.User;
+import com.android.classifiedapp.utilities.SharedPrefManager;
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.bumptech.glide.Glide;
@@ -62,12 +71,16 @@ import com.permissionx.guolindev.PermissionX;
 import com.permissionx.guolindev.callback.RequestCallback;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 import kotlin.Unit;
@@ -108,6 +121,7 @@ public class ActivityEditAd extends AppCompatActivity {
     ImageView imgBack;
 
     boolean isUnApprovedAd;
+    String accessToken;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -118,8 +132,20 @@ public class ActivityEditAd extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        accessToken = SharedPrefManager.getInstance(ActivityEditAd.this).getAccessToken();
         ad = getIntent().getParcelableExtra("ad");
         isUnApprovedAd = getIntent().getBooleanExtra("unApprovedAd",false);
+        Bundle extras = getIntent().getExtras();
+        if (ad == null && extras!=null){
+            String deeplink = extras.getString("deepLink");
+            String strings[] = deeplink.split(":");
+            String adId  = strings[2];
+            getListing(adId);
+            LogUtils.e(deeplink);
+            isUnApprovedAd = true;
+        }
+
+        LogUtils.e(isUnApprovedAd);
         ddCurrency = findViewById(R.id.dd_currency);
         etLocation = findViewById(R.id.et_location);
         image1 = findViewById(R.id.image_1);
@@ -141,9 +167,12 @@ public class ActivityEditAd extends AppCompatActivity {
         rbNo = findViewById(R.id.rb_no);
         rbMe = findViewById(R.id.rb_me);
         rbBuyer = findViewById(R.id.rb_buyer);
-        latitude = ad.getLatitude();
-        longitude = ad.getLongitude();
-        address = ad.getAddress();
+        if (ad!=null) {
+            latitude = ad.getLatitude();
+            longitude = ad.getLongitude();
+            address = ad.getAddress();
+            adImageUrls = ad.getUrls();
+        }
         progressImg1 = findViewById(R.id.progress_img_1);
         progressImg2 = findViewById(R.id.progress_img_2);
         progressImg3 = findViewById(R.id.progress_img_3);
@@ -215,22 +244,25 @@ public class ActivityEditAd extends AppCompatActivity {
                     .build(ActivityEditAd.this);
             placesIntent.launch(intent);
         });
-        adImageUrls = ad.getUrls();
-        if (adImageUrls.size()==3){
-            Glide.with(ActivityEditAd.this).load(ad.getUrls().get(0)).into(image1);
-            Glide.with(ActivityEditAd.this).load(ad.getUrls().get(1)).into(image2);
-            Glide.with(ActivityEditAd.this).load(ad.getUrls().get(2)).into(image3);
-        }else if (adImageUrls.size()==2){
-            Glide.with(ActivityEditAd.this).load(ad.getUrls().get(0)).into(image1);
-            Glide.with(ActivityEditAd.this).load(ad.getUrls().get(1)).into(image2);
-        }else{
-            Glide.with(ActivityEditAd.this).load(ad.getUrls().get(0)).into(image1);
+
+        if (ad!=null){
+            etProductTitle.setText(ad.getTitle());
+            etDetails.setText(ad.getDescription());
+            etLocation.setText(ad.getAddress());
+            etPrice.setText(ad.getPrice());
+            ddCurrency.setText(ad.getCurrency());
+
+            if (adImageUrls.size()==3){
+                Glide.with(ActivityEditAd.this).load(ad.getUrls().get(0)).into(image1);
+                Glide.with(ActivityEditAd.this).load(ad.getUrls().get(1)).into(image2);
+                Glide.with(ActivityEditAd.this).load(ad.getUrls().get(2)).into(image3);
+            }else if (adImageUrls.size()==2){
+                Glide.with(ActivityEditAd.this).load(ad.getUrls().get(0)).into(image1);
+                Glide.with(ActivityEditAd.this).load(ad.getUrls().get(1)).into(image2);
+            }else{
+                Glide.with(ActivityEditAd.this).load(ad.getUrls().get(0)).into(image1);
+            }
         }
-        etProductTitle.setText(ad.getTitle());
-        etDetails.setText(ad.getDescription());
-        etLocation.setText(ad.getAddress());
-        etPrice.setText(ad.getPrice());
-        ddCurrency.setText(ad.getCurrency());
         rgShipping.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -261,18 +293,21 @@ public class ActivityEditAd extends AppCompatActivity {
                 }
             }
         });
-        if (ad.isShippingAvailable()){
-            rbYes.setChecked(true);
-        }else{
-            rbNo.setChecked(true);
-        }
-        if (ad.getShippingPayer()!=null){
-            if (ad.getShippingPayer().equals(getString(R.string.me))){
-                rbMe.setChecked(true);
-            }else {
-                rbBuyer.setChecked(true);
+        if (ad!=null){
+            if (ad.isShippingAvailable()){
+                rbYes.setChecked(true);
+            }else{
+                rbNo.setChecked(true);
+            }
+            if (ad.getShippingPayer()!=null){
+                if (ad.getShippingPayer().equals(getString(R.string.me))){
+                    rbMe.setChecked(true);
+                }else {
+                    rbBuyer.setChecked(true);
+                }
             }
         }
+
 
         image2.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -326,7 +361,10 @@ public class ActivityEditAd extends AppCompatActivity {
                 finish();
             }
         });
-        getCategoryDetails(ad.getCategoryId());
+        if (ad!=null){
+            getCategoryDetails(ad.getCategoryId());
+        }
+
 
     }
 
@@ -513,9 +551,158 @@ public class ActivityEditAd extends AppCompatActivity {
         // Save the Ad object in the database
         // (Assuming you have a method to save Ad objects in the database)
         databaseReference.setValue(ad);
+        if (isUnApprovedAd){
+            notifyAdmin(ad.getId());
+        }
         ToastUtils.showShort(getString(R.string.ad_updated));
         finish();
         //saveAdToDatabase(ad);
+    }
+
+    void getListing(String adId){
+        FirebaseDatabase.getInstance().getReference().child("ads").child(adId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    Ad ad1 = snapshot.getValue(Ad.class);
+                    ad = ad1;
+                    if (ad!=null){
+                        if (ad.isShippingAvailable()){
+                            rbYes.setChecked(true);
+                        }else{
+                            rbNo.setChecked(true);
+                        }
+                        if (ad.getShippingPayer()!=null){
+                            if (ad.getShippingPayer().equals(getString(R.string.me))){
+                                rbMe.setChecked(true);
+                            }else {
+                                rbBuyer.setChecked(true);
+                            }
+                        }
+                        latitude = ad.getLatitude();
+                        longitude = ad.getLongitude();
+                        address = ad.getAddress();
+                        etProductTitle.setText(ad.getTitle());
+                        etDetails.setText(ad.getDescription());
+                        etLocation.setText(ad.getAddress());
+                        etPrice.setText(ad.getPrice());
+                        ddCurrency.setText(ad.getCurrency());
+                        adImageUrls = ad.getUrls();
+                        if (adImageUrls.size()==3){
+                            Glide.with(ActivityEditAd.this).load(ad.getUrls().get(0)).into(image1);
+                            Glide.with(ActivityEditAd.this).load(ad.getUrls().get(1)).into(image2);
+                            Glide.with(ActivityEditAd.this).load(ad.getUrls().get(2)).into(image3);
+                        }else if (adImageUrls.size()==2){
+                            Glide.with(ActivityEditAd.this).load(ad.getUrls().get(0)).into(image1);
+                            Glide.with(ActivityEditAd.this).load(ad.getUrls().get(1)).into(image2);
+                        }else{
+                            Glide.with(ActivityEditAd.this).load(ad.getUrls().get(0)).into(image1);
+                        }
+                        getCategoryDetails(ad.getCategoryId());
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    void notifyAdmin(String adId){
+        List<String> adminFCMs = new ArrayList<>();
+
+        FirebaseDatabase.getInstance().getReference().child("admins").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                        User user = dataSnapshot.getValue(User.class);
+                        if (user.getFcmToken()!=null){
+                            adminFCMs.add(user.getFcmToken());
+                        }
+                    }
+                    //send push notifications to admins
+                    for (int i=0;i<adminFCMs.size();i++){
+                        try {
+                            sendPushNotification(adminFCMs.get(i),getString(R.string.update),getString(R.string.made_changes));
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+    }
+
+    void sendPushNotification(String toFcmToken,String title,String body) throws JSONException {
+        JSONObject messageObject = new JSONObject();
+        // messageObject.put("token",fcmToken);
+
+        JSONObject notificationObject =new JSONObject();
+        notificationObject.put("body",body);
+        notificationObject.put("title",title);
+
+        messageObject.put("notification",notificationObject);
+        messageObject.put("token",toFcmToken);
+
+        JSONObject dataObject = new JSONObject();
+        dataObject.put("id",ad.getId());
+        dataObject.put("deepLink","https://classifiedadsapplication.page.link/reportedAdId:"+ad.getId());
+
+        messageObject.put("data",dataObject);
+
+        JSONObject androidObject = new JSONObject();
+        JSONObject activityNotificationObject = new JSONObject();
+        activityNotificationObject.put("click_action","com.example.classifiedadsappadmin.ActivityAdDetails");
+
+        androidObject.put("notification",activityNotificationObject);
+        messageObject.put("android",androidObject);
+
+        JSONObject finalObject = new JSONObject();
+        finalObject.put("message",messageObject);
+        //finalObject.put("data",dataObject);
+        LogUtils.json(finalObject);
+
+// Create a new RequestQueue
+        RequestQueue queue = Volley.newRequestQueue(ActivityEditAd.this);
+
+// Create a new JsonObjectRequest
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, NOTIFICATION_URL, finalObject,
+                new com.android.volley.Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // Handle the response from the FCM server
+                        //LogUtils.json(response);
+                    }
+                },
+                new com.android.volley.Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Handle error
+                        LogUtils.e(error.getMessage());
+                    }
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Authorization", "Bearer " + accessToken);
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+        };
+// Add the request to the RequestQueue
+        queue.add(request);
+        //  This code will send a push notification to the device with the title "New Like!" and the body "Someone has liked your post!".
+        //I hope this helps! Let me know if you have any other questions.
     }
 
 }

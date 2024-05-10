@@ -36,6 +36,11 @@ public class SplashScreen extends AppCompatActivity {
                 String[] ids = adId.split(":");
                 startActivity(new Intent(this,ActivityChat.class).putExtra("sellerId",ids[1]));
                 finish();
+            }else if (adId.contains("reportedAdId")){
+                String[] ids = adId.split(":");
+                startActivity(new Intent(this, ActivityEditAd.class));
+                LogUtils.e(ids);
+                finish();
             }
 
         }else{

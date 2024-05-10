@@ -119,4 +119,6 @@
     <string name="pending_approval">pending approval</string>
     <string name="require_update">requires update</string>
     <string name="approved">approved</string>
+    <string name="made_changes">Seller has made changes to their listing</string>
+    <string name="update">Update</string>
 </resources>
