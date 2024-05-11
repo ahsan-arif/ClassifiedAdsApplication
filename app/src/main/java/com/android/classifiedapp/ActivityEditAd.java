@@ -509,6 +509,14 @@ public class ActivityEditAd extends AppCompatActivity {
             return false;
         }
 
+        if (selectedCategory.getSubCategories()!=null){
+            if (selectedCategory.getSubCategories().size()>0){
+                if (selectedSubcategory==null){
+                    ToastUtils.showShort(getString(R.string.please_select_subcategory));
+                    return false;
+                }
+            }
+        }
 /*        if (!selectedCategory.getSubCategories().isEmpty()){
             if (selectedSubcategory==null){
                 ToastUtils.showShort(getString(R.string.please_select_subcategory));
@@ -532,7 +540,7 @@ public class ActivityEditAd extends AppCompatActivity {
         if (isUnApprovedAd){
             ad.setStatus(getString(R.string.pending_approval));
         }else{
-            ad.setStatus(getString(R.string.pending_approval));
+            ad.setStatus(getString(R.string.approved));
         }
         ad.setAddress(address);
         ad.setLatitude(latitude);
@@ -544,10 +552,11 @@ public class ActivityEditAd extends AppCompatActivity {
         }
         ad.setShippingAvailable(isShippingAvailable);
         ad.setDescription(etDetails.getText().toString().trim());
-        if (selectedCategory!=null){
-            ad.setSubcategoryId(selectedSubcategory.getId());
+        if (selectedCategory.getSubCategories()!=null){
+            if (selectedCategory.getSubCategories().size()>0){
+                ad.setSubcategoryId(selectedSubcategory.getId());
+            }
         }
-
         // Save the Ad object in the database
         // (Assuming you have a method to save Ad objects in the database)
         databaseReference.setValue(ad);

@@ -1,20 +1,27 @@
 package com.android.classifiedapp;
 
+import static com.android.classifiedapp.utilities.Constants.NOTIFICATION_URL;
+
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -24,7 +31,15 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.android.classifiedapp.adapters.ImagePagerAdapter;
 import com.android.classifiedapp.models.Ad;
+import com.android.classifiedapp.models.Report;
 import com.android.classifiedapp.models.User;
+import com.android.classifiedapp.utilities.SharedPrefManager;
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.bumptech.glide.Glide;
@@ -48,10 +63,13 @@ import com.google.firebase.dynamiclinks.DynamicLink;
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
 import com.google.firebase.dynamiclinks.ShortDynamicLink;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -66,6 +84,8 @@ ImageView imgBack;
     ImageView imgChat;
     TextView tvReport;
     private GoogleMap mGoogleMap;
+    String accessToken;
+    String adId;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,6 +103,7 @@ ImageView imgBack;
             return insets;
         });
         FirebaseUser fIrebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        accessToken = SharedPrefManager.getInstance(ActivityPageAdDetails.this).getAccessToken();
         pagerImages = findViewById(R.id.pager_images);
         tabsImg = findViewById(R.id.tabs_img);
         tvTitle = findViewById(R.id.tv_title);
@@ -98,7 +119,7 @@ ImageView imgBack;
         tvReport = findViewById(R.id.tv_report);
         String lastPathSeg = getIntent().getStringExtra("adId");
         String[] segs = lastPathSeg.split(":");
-        String adId="";
+         adId="";
         if (segs.length==2){
             adId = segs[1];
         }else{
@@ -111,6 +132,16 @@ ImageView imgBack;
             public void onClick(View v) {
                 startActivity(new Intent(ActivityPageAdDetails.this,MainActivity.class));
                 finish();
+            }
+        });
+        if (fIrebaseUser==null){
+            tvReport.setVisibility(View.GONE);
+        }
+
+        tvReport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showReportDialog(adId);
             }
         });
 
@@ -167,6 +198,10 @@ if (fIrebaseUser!=null){
         }
     }else{
         imgLike.setImageResource(R.drawable.heart);
+    }
+
+    if (ad.getPostedBy().equals(fIrebaseUser.getUid())){
+        tvReport.setVisibility(View.GONE);
     }
 }
 
@@ -359,5 +394,178 @@ if (fIrebaseUser!=null){
         sendIntent.setType("text/plain");
         // Show the Sharesheet
         startActivity(Intent.createChooser(sendIntent, null));
+    }
+
+    void showReportDialog(String adId){
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+// ...Irrelevant code for customizing the buttons and title
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.alert_report_listing, null);
+        dialogBuilder.setView(dialogView);
+        //TextView tvReportListing = dialogView.findViewById(R.id.tv_report_listing);
+        final String[] reason = new String[1];
+
+        RadioGroup rgReport = dialogView.findViewById(R.id.rg_report);
+
+        dialogBuilder.setNegativeButton(getString(R.string.report_item), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //report ad
+                ToastUtils.showShort("report");
+                if (!reason[0].isEmpty()){
+                    reportAd(adId,reason[0]);
+                }
+            }
+        });
+
+        dialogBuilder.setPositiveButton(getString(R.string.cancel), null);
+
+        rgReport.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                RadioButton radioButton =group.findViewById(checkedId);
+                reason[0] = radioButton.getText().toString();
+                ToastUtils.showShort(reason[0]);
+            }
+        });
+
+        AlertDialog alertDialog = dialogBuilder.create();
+        alertDialog.setTitle(getString(R.string.report_item));
+        alertDialog.setMessage(getString(R.string.please_tell_us));
+        alertDialog.show();
+    }
+
+    void reportAd(String adId,String reason){
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("ads").child(adId).child("reports");
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    List<Report> reports = new ArrayList<>();
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                        Report report = dataSnapshot.getValue(Report.class);
+                        reports.add(report);
+                    }
+                    Report report = new Report();
+                    report.setReportedBy(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    report.setReason(reason);
+                    report.setReportedOn(String.valueOf(System.currentTimeMillis()));
+                    reports.add(report);
+                    databaseReference.setValue(reports);
+                    ToastUtils.showShort(getString(R.string.feedback_recorded));
+                }else{
+                    List<Report> reports = new ArrayList<>();
+                    Report report = new Report();
+                    report.setReportedBy(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    report.setReason(reason);
+                    report.setReportedOn(String.valueOf(System.currentTimeMillis()));
+                    reports.add(report);
+                    databaseReference.setValue(reports);
+                    ToastUtils.showShort(getString(R.string.feedback_recorded));
+                }
+
+                updateAdStatus(adId);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+    }
+    void updateAdStatus(String adId){
+        FirebaseDatabase.getInstance().getReference().child("ads").child(adId).child("status").setValue(getString(R.string.pending_approval));
+        getAdminFcm(adId);
+    }
+    void getAdminFcm(String adId){
+        FirebaseDatabase.getInstance().getReference().child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    List<String> fcmTokens = new ArrayList<>();
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                        User user = dataSnapshot.getValue(User.class);
+                        if (user.getRole().equals("admin"))
+                            fcmTokens.add(user.getFcmToken());
+                    }
+                    for (String token : fcmTokens){
+                        try {
+                            sendPushNotification(token,getString(R.string.update),getString(R.string.ad_reported),adId);
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    void sendPushNotification(String toFcmToken,String title,String body,String adId) throws JSONException {
+        JSONObject messageObject = new JSONObject();
+        // messageObject.put("token",fcmToken);
+
+        JSONObject notificationObject =new JSONObject();
+        notificationObject.put("body",body);
+        notificationObject.put("title",title);
+
+        messageObject.put("notification",notificationObject);
+        messageObject.put("token",toFcmToken);
+
+        JSONObject dataObject = new JSONObject();
+        dataObject.put("id",adId);
+        dataObject.put("deepLink","https://classifiedadsapplication.page.link/reportedAdId:"+adId);
+
+        messageObject.put("data",dataObject);
+
+        JSONObject androidObject = new JSONObject();
+        JSONObject activityNotificationObject = new JSONObject();
+        activityNotificationObject.put("click_action","com.example.classifiedadsappadmin.ActivityAdDetails");
+
+        androidObject.put("notification",activityNotificationObject);
+        messageObject.put("android",androidObject);
+
+        JSONObject finalObject = new JSONObject();
+        finalObject.put("message",messageObject);
+        //finalObject.put("data",dataObject);
+        LogUtils.json(finalObject);
+
+// Create a new RequestQueue
+        RequestQueue queue = Volley.newRequestQueue(ActivityPageAdDetails.this);
+
+// Create a new JsonObjectRequest
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, NOTIFICATION_URL, finalObject,
+                new com.android.volley.Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // Handle the response from the FCM server
+                        //LogUtils.json(response);
+                    }
+                },
+                new com.android.volley.Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Handle error
+                        LogUtils.e(error.getMessage());
+                    }
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Authorization", "Bearer " + accessToken);
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+        };
+// Add the request to the RequestQueue
+        queue.add(request);
+        //  This code will send a push notification to the device with the title "New Like!" and the body "Someone has liked your post!".
+        //I hope this helps! Let me know if you have any other questions.
     }
 }

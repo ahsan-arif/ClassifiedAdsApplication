@@ -17,6 +17,7 @@ import com.android.classifiedapp.ActivityMyAds;
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.adapters.MyAdsAdapter;
 import com.android.classifiedapp.models.Ad;
+import com.blankj.utilcode.util.LogUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -109,6 +110,7 @@ public class MyListingsFragment extends Fragment {
                 if (snapshot.exists()){
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()){
                         Ad ad = dataSnapshot.getValue(Ad.class);
+                        LogUtils.e(ad.getTitle());
                         if (ad.getStatus().equals(getString(R.string.approved)))
                             ads.add(ad);
                     }

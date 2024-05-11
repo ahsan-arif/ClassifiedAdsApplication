@@ -153,6 +153,7 @@ public class FragmentChats extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()){
+                    LogUtils.e("snapshot exists");
                     List<Chat> tempChats = new ArrayList<>(); // Temporary list to hold chats
                     int totalChats = (int) snapshot.getChildrenCount();
                     final int[] chatsProcessed = {0};
@@ -187,6 +188,8 @@ public class FragmentChats extends Fragment {
                                     if (chatsProcessed[0] == totalChats) {
                                         setAdapter(tempChats);
                                     }
+                                }else{
+                                    chatsProcessed[0]++;
                                 }
                             }
 

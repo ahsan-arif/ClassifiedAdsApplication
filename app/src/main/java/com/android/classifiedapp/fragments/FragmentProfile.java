@@ -170,7 +170,6 @@ public class FragmentProfile extends Fragment  {
                 if(o.getResultCode() == RESULT_OK){
                     Intent data = o.getData();
                     image1Uri=data.getData();
-                        LogUtils.e("asd");
                         uploadImage(FirebaseAuth.getInstance().getCurrentUser().getUid(),image1Uri);
                         //image1.setImageBitmap(img);
 

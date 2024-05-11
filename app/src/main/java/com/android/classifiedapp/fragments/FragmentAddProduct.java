@@ -426,61 +426,61 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         });
     }
 
-        private void requestPermissionsBasedOnSdk(ActivityResultLauncher<Intent> activityResultLauncher) {
-            int targetSdk = Build.VERSION.SDK_INT;
-            String[] permissions;
+    private void requestPermissionsBasedOnSdk(ActivityResultLauncher<Intent> activityResultLauncher) {
+        int targetSdk = Build.VERSION.SDK_INT;
+        String[] permissions;
 
-            if (targetSdk >= Build.VERSION_CODES.TIRAMISU) {
-                // Android 13 (API level 33) and above - use READ_MEDIA_IMAGES
-                    permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES};
-            } else if (targetSdk >= Build.VERSION_CODES.R) {
-                // Android 12 (API level 31) and up to 12L (level 32) - use READ_EXTERNAL_STORAGE
-                permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE};
-            } else {
-                // Android 10 (API level 29) and below - use READ_EXTERNAL_STORAGE (hypothetical)
-                // You likely wouldn't need to support such low API levels for requesting gallery access.
-                permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE};
-            }
-
-            PermissionX.init(this).permissions(permissions).request(new RequestCallback() {
-                @Override
-                public void onResult(boolean allGranted, @NonNull List<String> grantedList, @NonNull List<String> deniedList) {
-                    if (allGranted) {
-                        // All permissions granted, proceed with your action (e.g., open gallery)
-                        String[] mimeTypes = {"image/png",
-                                "image/jpg",
-                                "image/jpeg"};
-                        ImagePicker.with(getActivity())
-                                .crop()
-                                .galleryMimeTypes(mimeTypes)
-                                .createIntent((Function1) new Function1() {
-
-                                    @Override
-                                    public Object invoke(Object o) {
-                                        this.invoke((Intent) o);
-                                        return Unit.INSTANCE;
-                                    }
-
-                                    public final void invoke(@NotNull Intent it) {
-                                        Intrinsics.checkNotNullParameter(it, "it");
-                                        activityResultLauncher.launch(it);
-                                    }
-                                });
-
-                    } else {
-                        ToastUtils.showShort(getString(R.string.grant_all_permissions));
-                        LogUtils.e(deniedList);
-                    }
-                }
-            });
+        if (targetSdk >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13 (API level 33) and above - use READ_MEDIA_IMAGES
+            permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES};
+        } else if (targetSdk >= Build.VERSION_CODES.R) {
+            // Android 12 (API level 31) and up to 12L (level 32) - use READ_EXTERNAL_STORAGE
+            permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE};
+        } else {
+            // Android 10 (API level 29) and below - use READ_EXTERNAL_STORAGE (hypothetical)
+            // You likely wouldn't need to support such low API levels for requesting gallery access.
+            permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE};
         }
 
-        void getCategories(){
-            ProgressDialog progressDialog = new ProgressDialog(getContext());
-            progressDialog.setCancelable(false);
-            progressDialog.setTitle(getString(R.string.please_wait));
-            progressDialog.setMessage(getString(R.string.fetching_categories));
-            progressDialog.show();
+        PermissionX.init(this).permissions(permissions).request(new RequestCallback() {
+            @Override
+            public void onResult(boolean allGranted, @NonNull List<String> grantedList, @NonNull List<String> deniedList) {
+                if (allGranted) {
+                    // All permissions granted, proceed with your action (e.g., open gallery)
+                    String[] mimeTypes = {"image/png",
+                            "image/jpg",
+                            "image/jpeg"};
+                    ImagePicker.with(getActivity())
+                            .crop()
+                            .galleryMimeTypes(mimeTypes)
+                            .createIntent((Function1) new Function1() {
+
+                                @Override
+                                public Object invoke(Object o) {
+                                    this.invoke((Intent) o);
+                                    return Unit.INSTANCE;
+                                }
+
+                                public final void invoke(@NotNull Intent it) {
+                                    Intrinsics.checkNotNullParameter(it, "it");
+                                    activityResultLauncher.launch(it);
+                                }
+                            });
+
+                } else {
+                    ToastUtils.showShort(getString(R.string.grant_all_permissions));
+                    LogUtils.e(deniedList);
+                }
+            }
+        });
+    }
+
+    void getCategories(){
+        ProgressDialog progressDialog = new ProgressDialog(getContext());
+        progressDialog.setCancelable(false);
+        progressDialog.setTitle(getString(R.string.please_wait));
+        progressDialog.setMessage(getString(R.string.fetching_categories));
+        progressDialog.show();
         FirebaseDatabase.getInstance().getReference("categories").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -513,27 +513,27 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
 
             }
         });
-        }
+    }
 
-        void showCategoriesSheet(){
-            categoriesSheet = new BottomSheetDialog(getContext());
-            categoriesSheet.setContentView(R.layout.bottom_sheet_dialog_categories_layout);
-            TextView tvTitle = categoriesSheet.findViewById(R.id.tv_title);
-            tvTitle.setText(R.string.select_category);
-            ImageView imgClose = categoriesSheet.findViewById(R.id.img_close);
-            RecyclerView rvCategories = categoriesSheet.findViewById(R.id.rv_categories);
-             categoriesRecyclerAdapter = new CategoriesRecyclerAdapter(categories,getContext(),this);
-             rvCategories.setLayoutManager(new LinearLayoutManager(getContext()));
-            rvCategories.setAdapter(categoriesRecyclerAdapter);
-            imgClose.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    categoriesSheet.dismiss();
-                }
-            });
-            categoriesSheet.show();
+    void showCategoriesSheet(){
+        categoriesSheet = new BottomSheetDialog(getContext());
+        categoriesSheet.setContentView(R.layout.bottom_sheet_dialog_categories_layout);
+        TextView tvTitle = categoriesSheet.findViewById(R.id.tv_title);
+        tvTitle.setText(R.string.select_category);
+        ImageView imgClose = categoriesSheet.findViewById(R.id.img_close);
+        RecyclerView rvCategories = categoriesSheet.findViewById(R.id.rv_categories);
+        categoriesRecyclerAdapter = new CategoriesRecyclerAdapter(categories,getContext(),this);
+        rvCategories.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvCategories.setAdapter(categoriesRecyclerAdapter);
+        imgClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                categoriesSheet.dismiss();
+            }
+        });
+        categoriesSheet.show();
 
-        }
+    }
     void showSubcategoriesSheet(){
         subCategoriesSheet = new BottomSheetDialog(getContext());
         subCategoriesSheet.setContentView(R.layout.bottom_sheet_dialog_categories_layout);
@@ -619,16 +619,18 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                 }
                 ad.setShippingAvailable(isShippingAvailable);
                 ad.setDescription(etDetails.getText().toString().trim());
-                if (selectedCategory!=null){
-                    ad.setSubcategoryId(selectedSubcategory.getId());
-                }
+                    if (selectedCategory.getSubCategories()!=null){
+                        if (selectedCategory.getSubCategories().size()>0){
+                            ad.setSubcategoryId(selectedSubcategory.getId());
+                        }
+                    }
                 ad.setUrls(downloadUrls);
 
                 // Save the Ad object in the database
                 // (Assuming you have a method to save Ad objects in the database)
                 databaseReference.setValue(ad);
                 ToastUtils.showShort(getString(R.string.ad_created));
-               //saveAdToDatabase(ad);
+                //saveAdToDatabase(ad);
             }
         });
 
@@ -734,12 +736,15 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
             return false;
         }
 
-        if (!selectedCategory.getSubCategories().isEmpty()){
-            if (selectedSubcategory==null){
-                ToastUtils.showShort(getString(R.string.please_select_subcategory));
-                return false;
+        if (selectedCategory.getSubCategories()!=null){
+            if (selectedCategory.getSubCategories().size()>0){
+                if (selectedSubcategory==null){
+                    ToastUtils.showShort(getString(R.string.please_select_subcategory));
+                    return false;
+                }
             }
         }
+
         return true;
     }
 
@@ -756,7 +761,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()){
                         currentUser = new User();
                         currentUser.setEmail(dataSnapshot.child("email").getValue(String.class));
-                       // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
+                        // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
                         currentUser.setName(dataSnapshot.child("name").getValue(String.class));
                         if (dataSnapshot.hasChild("profileImage")){
                             currentUser.setProfileImage(dataSnapshot.child("profileImage").getValue(String.class));

@@ -27,6 +27,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.classifiedapp.models.User;
 import com.android.classifiedapp.utilities.SharedPrefManager;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
@@ -61,6 +62,7 @@ import java.util.Arrays;
 public class MainActivity extends AppCompatActivity {
 TextView tvSignup;
 LinearLayout btnGoogleSignIn;
+    GoogleSignInOptions gso;
     private static final int RC_SIGN_IN = 9001;
     private ActivityResultLauncher<Intent> signInLauncher;
     private static final String TAG = "MainActivity";
@@ -88,7 +90,7 @@ LinearLayout btnGoogleSignIn;
         }else{
             ToastUtils.showShort("no user logged in");
         }
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 //.requestIdToken(getString(R.string.google_client_id))
                 .requestEmail()
                 .build();
@@ -165,13 +167,28 @@ signIn(signInClient);
         try {
             GoogleSignInAccount account = task.getResult(ApiException.class);
             Toast.makeText(this, "Sign in success: " + account.getEmail(), Toast.LENGTH_SHORT).show();
-            DatabaseReference databaseReference =FirebaseDatabase.getInstance().getReference().child("users");
-            Query query = databaseReference.orderByChild("email").equalTo(account.getEmail());
-            query.addListenerForSingleValueEvent(new ValueEventListener() {
+            FirebaseDatabase.getInstance().getReference().child("users").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()){
-                        startActivity(new Intent(MainActivity.this,ActivityVerifyLogin.class).putExtra("email",account.getEmail()));
+                        LogUtils.e(snapshot);
+                        for (DataSnapshot dataSnapshot :snapshot.getChildren()){
+                            User user = dataSnapshot.getValue(User.class);
+                            if (user.getEmail().equals(account.getEmail()) && user.getRole().equals("user")){
+                                startActivity(new Intent(MainActivity.this,ActivityVerifyLogin.class).putExtra("email",account.getEmail()));
+                                return;
+                            }else if (user.getEmail().equals(account.getEmail())&& user.getRole().equals("admin")){
+                                ToastUtils.showShort(getString(R.string.admin_cannot));
+                                GoogleSignInClient signInClient = GoogleSignIn.getClient(MainActivity.this, gso);
+                                signInClient.signOut();
+                                return;
+                            }
+                        }
+                        startActivity(new Intent(MainActivity.this,SignUp.class)
+                                .putExtra("fname",account.getDisplayName())
+                                .putExtra("email",account.getEmail())
+                                .putExtra("isEmailSignIn",true));
+
                     }else{
                         startActivity(new Intent(MainActivity.this,SignUp.class)
                                 .putExtra("fname",account.getDisplayName())

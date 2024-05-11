@@ -100,6 +100,7 @@ TextInputEditText etPassword;
                             User user = new User();
                             user.setEmail(email);
                             user.setName(etName.getText().toString().trim());
+                            user.setRole("user");
                             databaseRef.setValue(user);
                             Toast.makeText(getApplicationContext(), "Account created!", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(SignUp.this, Home.class));

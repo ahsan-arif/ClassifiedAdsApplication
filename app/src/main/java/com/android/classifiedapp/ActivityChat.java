@@ -78,6 +78,7 @@ public class ActivityChat extends AppCompatActivity {
     TextView tvUserName;
     String fcmToken,currentUserName;
     String accessToken;
+    boolean isAdmin;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -143,7 +144,7 @@ public class ActivityChat extends AppCompatActivity {
                 }
                 DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats").child(sellerId).push();
                 DatabaseReference sellerChatRef = FirebaseDatabase.getInstance().getReference().child("users").child(sellerId).child("chats").child(currentUserId).push();
-            String messageId = databaseReference.getKey();
+                String messageId = databaseReference.getKey();
                 Message message = new Message();
                 message.setSenderId(currentUserId);
                 message.setReceiverId(sellerId);
@@ -153,7 +154,7 @@ public class ActivityChat extends AppCompatActivity {
                 databaseReference.setValue(message);
                 sellerChatRef.setValue(message);
                 try {
-                    sendPushNotification(fcmToken,currentUserName,message.getMessage());
+                    sendPushNotification(fcmToken,currentUserName,message.getMessage(),isAdmin);
                 } catch (JSONException e) {
                     LogUtils.e(e.getMessage());
                 }
@@ -228,6 +229,12 @@ public class ActivityChat extends AppCompatActivity {
                     // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
                     user.setName(snapshot.child("name").getValue(String.class));
                     user.setFcmToken(snapshot.child("fcmToken").getValue(String.class));
+                    user.setRole(snapshot.child("role").getValue(String.class));
+                    if (user.getRole().equals("admin")){
+                        isAdmin = true;
+                    }else{
+                        isAdmin = false;
+                    }
                     tvUserName.setText(user.getName());
                     LogUtils.e(user.getFcmToken());
                     fcmToken = user.getFcmToken();
@@ -274,9 +281,16 @@ public class ActivityChat extends AppCompatActivity {
             }
         });
     }
-    void sendPushNotification(String toFcmToken,String title,String body) throws JSONException {
+    void sendPushNotification(String toFcmToken,String title,String body,boolean isAdmin) throws JSONException {
+        LogUtils.e(isAdmin);
+        String clickAction;
+        if (isAdmin){
+            clickAction = "com.example.classifiedadsappadmin.ActivityChat";
+        }else{
+            clickAction = "com.android.classifiedapp.ActivityChat";
+        }
         JSONObject messageObject = new JSONObject();
-       // messageObject.put("token",fcmToken);
+        // messageObject.put("token",fcmToken);
 
         JSONObject notificationObject =new JSONObject();
         notificationObject.put("body",body);
@@ -294,7 +308,7 @@ public class ActivityChat extends AppCompatActivity {
 
         JSONObject androidObject = new JSONObject();
         JSONObject activityNotificationObject = new JSONObject();
-        activityNotificationObject.put("click_action","com.android.classifiedapp.ActivityChat");
+        activityNotificationObject.put("click_action",clickAction);
 
         androidObject.put("notification",activityNotificationObject);
         messageObject.put("android",androidObject);

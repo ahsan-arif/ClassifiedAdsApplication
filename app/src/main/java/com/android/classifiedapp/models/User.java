@@ -1,7 +1,7 @@
 package com.android.classifiedapp.models;
 
 public class User {
-    String name,email,profileImage,fcmToken;
+    String name,email,profileImage,fcmToken,role;
 
     public String getName() {
         return name;
@@ -33,5 +33,13 @@ public class User {
 
     public void setFcmToken(String fcmToken) {
         this.fcmToken = fcmToken;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }
