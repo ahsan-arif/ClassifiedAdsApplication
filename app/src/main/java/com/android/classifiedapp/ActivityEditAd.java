@@ -103,7 +103,7 @@ public class ActivityEditAd extends AppCompatActivity {
     TextInputLayout tiSubcat;
     Uri image1Uri,image2Uri,image3Uri;
 
-    TextInputEditText etProductTitle,etDetails,etPrice;
+    TextInputEditText etProductTitle,etDetails,etPrice,etQuantity;
 
     RadioGroup rgShipping,rgShippingPayer;
     LinearLayout vgShippingPayer;
@@ -167,11 +167,13 @@ public class ActivityEditAd extends AppCompatActivity {
         rbNo = findViewById(R.id.rb_no);
         rbMe = findViewById(R.id.rb_me);
         rbBuyer = findViewById(R.id.rb_buyer);
+        etQuantity = findViewById(R.id.et_quantity);
         if (ad!=null) {
             latitude = ad.getLatitude();
             longitude = ad.getLongitude();
             address = ad.getAddress();
             adImageUrls = ad.getUrls();
+            etQuantity.setText(String.valueOf(ad.getQuantity()));
         }
         progressImg1 = findViewById(R.id.progress_img_1);
         progressImg2 = findViewById(R.id.progress_img_2);
@@ -503,6 +505,9 @@ public class ActivityEditAd extends AppCompatActivity {
         }else if (etDetails.getText().toString().trim().isEmpty()){
             etDetails.setError(cannotBeEmpty);
             return false;
+        }else if (etQuantity.getText().toString().trim().isEmpty()){
+            etQuantity.setError(cannotBeEmpty);
+            return false;
         }
         if (isShippingAvailable && shippingPayer==null){
             ToastUtils.showShort(getString(R.string.specify_shipping_payer));
@@ -545,6 +550,7 @@ public class ActivityEditAd extends AppCompatActivity {
         ad.setAddress(address);
         ad.setLatitude(latitude);
         ad.setLongitude(longitude);
+        ad.setQuantity(Integer.parseInt(etQuantity.getText().toString()));
         if (isShippingAvailable){
             ad.setShippingPayer(shippingPayer);
         }else{
@@ -597,6 +603,7 @@ public class ActivityEditAd extends AppCompatActivity {
                         etPrice.setText(ad.getPrice());
                         ddCurrency.setText(ad.getCurrency());
                         adImageUrls = ad.getUrls();
+                        etQuantity.setText(String.valueOf(ad.getQuantity()));
                         if (adImageUrls.size()==3){
                             Glide.with(ActivityEditAd.this).load(ad.getUrls().get(0)).into(image1);
                             Glide.with(ActivityEditAd.this).load(ad.getUrls().get(1)).into(image2);
