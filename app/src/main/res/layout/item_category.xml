@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:gravity="center_horizontal"
+    android:orientation="horizontal"
+    android:gravity="center"
     android:layout_width="wrap_content"
     android:layout_marginStart="8dp"
+    android:padding="8dp"
+    android:background="@drawable/btn_buy"
     android:layout_height="wrap_content">
-<ImageView
+<de.hdodenhof.circleimageview.CircleImageView
     android:layout_width="32dp"
     android:layout_height="32dp"
     android:id="@+id/img_category"
@@ -15,6 +17,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/tv_category"
         android:textSize="16sp"
+        android:layout_marginStart="8dp"
         android:textColor="@color/black"
         />
 </LinearLayout>

@@ -31,14 +31,20 @@
         android:theme="@style/Theme.ClassifiedApp"
         tools:targetApi="31">
         <activity
+            android:name=".AdsByCategory"
+            android:exported="false" />
+        <activity
+            android:name=".ActivityPaymentSuccessful"
+            android:exported="false" />
+        <activity
             android:name=".ActivityEditAd"
-            android:launchMode="singleTask"
-            android:exported="false" >
-        <intent-filter>
-            <action android:name="com.android.classifiedapp.ActivityEditAd" />
+            android:exported="false"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="com.android.classifiedapp.ActivityEditAd" />
 
-            <category android:name="android.intent.category.DEFAULT" />
-        </intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".ActivityMyAds"
@@ -83,7 +89,8 @@
                 <data android:host="classifiedadsapplication.page.link" />
                 <data android:pathPrefix="/chat:" />
             </intent-filter>
-         <!--   <intent-filter>
+            <!--
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
@@ -92,7 +99,8 @@
                 <data android:scheme="https" />
                 <data android:host="classifiedadsapplication.page.link" />
                 <data android:pathPrefix="/reportedAdId:" />
-            </intent-filter>-->
+            </intent-filter>
+            -->
         </activity>
         <activity
             android:name=".ActivityPageAdDetails"

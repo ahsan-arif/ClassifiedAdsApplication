@@ -1,6 +1,7 @@
 package com.android.classifiedapp.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,12 +11,15 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.classifiedapp.AdsByCategory;
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.models.Category;
 import com.blankj.utilcode.util.LogUtils;
 import com.bumptech.glide.Glide;
 
 import java.util.List;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class HomeCategoriesAdapter extends RecyclerView.Adapter<HomeCategoriesAdapter.HomeCategoriesViewHolder> {
 List<Category> categories;
@@ -39,6 +43,13 @@ Context context;
         holder.tvCategory.setText(category.getName());
         //LogUtils.e(category.getImageUrl());
         Glide.with(context).load(category.getImageUrl()).into(holder.imgCategory);
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                context.startActivity(new Intent(context, AdsByCategory.class).putExtra("category",category));
+            }
+        });
     }
 
     @Override
@@ -48,7 +59,7 @@ Context context;
 
     public class HomeCategoriesViewHolder extends RecyclerView.ViewHolder{
         TextView tvCategory;
-        ImageView imgCategory;
+        CircleImageView imgCategory;
         public HomeCategoriesViewHolder(@NonNull View itemView) {
             super(itemView);
             tvCategory = itemView.findViewById(R.id.tv_category);

@@ -114,6 +114,7 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                     category.setId(s.child("id").getValue(String.class));
                     category.setName(s.child("name").getValue(String.class));
                     category.setId(s.child("id").getValue(String.class));
+                    category.setImageUrl(s.child("imageUrl").getValue(String.class));
 
                     categories.add(category);
                 }

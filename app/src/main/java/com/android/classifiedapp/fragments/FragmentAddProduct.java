@@ -122,7 +122,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
     TextInputLayout tiSubcat;
     Uri image1Uri,image2Uri,image3Uri;
 
-    TextInputEditText etProductTitle,etDetails,etPrice;
+    TextInputEditText etProductTitle,etDetails,etPrice,etQuantity;
 
     RadioGroup rgShipping,rgShippingPayer;
     LinearLayout vgShippingPayer;
@@ -190,6 +190,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         etDetails = view.findViewById(R.id.et_details);
         etPrice = view.findViewById(R.id.et_price);
         btnCreateAd = view.findViewById(R.id.btn_create_ad);
+        etQuantity = view.findViewById(R.id.et_quantity);
         Places.initialize(getContext(), getString(R.string.places_api_key), Locale.US);
         fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS
         );
@@ -730,6 +731,10 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         }else if (etDetails.getText().toString().trim().isEmpty()){
             etDetails.setError(cannotBeEmpty);
             return false;
+        }else if(etQuantity.getText().toString().trim().isEmpty()){
+            etQuantity.setError(cannotBeEmpty);
+            return false;
+
         }
         if (isShippingAvailable && shippingPayer==null){
             ToastUtils.showShort(getString(R.string.specify_shipping_payer));

@@ -123,4 +123,15 @@
     <string name="update">Update</string>
     <string name="admin_cannot">Admins cannot login to this application</string>
     <string name="ad_reported">A listing was just reported</string>
+    <string name="quantity">Quantity</string>
+    <string name="free_shipping">Free Shipping</string>
+    <string name="buy">Buy</string>
+    <string name="proceed_to_payment">Proceed to payment</string>
+    <string name="checkout">Checkout</string>
+    <string name="paid">Paid</string>
+    <string name="payment_successful">Payment Successful</string>
+    <string name="donot_forget_to_rate_your_expperience">Donot forget to rate your expperience</string>
+    <string name="done">Done</string>
+    <string name="order_confirmed">Order Confirmed</string>
+    <string name="thank_you_feedback">Thank you for your feedback</string>
 </resources>

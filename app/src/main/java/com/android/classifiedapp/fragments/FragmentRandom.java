@@ -97,7 +97,8 @@ public class FragmentRandom extends Fragment implements AdsAdapter.OnAdClickList
                     ArrayList<Ad> ads = new ArrayList<>();
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()){
                         Ad ad = dataSnapshot.getValue(Ad.class);
-                        ads.add(ad);
+                        if (ad.getStatus().equals(getString(R.string.approved)))
+                            ads.add(ad);
                     }
                     setAdsAdapter(ads);
 

@@ -35,6 +35,8 @@ public class Ad implements Parcelable {
     String status;
     List<String> blockedBy;
 
+    int quantity;
+
     public Ad() {
     }
 
@@ -59,6 +61,7 @@ public class Ad implements Parcelable {
         reports = in.createTypedArrayList(Report.CREATOR);
         status = in.readString();
         blockedBy = in.createStringArrayList();
+        quantity = in.readInt();
     }
 
     public static final Creator<Ad> CREATOR = new Creator<Ad>() {
@@ -233,6 +236,14 @@ public class Ad implements Parcelable {
         this.blockedBy = blockedBy;
     }
 
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -260,5 +271,6 @@ public class Ad implements Parcelable {
         dest.writeTypedList(reports);
         dest.writeString(status);
         dest.writeStringList(blockedBy);
+        dest.writeInt(quantity);
     }
 }

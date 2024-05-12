@@ -2,6 +2,7 @@ package com.android.classifiedapp;
 
 import static com.android.classifiedapp.utilities.Constants.NOTIFICATION_URL;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,6 +19,10 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,6 +35,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.android.classifiedapp.adapters.ImagePagerAdapter;
 import com.android.classifiedapp.models.Ad;
+import com.android.classifiedapp.models.Order;
 import com.android.classifiedapp.models.Report;
 import com.android.classifiedapp.models.User;
 import com.android.classifiedapp.utilities.SharedPrefManager;
@@ -49,8 +55,14 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -66,8 +78,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -83,6 +97,14 @@ public class ActivityAdDetails extends AppCompatActivity {
     TextView tvReportListing;
     GoogleMap googleMap;
     String accessToken;
+    TextView tvBuy;
+    Ad ad;
+
+    List<Place.Field> fields;
+    ActivityResultLauncher<Intent> placesIntent;
+    Double latitude,longitude;
+    String address;
+    TextInputEditText etLocation;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,8 +135,9 @@ public class ActivityAdDetails extends AppCompatActivity {
         imgChat = findViewById(R.id.img_chat);
         imgShare = findViewById(R.id.img_share);
         tvReportListing = findViewById(R.id.tv_report_listing);
+        tvBuy = findViewById(R.id.tv_buy);
 
-        Ad ad = getIntent().getParcelableExtra("ad");
+        ad = getIntent().getParcelableExtra("ad");
         accessToken = SharedPrefManager.getInstance(ActivityAdDetails.this).getAccessToken();
         if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
             tvReportListing.setVisibility(View.GONE);
@@ -124,6 +147,23 @@ public class ActivityAdDetails extends AppCompatActivity {
         }
         ImagePagerAdapter adapter = new ImagePagerAdapter(this,ad.getUrls());
         pagerImages.setAdapter(adapter);
+
+        Places.initialize(ActivityAdDetails.this, getString(R.string.places_api_key), Locale.US);
+        fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS
+        );
+        placesIntent = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult o) {
+                if (o.getResultCode() == RESULT_OK){
+                    Intent data = o.getData();
+                    Place place  = Autocomplete.getPlaceFromIntent(data);
+                    latitude = place.getLatLng().latitude;
+                    longitude = place.getLatLng().longitude;
+                    address = place.getAddress();
+                    etLocation.setText(place.getAddress());
+                }
+            }
+        });
 
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map_fragment);
         // Initialize the map
@@ -148,7 +188,10 @@ public class ActivityAdDetails extends AppCompatActivity {
         tvPrice.setText(ad.getCurrency()+" "+ad.getPrice());
         tvDescription.setText(ad.getDescription());
         if (ad.isShippingAvailable()){
-            tvShipping.setText(getString(R.string.can_be_shipped));
+            if ( ad.getShippingPayer().equals(getString(R.string.seller))){
+                tvShipping.setText(getString(R.string.free_shipping));
+            }else
+                tvShipping.setText(getString(R.string.can_be_shipped));
         }else{
             tvShipping.setText(getString(R.string.can__not_be_shipped));
         }
@@ -198,6 +241,13 @@ public class ActivityAdDetails extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 showReportDialog(ad.getId());
+            }
+        });
+
+        tvBuy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showBuySheet();
             }
         });
     }
@@ -513,5 +563,52 @@ public class ActivityAdDetails extends AppCompatActivity {
         queue.add(request);
         //  This code will send a push notification to the device with the title "New Like!" and the body "Someone has liked your post!".
         //I hope this helps! Let me know if you have any other questions.
+    }
+
+    void showBuySheet(){
+        BottomSheetDialog buyDialog = new BottomSheetDialog(ActivityAdDetails.this);
+        buyDialog.setContentView(R.layout.dialog_buy);
+
+        etLocation = buyDialog.findViewById(R.id.et_location);
+        TextInputEditText etQuantity = buyDialog.findViewById(R.id.et_quantity);
+        TextView tvPay = buyDialog.findViewById(R.id.tv_pay);
+
+        if (!ad.isShippingAvailable()){
+            etLocation.setVisibility(View.GONE);
+        }
+
+        etLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                @SuppressLint("ClickableViewAccessibility") Intent intent = new Autocomplete.IntentBuilder(
+                        AutocompleteActivityMode.FULLSCREEN, fields)
+                        .build(ActivityAdDetails.this);
+                placesIntent.launch(intent);
+            }
+        });
+        tvPay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+               String uid= FirebaseAuth.getInstance().getCurrentUser().getUid();
+              DatabaseReference databaseReference=  FirebaseDatabase.getInstance().getReference().child("users").child(uid).child("orders").push();
+              String key = databaseReference.getKey();
+                Order order = new Order();
+                order.setAmount(Double.valueOf(etQuantity.getText().toString())*Double.valueOf(ad.getPrice()));
+                order.setBuyerId(uid);
+                order.setSellerId(ad.getPostedBy());
+                order.setProductId(ad.getId());
+                order.setTitle(ad.getTitle());
+                order.setQuantity(Integer.parseInt(etQuantity.getText().toString()));
+                order.setStatus(getString(R.string.paid));
+                order.setCurrency(ad.getCurrency());
+                order.setId(key);
+
+                databaseReference.setValue(order);
+
+                startActivity(new Intent(ActivityAdDetails.this, ActivityPaymentSuccessful.class).putExtra("order",order));
+            }
+        });
+        buyDialog.show();
+
     }
 }
