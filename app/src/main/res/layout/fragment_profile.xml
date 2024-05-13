@@ -147,6 +147,31 @@
                                     />
                         </RelativeLayout>
                 </androidx.cardview.widget.CardView>
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardUseCompatPadding="true"
+                    android:layout_marginTop="16dp"
+                    android:id="@+id/card_my_orders"
+                    >
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/my_orders"
+                                    android:padding="8dp"
+                                    android:layout_centerInParent="true"
+                                    />
+                                <ImageView
+                                    android:layout_width="32dp"
+                                    android:layout_height="32dp"
+                                    android:layout_alignParentEnd="true"
+                                    android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
+                                    />
+                        </RelativeLayout>
+                </androidx.cardview.widget.CardView>
         </LinearLayout>
         <TextView
             android:layout_width="match_parent"

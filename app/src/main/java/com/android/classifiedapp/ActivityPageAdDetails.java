@@ -2,6 +2,7 @@ package com.android.classifiedapp;
 
 import static com.android.classifiedapp.utilities.Constants.NOTIFICATION_URL;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -20,6 +21,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,6 +36,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.android.classifiedapp.adapters.ImagePagerAdapter;
 import com.android.classifiedapp.models.Ad;
+import com.android.classifiedapp.models.Order;
 import com.android.classifiedapp.models.Report;
 import com.android.classifiedapp.models.User;
 import com.android.classifiedapp.utilities.SharedPrefManager;
@@ -50,8 +56,14 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -67,14 +79,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ActivityPageAdDetails extends AppCompatActivity {
-ImageView imgBack;
+    ImageView imgBack;
     ViewPager2 pagerImages;
     TabLayout tabsImg;
     TextView tvTitle,tvPrice;
@@ -86,6 +100,16 @@ ImageView imgBack;
     private GoogleMap mGoogleMap;
     String accessToken;
     String adId;
+    TextView tvBuy;
+    List<Place.Field> fields;
+    ActivityResultLauncher<Intent> placesIntent;
+    Double latitude,longitude;
+    String address;
+    TextInputEditText etLocation;
+    Ad ad1;
+    User postedByUser;
+    TextView tvViewOrders;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,10 +140,12 @@ ImageView imgBack;
         imgBack = findViewById(R.id.img_back);
         imgChat = findViewById(R.id.img_chat);
         imgShare = findViewById(R.id.img_share);
-        tvReport = findViewById(R.id.tv_report);
+        tvReport = findViewById(R.id.tv_report_listing);
+        tvBuy = findViewById(R.id.tv_buy);
+        tvViewOrders = findViewById(R.id.tv_view_orders);
         String lastPathSeg = getIntent().getStringExtra("adId");
         String[] segs = lastPathSeg.split(":");
-         adId="";
+        adId="";
         if (segs.length==2){
             adId = segs[1];
         }else{
@@ -127,6 +153,23 @@ ImageView imgBack;
             startActivity(new Intent(ActivityPageAdDetails.this,MainActivity.class));
             finish();
         }
+
+        Places.initialize(ActivityPageAdDetails.this, getString(R.string.places_api_key), Locale.US);
+        fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS
+        );
+        placesIntent = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult o) {
+                if (o.getResultCode() == RESULT_OK){
+                    Intent data = o.getData();
+                    Place place  = Autocomplete.getPlaceFromIntent(data);
+                    latitude = place.getLatLng().latitude;
+                    longitude = place.getLatLng().longitude;
+                    address = place.getAddress();
+                    etLocation.setText(place.getAddress());
+                }
+            }
+        });
         imgBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -144,6 +187,19 @@ ImageView imgBack;
                 showReportDialog(adId);
             }
         });
+        tvBuy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showBuySheet();
+            }
+        });
+        tvViewOrders.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(ActivityPageAdDetails.this,ActivityViewOrders.class).putExtra("adId",ad1.getId()).putExtra("title",ad1.getTitle()));
+            }
+        });
+
 
         getAdDetails(adId);
     }
@@ -170,6 +226,7 @@ ImageView imgBack;
 
                 }
                 Ad ad = snapshot.getValue(Ad.class);
+                ad1 = ad;
                 if (fIrebaseUser!=null){
                     if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
                         imgChat.setVisibility(View.GONE);
@@ -185,25 +242,25 @@ ImageView imgBack;
                 }else{
                     tvShipping.setText(getString(R.string.can__not_be_shipped));
                 }
-if (fIrebaseUser!=null){
-    if (ad.getLikedByUsers()!=null){
-        if (!ad.getLikedByUsers().isEmpty()){
-            if (ad.getLikedByUsers().contains(fIrebaseUser.getUid())){
-                imgLike.setImageResource(R.drawable.heart_red);
-            }else{
-                imgLike.setImageResource(R.drawable.heart);
-            }
-        }else{
-            imgLike.setImageResource(R.drawable.heart);
-        }
-    }else{
-        imgLike.setImageResource(R.drawable.heart);
-    }
+                if (fIrebaseUser!=null){
+                    if (ad.getLikedByUsers()!=null){
+                        if (!ad.getLikedByUsers().isEmpty()){
+                            if (ad.getLikedByUsers().contains(fIrebaseUser.getUid())){
+                                imgLike.setImageResource(R.drawable.heart_red);
+                            }else{
+                                imgLike.setImageResource(R.drawable.heart);
+                            }
+                        }else{
+                            imgLike.setImageResource(R.drawable.heart);
+                        }
+                    }else{
+                        imgLike.setImageResource(R.drawable.heart);
+                    }
 
-    if (ad.getPostedBy().equals(fIrebaseUser.getUid())){
-        tvReport.setVisibility(View.GONE);
-    }
-}
+                    if (ad.getPostedBy().equals(fIrebaseUser.getUid())){
+                        tvReport.setVisibility(View.GONE);
+                    }
+                }
 
 
                 getPostedBy(ActivityPageAdDetails.this,ad.getPostedBy(),tvName,imgUser);
@@ -247,6 +304,11 @@ if (fIrebaseUser!=null){
                     // Move the camera to the marker location and zoom in
                     googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerLocation, 12));
                 });
+                if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
+                    tvReport.setVisibility(View.GONE);
+                    tvBuy.setVisibility(View.GONE);
+                    tvViewOrders.setVisibility(View.VISIBLE);
+                }
             }
 
             @Override
@@ -277,6 +339,7 @@ if (fIrebaseUser!=null){
                     }else{
                         circleImageView.setImageResource(R.drawable.outline_account_circle_24);
                     }
+                    postedByUser = user;
                     // }
 
 
@@ -567,5 +630,162 @@ if (fIrebaseUser!=null){
         queue.add(request);
         //  This code will send a push notification to the device with the title "New Like!" and the body "Someone has liked your post!".
         //I hope this helps! Let me know if you have any other questions.
+    }
+
+    void showBuySheet(){
+        BottomSheetDialog buyDialog = new BottomSheetDialog(ActivityPageAdDetails.this);
+        buyDialog.setContentView(R.layout.dialog_buy);
+
+        TextView tvItemsAvailable = buyDialog.findViewById(R.id.tv_items_available);
+
+        etLocation = buyDialog.findViewById(R.id.et_location);
+        TextInputEditText etQuantity = buyDialog.findViewById(R.id.et_quantity);
+        TextView tvPay = buyDialog.findViewById(R.id.tv_pay);
+        getQuantity(tvItemsAvailable,tvPay);
+
+        if (!ad1.isShippingAvailable()){
+            etLocation.setVisibility(View.GONE);
+        }
+
+        etLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                @SuppressLint("ClickableViewAccessibility") Intent intent = new Autocomplete.IntentBuilder(
+                        AutocompleteActivityMode.FULLSCREEN, fields)
+                        .build(ActivityPageAdDetails.this);
+                placesIntent.launch(intent);
+            }
+        });
+        tvPay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (Integer.parseInt(etQuantity.getText().toString())<=ad1.getQuantity()){
+                    String uid= FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    DatabaseReference databaseReference=  FirebaseDatabase.getInstance().getReference().child("users").child(uid).child("orders").push();
+                    String key = databaseReference.getKey();
+                    Order order = new Order();
+                    order.setAmount(Double.valueOf(etQuantity.getText().toString())*Double.valueOf(ad1.getPrice()));
+                    order.setBuyerId(uid);
+                    order.setSellerId(ad1.getPostedBy());
+                    order.setProductId(ad1.getId());
+                    order.setTitle(ad1.getTitle());
+                    order.setQuantity(Integer.parseInt(etQuantity.getText().toString()));
+                    order.setStatus(getString(R.string.paid));
+                    if (!etLocation.getText().toString().isEmpty()){
+                        order.setAddress(etLocation.getText().toString());
+                    }
+                    order.setCurrency(ad1.getCurrency());
+                    order.setPlaceOn(String.valueOf(System.currentTimeMillis()));
+                    order.setId(key);
+
+                    databaseReference.setValue(order);
+
+                    DatabaseReference productReference=  FirebaseDatabase.getInstance().getReference().child("ads").child(ad1.getId()).child("orders").child(key);
+                    productReference.setValue(order);
+
+                    try {
+                        sendOrderPlacementPushNotification(getString(R.string.new_order),getString(R.string.somebody_placed));
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+                    startActivity(new Intent(ActivityPageAdDetails.this, ActivityPaymentSuccessful.class).putExtra("order",order));
+                    buyDialog.dismiss();
+                }else{
+                    etQuantity.setError(getString(R.string.cannot_buy_more));
+                }
+
+
+            }
+        });
+        buyDialog.show();
+
+    }
+    void sendOrderPlacementPushNotification(String title,String body) throws JSONException {
+        JSONObject messageObject = new JSONObject();
+        // messageObject.put("token",fcmToken);
+
+        JSONObject notificationObject =new JSONObject();
+        notificationObject.put("body",body);
+        notificationObject.put("title",title);
+
+        messageObject.put("notification",notificationObject);
+        messageObject.put("token",postedByUser.getFcmToken());
+
+        JSONObject dataObject = new JSONObject();
+        dataObject.put("id",ad1.getId());
+        dataObject.put("deepLink","https://classifiedadsapplication.page.link/adId:"+ad1.getId());
+
+        messageObject.put("data",dataObject);
+
+        JSONObject androidObject = new JSONObject();
+        JSONObject activityNotificationObject = new JSONObject();
+        activityNotificationObject.put("click_action","com.android.classifiedapp.ActivityAdDetails");
+
+        androidObject.put("notification",activityNotificationObject);
+        messageObject.put("android",androidObject);
+
+        JSONObject finalObject = new JSONObject();
+        finalObject.put("message",messageObject);
+        //finalObject.put("data",dataObject);
+        LogUtils.json(finalObject);
+
+// Create a new RequestQueue
+        RequestQueue queue = Volley.newRequestQueue(ActivityPageAdDetails.this);
+
+// Create a new JsonObjectRequest
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, NOTIFICATION_URL, finalObject,
+                new com.android.volley.Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // Handle the response from the FCM server
+                        //LogUtils.json(response);
+                    }
+                },
+                new com.android.volley.Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Handle error
+                        LogUtils.e(error.getMessage());
+                    }
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Authorization", "Bearer " + accessToken);
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+        };
+// Add the request to the RequestQueue
+        queue.add(request);
+        //  This code will send a push notification to the device with the title "New Like!" and the body "Someone has liked your post!".
+        //I hope this helps! Let me know if you have any other questions.
+    }
+    void getQuantity(TextView tvItemsAvailable,TextView proceedToPayment){
+        FirebaseDatabase.getInstance().getReference().child("ads").child(ad1.getId()).child("quantity").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int quantity = snapshot.getValue(Integer.class);
+                tvItemsAvailable.setText(getString(R.string.items_available)+" "+quantity);
+
+                if (quantity ==0){
+                    tvBuy.setText(getString(R.string.out_of_stock));
+                    tvBuy.setTextColor(getColor(R.color.red));
+                    tvBuy.setBackgroundResource(R.drawable.bg_report_btn);
+                    tvBuy.setOnClickListener(null);
+
+                    proceedToPayment.setText(getString(R.string.out_of_stock));
+                    proceedToPayment.setTextColor(getColor(R.color.red));
+                    proceedToPayment.setBackgroundResource(R.drawable.bg_report_btn);
+                    proceedToPayment.setOnClickListener(null);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 }

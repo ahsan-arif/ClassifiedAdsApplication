@@ -31,6 +31,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.classifiedapp.ActivityMyAds;
+import com.android.classifiedapp.ActivityMyOrders;
 import com.android.classifiedapp.ActivityMyWishlist;
 import com.android.classifiedapp.ActivityVerifyLogin;
 import com.android.classifiedapp.MainActivity;
@@ -100,7 +101,7 @@ public class FragmentProfile extends Fragment  {
     ProgressBar progressCircular;
     CircleImageView imgProfile;
     CardView cardWishlist;
-    CardView cardMyListings;
+    CardView cardMyListings,cardMyOrders;
 
     TextView tvDeleteAccount;
 
@@ -149,6 +150,7 @@ public class FragmentProfile extends Fragment  {
         cardWishlist = view.findViewById(R.id.card_wishlist);
         cardMyListings = view.findViewById(R.id.card_my_listings);
         tvDeleteAccount = view.findViewById(R.id.tv_delete_account);
+        cardMyOrders = view.findViewById(R.id.card_my_orders);
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         getUserDetails(user.getUid());
@@ -213,6 +215,12 @@ public class FragmentProfile extends Fragment  {
             @Override
             public void onClick(View v) {
 showAlert();
+            }
+        });
+        cardMyOrders.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getContext(), ActivityMyOrders.class));
             }
         });
 

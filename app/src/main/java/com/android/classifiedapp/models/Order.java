@@ -16,7 +16,7 @@ public class Order implements Parcelable {
 
     String status;
 
-    String currency;
+    String currency,placeOn,address;
 
     public Order() {
     }
@@ -35,6 +35,8 @@ public class Order implements Parcelable {
         buyerId = in.readString();
         status = in.readString();
         currency = in.readString();
+        placeOn = in.readString();
+        address = in.readString();
     }
 
     public static final Creator<Order> CREATOR = new Creator<Order>() {
@@ -121,6 +123,22 @@ public class Order implements Parcelable {
         this.currency = currency;
     }
 
+    public String getPlaceOn() {
+        return placeOn;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public void setPlaceOn(String placeOn) {
+        this.placeOn = placeOn;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -142,5 +160,7 @@ public class Order implements Parcelable {
         dest.writeString(buyerId);
         dest.writeString(status);
         dest.writeString(currency);
+        dest.writeString(placeOn);
+        dest.writeString(address);
     }
 }

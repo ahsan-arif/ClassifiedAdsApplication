@@ -134,4 +134,21 @@
     <string name="done">Done</string>
     <string name="order_confirmed">Order Confirmed</string>
     <string name="thank_you_feedback">Thank you for your feedback</string>
+    <string name="cannot_buy_more">Cannot buy more than available quantity.</string>
+    <string name="items_available">Items Available:</string>
+    <string name="out_of_stock">Out of stock</string>
+    <string name="new_order">New Order</string>
+    <string name="somebody_placed">Somebody placed an order</string>
+    <string name="orders">Orders</string>
+    <string name="total">Total</string>
+    <string name="status">Status</string>
+    <string name="ordered_on">Ordered On</string>
+    <string name="view_orders">View Orders</string>
+    <string name="address">Address</string>
+    <string name="confirm_order">Confirm Order</string>
+    <string name="my_orders">My Orders</string>
+    <string name="your_order_confirmed">Your order has been confirmed.</string>
+    <string name="fetching_orders">Fetching your orders</string>
+    <string name="no_orders_placed">You have not placed any orders yet</string>
+    <string name="no_orders_for_listing">No buyer has placed order for this listing.</string>
 </resources>

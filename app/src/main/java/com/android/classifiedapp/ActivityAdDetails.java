@@ -3,6 +3,7 @@ package com.android.classifiedapp;
 import static com.android.classifiedapp.utilities.Constants.NOTIFICATION_URL;
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -16,6 +17,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -36,6 +38,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.android.classifiedapp.adapters.ImagePagerAdapter;
 import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.Order;
+import com.android.classifiedapp.models.Rating;
 import com.android.classifiedapp.models.Report;
 import com.android.classifiedapp.models.User;
 import com.android.classifiedapp.utilities.SharedPrefManager;
@@ -95,7 +98,7 @@ public class ActivityAdDetails extends AppCompatActivity {
     ImageView imgLike,imgBack,imgShare;
     ImageView imgChat;
     TextView tvReportListing;
-    GoogleMap googleMap;
+    GoogleMap googleMap1;
     String accessToken;
     TextView tvBuy;
     Ad ad;
@@ -105,6 +108,11 @@ public class ActivityAdDetails extends AppCompatActivity {
     Double latitude,longitude;
     String address;
     TextInputEditText etLocation;
+    RatingBar ratingbar;
+
+    User postedByUser;
+
+    TextView tvViewOrders;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,6 +130,7 @@ public class ActivityAdDetails extends AppCompatActivity {
             return insets;
         });
         FirebaseUser fIrebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        LogUtils.e(fIrebaseUser.getUid());
         pagerImages = findViewById(R.id.pager_images);
         tabsImg = findViewById(R.id.tabs_img);
         tvTitle = findViewById(R.id.tv_title);
@@ -136,17 +145,31 @@ public class ActivityAdDetails extends AppCompatActivity {
         imgShare = findViewById(R.id.img_share);
         tvReportListing = findViewById(R.id.tv_report_listing);
         tvBuy = findViewById(R.id.tv_buy);
+        ratingbar = findViewById(R.id.ratingbar);
+        tvViewOrders = findViewById(R.id.tv_view_orders);
 
         ad = getIntent().getParcelableExtra("ad");
+        Bundle extras = getIntent().getExtras();
+        if (ad==null && extras!=null){
+            String adId = extras.getString("id");
+            getListing(adId);
+            LogUtils.e(extras);
+        }
+
         accessToken = SharedPrefManager.getInstance(ActivityAdDetails.this).getAccessToken();
-        if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
-            tvReportListing.setVisibility(View.GONE);
+        if (ad!=null){
+            if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
+                tvReportListing.setVisibility(View.GONE);
+                tvBuy.setVisibility(View.GONE);
+                tvViewOrders.setVisibility(View.VISIBLE);
+            }
+            if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
+                imgChat.setVisibility(View.GONE);
+            }
+            ImagePagerAdapter adapter = new ImagePagerAdapter(this,ad.getUrls());
+            pagerImages.setAdapter(adapter);
         }
-        if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
-            imgChat.setVisibility(View.GONE);
-        }
-        ImagePagerAdapter adapter = new ImagePagerAdapter(this,ad.getUrls());
-        pagerImages.setAdapter(adapter);
+
 
         Places.initialize(ActivityAdDetails.this, getString(R.string.places_api_key), Locale.US);
         fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS
@@ -165,52 +188,54 @@ public class ActivityAdDetails extends AppCompatActivity {
             }
         });
 
-        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map_fragment);
-        // Initialize the map
-        mapFragment.getMapAsync(googleMap -> {
-            this.googleMap = googleMap;
+        if (ad!=null){
+            MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map_fragment);
+            // Initialize the map
+            mapFragment.getMapAsync(googleMap -> {
+                this.googleMap1 = googleMap;
 
-            // Add a marker at a specific location
-            LatLng markerLocation = new LatLng(ad.getLatitude(), ad.getLongitude()); // San Francisco, CA
-            googleMap.addMarker(new MarkerOptions().position(markerLocation).title(ad.getTitle()));
+                // Add a marker at a specific location
+                LatLng markerLocation = new LatLng(ad.getLatitude(), ad.getLongitude()); // San Francisco, CA
+                googleMap.addMarker(new MarkerOptions().position(markerLocation).title(ad.getTitle()));
 
-            // Move the camera to the marker location and zoom in
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerLocation, 12));
-        });
+                // Move the camera to the marker location and zoom in
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerLocation, 12));
+            });
 
-        // Setup TabLayout with ViewPager
-        new TabLayoutMediator(tabsImg, pagerImages, (tab, position) -> {
-            // You can set custom tab view here if needed, for now, just add empty text
-            tab.setText("");
-        }).attach();
+            // Setup TabLayout with ViewPager
+            new TabLayoutMediator(tabsImg, pagerImages, (tab, position) -> {
+                // You can set custom tab view here if needed, for now, just add empty text
+                tab.setText("");
+            }).attach();
 
-        tvTitle.setText(ad.getTitle());
-        tvPrice.setText(ad.getCurrency()+" "+ad.getPrice());
-        tvDescription.setText(ad.getDescription());
-        if (ad.isShippingAvailable()){
-            if ( ad.getShippingPayer().equals(getString(R.string.seller))){
-                tvShipping.setText(getString(R.string.free_shipping));
-            }else
-                tvShipping.setText(getString(R.string.can_be_shipped));
-        }else{
-            tvShipping.setText(getString(R.string.can__not_be_shipped));
-        }
+            tvTitle.setText(ad.getTitle());
+            tvPrice.setText(ad.getCurrency()+" "+ad.getPrice());
+            tvDescription.setText(ad.getDescription());
+            if (ad.isShippingAvailable()){
+                if ( ad.getShippingPayer().equals(getString(R.string.seller))){
+                    tvShipping.setText(getString(R.string.free_shipping));
+                }else
+                    tvShipping.setText(getString(R.string.can_be_shipped));
+            }else{
+                tvShipping.setText(getString(R.string.can__not_be_shipped));
+            }
 
-        if (ad.getLikedByUsers()!=null){
-            if (!ad.getLikedByUsers().isEmpty()){
-                if (ad.getLikedByUsers().contains(fIrebaseUser.getUid())){
-                    imgLike.setImageResource(R.drawable.heart_red);
+            if (ad.getLikedByUsers()!=null){
+                if (!ad.getLikedByUsers().isEmpty()){
+                    if (ad.getLikedByUsers().contains(fIrebaseUser.getUid())){
+                        imgLike.setImageResource(R.drawable.heart_red);
+                    }else{
+                        imgLike.setImageResource(R.drawable.heart);
+                    }
                 }else{
                     imgLike.setImageResource(R.drawable.heart);
                 }
             }else{
                 imgLike.setImageResource(R.drawable.heart);
             }
-        }else{
-            imgLike.setImageResource(R.drawable.heart);
+            getPostedBy(this,ad.getPostedBy(),tvName,imgUser);
         }
 
-        getPostedBy(this,ad.getPostedBy(),tvName,imgUser);
         imgLike.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -250,6 +275,21 @@ public class ActivityAdDetails extends AppCompatActivity {
                 showBuySheet();
             }
         });
+        if (ad!=null){
+            if (ad.getQuantity() ==0){
+                tvBuy.setText(getString(R.string.out_of_stock));
+                tvBuy.setTextColor(getColor(R.color.red));
+                tvBuy.setBackgroundResource(R.drawable.bg_report_btn);
+                tvBuy.setOnClickListener(null);
+            }
+        }
+
+        tvViewOrders.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(ActivityAdDetails.this,ActivityViewOrders.class).putExtra("adId",ad.getId()).putExtra("title",ad.getTitle()));
+            }
+        });
     }
 
     void getPostedBy(Context context, String uid, TextView postedBy, CircleImageView circleImageView
@@ -273,6 +313,9 @@ public class ActivityAdDetails extends AppCompatActivity {
                     }else{
                         circleImageView.setImageResource(R.drawable.outline_account_circle_24);
                     }
+                    postedByUser = user;
+
+                    getSellerRating(uid);
                     // }
 
 
@@ -569,9 +612,12 @@ public class ActivityAdDetails extends AppCompatActivity {
         BottomSheetDialog buyDialog = new BottomSheetDialog(ActivityAdDetails.this);
         buyDialog.setContentView(R.layout.dialog_buy);
 
+        TextView tvItemsAvailable = buyDialog.findViewById(R.id.tv_items_available);
+
         etLocation = buyDialog.findViewById(R.id.et_location);
         TextInputEditText etQuantity = buyDialog.findViewById(R.id.et_quantity);
         TextView tvPay = buyDialog.findViewById(R.id.tv_pay);
+        getQuantity(tvItemsAvailable,tvPay);
 
         if (!ad.isShippingAvailable()){
             etLocation.setVisibility(View.GONE);
@@ -589,26 +635,240 @@ public class ActivityAdDetails extends AppCompatActivity {
         tvPay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               String uid= FirebaseAuth.getInstance().getCurrentUser().getUid();
-              DatabaseReference databaseReference=  FirebaseDatabase.getInstance().getReference().child("users").child(uid).child("orders").push();
-              String key = databaseReference.getKey();
-                Order order = new Order();
-                order.setAmount(Double.valueOf(etQuantity.getText().toString())*Double.valueOf(ad.getPrice()));
-                order.setBuyerId(uid);
-                order.setSellerId(ad.getPostedBy());
-                order.setProductId(ad.getId());
-                order.setTitle(ad.getTitle());
-                order.setQuantity(Integer.parseInt(etQuantity.getText().toString()));
-                order.setStatus(getString(R.string.paid));
-                order.setCurrency(ad.getCurrency());
-                order.setId(key);
+                if (Integer.parseInt(etQuantity.getText().toString())<=ad.getQuantity()){
+                    String uid= FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    DatabaseReference databaseReference=  FirebaseDatabase.getInstance().getReference().child("users").child(uid).child("orders").push();
+                    String key = databaseReference.getKey();
+                    Order order = new Order();
+                    order.setAmount(Double.valueOf(etQuantity.getText().toString())*Double.valueOf(ad.getPrice()));
+                    order.setBuyerId(uid);
+                    order.setSellerId(ad.getPostedBy());
+                    order.setProductId(ad.getId());
+                    order.setTitle(ad.getTitle());
+                    order.setQuantity(Integer.parseInt(etQuantity.getText().toString()));
+                    order.setStatus(getString(R.string.paid));
+                    if (!etLocation.getText().toString().isEmpty()){
+                        order.setAddress(etLocation.getText().toString());
+                    }
+                    order.setCurrency(ad.getCurrency());
+                    order.setPlaceOn(String.valueOf(System.currentTimeMillis()));
+                    order.setId(key);
 
-                databaseReference.setValue(order);
+                    databaseReference.setValue(order);
 
-                startActivity(new Intent(ActivityAdDetails.this, ActivityPaymentSuccessful.class).putExtra("order",order));
+                    DatabaseReference productReference=  FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId()).child("orders").child(key);
+                    productReference.setValue(order);
+
+                    try {
+                        sendPushNotification(getString(R.string.new_order),getString(R.string.somebody_placed));
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+                    startActivity(new Intent(ActivityAdDetails.this, ActivityPaymentSuccessful.class).putExtra("order",order));
+                    buyDialog.dismiss();
+                }else{
+                    etQuantity.setError(getString(R.string.cannot_buy_more));
+                }
+
+
             }
         });
         buyDialog.show();
 
+    }
+
+    void getSellerRating(String uid){
+        FirebaseDatabase.getInstance().getReference().child("users").child(uid).child("ratings").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    float commulativeRating=0;
+                    List<Rating> ratings = new ArrayList<>();
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                        Rating rating = dataSnapshot.getValue(Rating.class);
+                        ratings.add(rating);
+                        commulativeRating = commulativeRating+rating.getRating();
+                    }
+                    float averageRating = commulativeRating / ratings.size();
+                    ratingbar.setRating(averageRating);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    void getQuantity(TextView tvItemsAvailable,TextView proceedToPayment){
+        FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId()).child("quantity").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int quantity = snapshot.getValue(Integer.class);
+                tvItemsAvailable.setText(getString(R.string.items_available)+" "+quantity);
+
+                if (quantity ==0){
+                    tvBuy.setText(getString(R.string.out_of_stock));
+                    tvBuy.setTextColor(getColor(R.color.red));
+                    tvBuy.setBackgroundResource(R.drawable.bg_report_btn);
+                    tvBuy.setOnClickListener(null);
+
+                    proceedToPayment.setText(getString(R.string.out_of_stock));
+                    proceedToPayment.setTextColor(getColor(R.color.red));
+                    proceedToPayment.setBackgroundResource(R.drawable.bg_report_btn);
+                    proceedToPayment.setOnClickListener(null);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    void sendPushNotification(String title,String body) throws JSONException {
+        JSONObject messageObject = new JSONObject();
+        // messageObject.put("token",fcmToken);
+
+        JSONObject notificationObject =new JSONObject();
+        notificationObject.put("body",body);
+        notificationObject.put("title",title);
+
+        messageObject.put("notification",notificationObject);
+        messageObject.put("token",postedByUser.getFcmToken());
+
+        JSONObject dataObject = new JSONObject();
+        dataObject.put("id",ad.getId());
+        dataObject.put("deepLink","https://classifiedadsapplication.page.link/adId:"+ad.getId());
+
+        messageObject.put("data",dataObject);
+
+        JSONObject androidObject = new JSONObject();
+        JSONObject activityNotificationObject = new JSONObject();
+        activityNotificationObject.put("click_action","com.android.classifiedapp.ActivityAdDetails");
+
+        androidObject.put("notification",activityNotificationObject);
+        messageObject.put("android",androidObject);
+
+        JSONObject finalObject = new JSONObject();
+        finalObject.put("message",messageObject);
+        //finalObject.put("data",dataObject);
+        LogUtils.json(finalObject);
+
+// Create a new RequestQueue
+        RequestQueue queue = Volley.newRequestQueue(ActivityAdDetails.this);
+
+// Create a new JsonObjectRequest
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, NOTIFICATION_URL, finalObject,
+                new com.android.volley.Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // Handle the response from the FCM server
+                        //LogUtils.json(response);
+                    }
+                },
+                new com.android.volley.Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Handle error
+                        LogUtils.e(error.getMessage());
+                    }
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Authorization", "Bearer " + accessToken);
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+        };
+// Add the request to the RequestQueue
+        queue.add(request);
+        //  This code will send a push notification to the device with the title "New Like!" and the body "Someone has liked your post!".
+        //I hope this helps! Let me know if you have any other questions.
+    }
+
+    void getListing(String adId){
+        ProgressDialog progressDialog = new ProgressDialog(ActivityAdDetails.this);
+        progressDialog.setCancelable(false);
+        progressDialog.setTitle(getString(R.string.please_wait));
+        progressDialog.setMessage(getString(R.string.fetching_ad));
+        progressDialog.show();
+        FirebaseDatabase.getInstance().getReference().child("ads").child(adId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                progressDialog.dismiss();
+                if (snapshot.exists()){
+                    FirebaseUser fIrebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+                    ad = snapshot.getValue(Ad.class);
+                    if (ad!=null){
+                        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map_fragment);
+                        // Initialize the map
+                        mapFragment.getMapAsync(googleMap -> {
+                            googleMap1 = googleMap;
+
+                            // Add a marker at a specific location
+                            LatLng markerLocation = new LatLng(ad.getLatitude(), ad.getLongitude()); // San Francisco, CA
+                            googleMap.addMarker(new MarkerOptions().position(markerLocation).title(ad.getTitle()));
+
+                            // Move the camera to the marker location and zoom in
+                            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerLocation, 12));
+                        });
+
+
+                        tvTitle.setText(ad.getTitle());
+                        tvPrice.setText(ad.getCurrency()+" "+ad.getPrice());
+                        tvDescription.setText(ad.getDescription());
+                        if (ad.isShippingAvailable()){
+                            if ( ad.getShippingPayer().equals(getString(R.string.seller))){
+                                tvShipping.setText(getString(R.string.free_shipping));
+                            }else
+                                tvShipping.setText(getString(R.string.can_be_shipped));
+                        }else{
+                            tvShipping.setText(getString(R.string.can__not_be_shipped));
+                        }
+
+                        if (ad.getLikedByUsers()!=null){
+                            if (!ad.getLikedByUsers().isEmpty()){
+                                if (ad.getLikedByUsers().contains(fIrebaseUser.getUid())){
+                                    imgLike.setImageResource(R.drawable.heart_red);
+                                }else{
+                                    imgLike.setImageResource(R.drawable.heart);
+                                }
+                            }else{
+                                imgLike.setImageResource(R.drawable.heart);
+                            }
+                        }else{
+                            imgLike.setImageResource(R.drawable.heart);
+                        }
+                            if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
+                                tvReportListing.setVisibility(View.GONE);
+                                tvBuy.setVisibility(View.GONE);
+                                tvViewOrders.setVisibility(View.VISIBLE);
+                            }
+                            if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
+                                imgChat.setVisibility(View.GONE);
+                            }
+                            ImagePagerAdapter adapter = new ImagePagerAdapter(ActivityAdDetails.this,ad.getUrls());
+                            pagerImages.setAdapter(adapter);
+                        // Setup TabLayout with ViewPager
+                        new TabLayoutMediator(tabsImg, pagerImages, (tab, position) -> {
+                            // You can set custom tab view here if needed, for now, just add empty text
+                            tab.setText("");
+                        }).attach();
+                        getPostedBy(ActivityAdDetails.this,ad.getPostedBy(),tvName,imgUser);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                progressDialog.dismiss();
+
+            }
+        });
     }
 }

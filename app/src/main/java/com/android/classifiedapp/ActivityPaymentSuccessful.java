@@ -6,10 +6,12 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -20,15 +22,19 @@ import com.android.classifiedapp.models.Order;
 import com.android.classifiedapp.models.Rating;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class ActivityPaymentSuccessful extends AppCompatActivity {
     TextView tvProductQuan,tvCurTotal;
     RatingBar ratingbar;
-    float rating1;
+    float rating1=0;
 
     TextView btnDone;
+    ImageView imgBack;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,9 +56,12 @@ public class ActivityPaymentSuccessful extends AppCompatActivity {
         tvCurTotal = findViewById(R.id.tv_cur_total);
         ratingbar = findViewById(R.id.ratingbar);
         btnDone = findViewById(R.id.btn_done);
+        imgBack = findViewById(R.id.img_back);
 
         tvProductQuan.setText(order.getTitle()+" "+"x"+order.getQuantity());;
         tvCurTotal.setText(order.getCurrency()+" "+order.getAmount());
+
+        updateProductQuantity(order.getProductId(),order.getQuantity());
 
         ratingbar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
             @Override
@@ -78,5 +87,28 @@ public class ActivityPaymentSuccessful extends AppCompatActivity {
                 finish();
             }
         });
+        imgBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+    }
+
+    void updateProductQuantity(String adId,int orderedQuantity){
+      DatabaseReference databaseReference =   FirebaseDatabase.getInstance().getReference().child("ads").child(adId).child("quantity");
+      databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+          @Override
+          public void onDataChange(@NonNull DataSnapshot snapshot) {
+              int quantity = snapshot.getValue(Integer.class);
+              quantity = quantity - orderedQuantity;
+              databaseReference.setValue(quantity);
+          }
+
+          @Override
+          public void onCancelled(@NonNull DatabaseError error) {
+
+          }
+      });
     }
 }
