@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -28,7 +29,9 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.classifiedapp.adapters.ImagePagerAdapter;
 import com.android.classifiedapp.adapters.MessagesAdapter;
+import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.Message;
 import com.android.classifiedapp.models.User;
 import com.android.classifiedapp.utilities.Constants;
@@ -43,9 +46,15 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.blankj.utilcode.util.LogUtils;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -79,6 +88,9 @@ public class ActivityChat extends AppCompatActivity {
     String fcmToken,currentUserName;
     String accessToken;
     boolean isAdmin;
+    String adId;
+    CircleImageView imgProduct;
+    TextView tvProductTitle;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,6 +108,9 @@ public class ActivityChat extends AppCompatActivity {
             return insets;
         });
         sellerId = getIntent().getStringExtra("sellerId");
+        LogUtils.e("seller id ",sellerId);
+        adId = getIntent().getStringExtra("adId");
+        LogUtils.e("adId id ",adId);
         //LogUtils.e(sellerId);
 
         etMessage = findViewById(R.id.et_message);
@@ -105,16 +120,30 @@ public class ActivityChat extends AppCompatActivity {
         imgBack = findViewById(R.id.img_back);
         imgUser = findViewById(R.id.img_user);
         tvUserName = findViewById(R.id.tv_userName);
+        imgProduct = findViewById(R.id.img_product);
+        tvProductTitle = findViewById(R.id.tv_productTitle);
         accessToken = SharedPrefManager.getInstance(ActivityChat.this).getAccessToken();
         InputMethodManager mgr = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         mgr.showSoftInput(etMessage, InputMethodManager.SHOW_FORCED);
 //        LogUtils.e(accessToken);
         Bundle extras = getIntent().getExtras();
         if (extras!=null&&sellerId==null){
+            LogUtils.e(extras);
             String deeplink = extras.getString("deepLink");
-            String strings[] = deeplink.split(":");
-            sellerId = strings[2];
             LogUtils.e(deeplink);
+            if (deeplink == null){
+                Bundle data = extras.getBundle("data");
+                sellerId = data.getString("id");
+                adId = data.getString("adId");
+                LogUtils.e(sellerId ,adId);
+            }else{
+                String strings[] = deeplink.split(":");
+                String items[]= strings[2].split("_");
+                sellerId = items[0];
+                adId = items[1];
+            }
+
+
 
             etMessage.setInputType(InputType.TYPE_CLASS_TEXT);
             etMessage.requestFocus();
@@ -142,8 +171,8 @@ public class ActivityChat extends AppCompatActivity {
                 if (etMessage.getText().toString().isEmpty()){
                     return;
                 }
-                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats").child(sellerId).push();
-                DatabaseReference sellerChatRef = FirebaseDatabase.getInstance().getReference().child("users").child(sellerId).child("chats").child(currentUserId).push();
+                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats").child(adId).child(sellerId).push();
+                DatabaseReference sellerChatRef = FirebaseDatabase.getInstance().getReference().child("users").child(sellerId).child("chats").child(adId).child(currentUserId).push();
                 String messageId = databaseReference.getKey();
                 Message message = new Message();
                 message.setSenderId(currentUserId);
@@ -176,10 +205,17 @@ public class ActivityChat extends AppCompatActivity {
                 }
             }
         });
+        imgUser.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(ActivityChat.this,SellerProfile.class).putExtra("sellerId",sellerId));
+            }
+        });
         rvMessages.setNestedScrollingEnabled(false);
         rvMessages.setHasFixedSize(true);
         getCurrentUserDetails(currentUserId);
         getSellerDetails(sellerId);
+        getListing(adId);
         getMessages();
 
     }
@@ -189,7 +225,7 @@ public class ActivityChat extends AppCompatActivity {
         progressDialog.setTitle(getString(R.string.please_wait));
         progressDialog.setCancelable(false);
         progressDialog.show();
-        FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats").child(sellerId).addValueEventListener(new ValueEventListener() {
+        FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats").child(adId).child(sellerId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 progressDialog.dismiss();
@@ -235,7 +271,7 @@ public class ActivityChat extends AppCompatActivity {
                     }else{
                         isAdmin = false;
                     }
-                    tvUserName.setText(user.getName());
+                   // tvUserName.setText(user.getName());
                     LogUtils.e(user.getFcmToken());
                     fcmToken = user.getFcmToken();
                     if (snapshot.hasChild("profileImage")){
@@ -299,12 +335,21 @@ public class ActivityChat extends AppCompatActivity {
         messageObject.put("notification",notificationObject);
         messageObject.put("token",fcmToken);
 
-        JSONObject dataObject = new JSONObject();
-        dataObject.put("id",currentUserId);
-        LogUtils.e(currentUserId);
-        dataObject.put("deepLink","https://classifiedadsapplication.page.link/chat:"+currentUserId);
+        if (isAdmin){
+            JSONObject dataObject = new JSONObject();
+            dataObject.put("id",currentUserId);
+            LogUtils.e(currentUserId);
+            dataObject.put("deepLink","https://classifiedadsapplication.page.link/chat:"+currentUserId);
 
-        messageObject.put("data",dataObject);
+            messageObject.put("data",dataObject);
+        }else{
+            JSONObject dataObject = new JSONObject();
+            dataObject.put("id",currentUserId);
+            dataObject.put("adId",adId);
+            dataObject.put("deepLink","https://classifiedadsapplication.page.link/chat:"+currentUserId+"_"+adId);
+            messageObject.put("data",dataObject);
+        }
+
 
         JSONObject androidObject = new JSONObject();
         JSONObject activityNotificationObject = new JSONObject();
@@ -350,6 +395,39 @@ public class ActivityChat extends AppCompatActivity {
         queue.add(request);
         //  This code will send a push notification to the device with the title "New Like!" and the body "Someone has liked your post!".
         //I hope this helps! Let me know if you have any other questions.
+    }
+
+    void getListing(String adId){
+        if (adId==null){
+            adId = getIntent().getStringExtra("adId");
+        }
+        ProgressDialog progressDialog = new ProgressDialog(ActivityChat.this);
+        progressDialog.setCancelable(false);
+        progressDialog.setTitle(getString(R.string.please_wait));
+        progressDialog.setMessage(getString(R.string.fetching_ad));
+        progressDialog.show();
+        FirebaseDatabase.getInstance().getReference().child("ads").child(adId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                progressDialog.dismiss();
+                if (snapshot.exists()){
+                    FirebaseUser fIrebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+                  Ad  ad = snapshot.getValue(Ad.class);
+                    if (ad!=null){
+                        tvUserName.setText(ad.getCurrency()+" "+ad.getPrice());
+                       String image=  ad.getUrls().get(0);
+                        Glide.with(ActivityChat.this).load(image).into(imgProduct);
+                        tvProductTitle.setText(ad.getTitle());
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                progressDialog.dismiss();
+
+            }
+        });
     }
 
 }

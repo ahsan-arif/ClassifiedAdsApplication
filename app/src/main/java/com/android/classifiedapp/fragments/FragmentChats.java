@@ -1,5 +1,6 @@
 package com.android.classifiedapp.fragments;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.adapters.ChatsAdapter;
+import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.Chat;
 import com.android.classifiedapp.models.Message;
 import com.android.classifiedapp.models.User;
@@ -148,7 +150,7 @@ public class FragmentChats extends Fragment {
         });
     }*/
 
-    void getChats(){
+   /* void getChats(){
         FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -159,6 +161,7 @@ public class FragmentChats extends Fragment {
                     final int[] chatsProcessed = {0};
 
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                        LogUtils.json(dataSnapshot);
                         Chat chat = new Chat();
                         List<Message> messages = new ArrayList<>();
 
@@ -169,18 +172,24 @@ public class FragmentChats extends Fragment {
 
                         if (!messages.isEmpty()){
                             Message lastMessage = messages.get(messages.size()-1);
+                            LogUtils.json(lastMessage);
                             chat.setLastMessage(lastMessage);
+                            if (!lastMessage.getReceiverId().equals(currentUserId)){
+                                chat.setReceiverId(lastMessage.getReceiverId());
+                            }else{
+                                chat.setReceiverId(lastMessage.getSenderId());
+                            }
                         }
 
-                        String userId = dataSnapshot.getKey();
-                        chat.setReceiverId(userId);
+                        String adId = dataSnapshot.getKey();
                         // Fetch user details
-                        FirebaseDatabase.getInstance().getReference().child("users").child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        FirebaseDatabase.getInstance().getReference().child("ads").child(adId).addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                 if (snapshot.exists()){
-                                    User user = snapshot.getValue(User.class);
-                                    chat.setReceiver(user);
+                                    Ad ad = snapshot.getValue(Ad.class);
+                                    chat.setReceiverId(ad.getPostedBy());
+                                    chat.setAd(ad);
                                     tempChats.add(chat); // Add chat to temporary list
                                     chatsProcessed[0]++;
 
@@ -207,10 +216,126 @@ public class FragmentChats extends Fragment {
                 // Handle error
             }
         });
+    }*/
+
+    void getChats() {
+        ProgressDialog progressDialog = new ProgressDialog(getContext());
+        progressDialog.setTitle(getString(R.string.please_wait));
+        progressDialog.setMessage(getString(R.string.fetching_chats));
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+        LogUtils.json(currentUserId);
+        FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    LogUtils.e("snapshot exists");
+                    List<Chat> tempChats = new ArrayList<>(); // Temporary list to hold chats
+                    int totalChats = 0; // Count the total number of chats
+                    final int[] chatsProcessed = {0};
+
+                    for (DataSnapshot productSnapshot : snapshot.getChildren()) {
+                        String productId = productSnapshot.getKey();
+                        LogUtils.e(productId);
+                        LogUtils.json(productSnapshot);
+                        for (DataSnapshot userSnapshot : productSnapshot.getChildren()) {
+                            String postedById = userSnapshot.getKey();
+                            // Increment totalChats for each user under each product
+                            totalChats++;
+                            LogUtils.json(userSnapshot);
+
+                            List<Message> messages = new ArrayList<>();
+                            LogUtils.json(userSnapshot.getChildren());
+                            for (DataSnapshot messageSnapshot : userSnapshot.getChildren()) {
+                                Message message = messageSnapshot.getValue(Message.class);
+                                messages.add(message);
+                            }
+
+                            Chat chat = new Chat();
+                            if (!messages.isEmpty()) {
+                                Message lastMessage = messages.get(messages.size() - 1);
+                                LogUtils.json(lastMessage);
+                                chat.setLastMessage(lastMessage);
+                                if (lastMessage.getReceiverId().equals(currentUserId)) {
+                                    chat.setReceiverId(lastMessage.getSenderId());
+                                } else if (lastMessage.getSenderId().equals(currentUserId)){
+                                    chat.setReceiverId(lastMessage.getReceiverId());
+                                }
+                                LogUtils.e(postedById);
+                            }
+
+                            // Fetch ad details
+                            int finalTotalChats = totalChats;
+                            int finalTotalChats1 = totalChats;
+                            FirebaseDatabase.getInstance().getReference().child("ads").child(productId).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot adSnapshot) {
+                                    if (adSnapshot.exists()) {
+                                        Ad ad = adSnapshot.getValue(Ad.class);
+                                        chat.setAd(ad);
+
+                                        // Fetch user details
+                                        FirebaseDatabase.getInstance().getReference().child("users").child(postedById).addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot userSnapshot) {
+                                                if (userSnapshot.exists()) {
+                                                    User user = userSnapshot.getValue(User.class);
+                                                    tempChats.add(chat); // Add chat to temporary list
+                                                }
+                                                chatsProcessed[0]++;
+
+                                                // Check if all user details are fetched before setting adapter
+                                                if (chatsProcessed[0] == finalTotalChats) {
+                                                    setAdapter(tempChats,progressDialog);
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError error) {
+                                                progressDialog.dismiss();
+                                                // Handle error
+                                                chatsProcessed[0]++;
+                                                if (chatsProcessed[0] == finalTotalChats) {
+                                                    setAdapter(tempChats,progressDialog);
+                                                }
+                                            }
+                                        });
+                                    } else {
+                                        chatsProcessed[0]++;
+                                        if (chatsProcessed[0] == finalTotalChats1) {
+                                            setAdapter(tempChats,progressDialog);
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+                                    progressDialog.dismiss();
+                                    // Handle error
+                                    chatsProcessed[0]++;
+                                    if (chatsProcessed[0] == finalTotalChats1) {
+                                        setAdapter(tempChats,progressDialog);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                progressDialog.dismiss();
+                // Handle error
+            }
+        });
     }
 
+
+
     // Method to set adapter after all user details are fetched
-    private void setAdapter(List<Chat> chats) {
+    private void setAdapter(List<Chat> chats, ProgressDialog progressDialog) {
+        progressDialog.dismiss();
         LogUtils.e(chats.size());
         if (chats.isEmpty()){
           tvNoChats.setVisibility(View.VISIBLE);

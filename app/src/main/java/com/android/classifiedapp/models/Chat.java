@@ -3,20 +3,12 @@ package com.android.classifiedapp.models;
 import java.util.List;
 
 public class Chat {
-    User receiver;
+    Ad ad;
     List<Message> messages;
 
     Message lastMessage;
 
     String receiverId; //id of the user who is receiving messages
-
-    public User getReceiver() {
-        return receiver;
-    }
-
-    public void setReceiver(User receiver) {
-        this.receiver = receiver;
-    }
 
     public List<Message> getMessages() {
         return messages;
@@ -40,5 +32,13 @@ public class Chat {
 
     public void setReceiverId(String receiverId) {
         this.receiverId = receiverId;
+    }
+
+    public Ad getAd() {
+        return ad;
+    }
+
+    public void setAd(Ad ad) {
+        this.ad = ad;
     }
 }

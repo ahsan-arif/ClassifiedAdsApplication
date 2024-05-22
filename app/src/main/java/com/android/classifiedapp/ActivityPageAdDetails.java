@@ -283,7 +283,7 @@ public class ActivityPageAdDetails extends AppCompatActivity {
                         createLinkWithMeta(ad,imgShare);
                     }
                 });
-                ImagePagerAdapter adapter = new ImagePagerAdapter(ActivityPageAdDetails.this,ad.getUrls());
+                ImagePagerAdapter adapter = new ImagePagerAdapter(ActivityPageAdDetails.this,ad.getUrls(),false);
                 pagerImages.setAdapter(adapter);
 
                 // Setup TabLayout with ViewPager

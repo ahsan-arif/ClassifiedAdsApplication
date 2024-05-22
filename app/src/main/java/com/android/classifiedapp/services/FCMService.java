@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
+import android.os.Bundle;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -42,17 +43,22 @@ public class FCMService extends FirebaseMessagingService {
         LogUtils.e(data);
 //        String deepLink = data.get("deepLink");
         String id = data.get("id");
+        String adId = "";
+        if (data.get("adId")!=null){
+            adId = data.get("adId");
+        }
+
         LogUtils.e(id);
+        LogUtils.e(adId);
         String clickAction = remoteMessage.getNotification().getClickAction();
-        LogUtils.e(clickAction);
-        showNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody(),clickAction,id);
+        showNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody(),clickAction,id,adId);
     }
     @Override
     public void onNewToken(@NonNull String s) {
         super.onNewToken(s);
     }
 
-    private void showNotification(String title, String body,String clickAction,String id) {
+    private void showNotification(String title, String body,String clickAction,String id,String adId) {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         String NOTIFICATION_CHANNEL_ID = "com.android.classifiedapp";
@@ -68,7 +74,10 @@ public class FCMService extends FirebaseMessagingService {
         Intent notificationIntent;
         if (clickAction.equals("com.android.classifiedapp.ActivityChat")){
             LogUtils.e("here");
-            notificationIntent = new Intent(getBaseContext(), ActivityChat.class).putExtra("sellerId",id);
+            Bundle bundle = new Bundle();
+            bundle.putString("adId", adId);
+            bundle.putString("id", id);
+            notificationIntent = new Intent(getBaseContext(), ActivityChat.class).putExtra("data",bundle);
         }else if(clickAction.equals("com.android.classifiedapp.ActivityEditAd")){
             notificationIntent = new Intent(getBaseContext(), ActivityEditAd.class);
         }else if (clickAction.equals("com.android.classifiedapp.ActivityAdDetails")){

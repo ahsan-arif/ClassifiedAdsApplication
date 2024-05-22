@@ -6,6 +6,7 @@ import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,7 +15,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.android.classifiedapp.ActivityChat;
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.models.Chat;
+import com.android.classifiedapp.models.User;
 import com.bumptech.glide.Glide;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,22 +47,20 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Chat chat = chats.get(position);
-        if (chat.getReceiver().getProfileImage()!=null){
-            Glide.with(context).load(chat.getReceiver().getProfileImage()).into(holder.imgUser);
-        }else{
-            holder.imgUser.setImageResource(R.drawable.outline_account_circle_24);
-        }
-        holder.tvLasMessage.setText(chat.getLastMessage().getMessage());
-        holder.tvUsername.setText(chat.getReceiver().getName());
+
+        Glide.with(context).load(chat.getAd().getUrls().get(0)).into(holder.imgUser);
+        holder.tvProductTitle.setText(chat.getAd().getTitle());
+        getPostedBy(context,chat.getReceiverId(),holder.tvUsername);
         long time = chat.getLastMessage().getTimestamp();
         Date date = new Date(time);
         long now = System.currentTimeMillis();
         CharSequence ago = DateUtils.getRelativeTimeSpanString(date.getTime(), now, DateUtils.MINUTE_IN_MILLIS);
         holder.tvTime.setText(ago);
+        holder.tvLasMessage.setText(chat.getLastMessage().getMessage());
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                context.startActivity(new Intent(context, ActivityChat.class).putExtra("sellerId",chat.getReceiverId()));
+                context.startActivity(new Intent(context, ActivityChat.class).putExtra("sellerId",chat.getReceiverId()).putExtra("adId",chat.getAd().getId()));
             }
         });
     }
@@ -66,14 +71,42 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ViewHolder> 
     }
 
     class ViewHolder extends RecyclerView.ViewHolder{
-TextView tvTime,tvLasMessage,tvUsername;
-CircleImageView imgUser;
+TextView tvTime,tvProductTitle,tvUsername,tvLasMessage;
+ImageView imgUser;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTime = itemView.findViewById(R.id.tv_time);
-            tvLasMessage = itemView.findViewById(R.id.tv_lasMessage);
+            tvProductTitle = itemView.findViewById(R.id.tv_productTitle);
             imgUser = itemView.findViewById(R.id.img_user);
             tvUsername = itemView.findViewById(R.id.tv_username);
+            tvLasMessage = itemView.findViewById(R.id.tv_lasMessage);
         }
+    }
+
+    void getPostedBy(Context context, String uid, TextView postedBy){
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(uid);
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    // LogUtils.e(snapshot);
+                    //   for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                    User user = new User();
+                    user.setEmail(snapshot.child("email").getValue(String.class));
+                    // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
+                    user.setName(snapshot.child("name").getValue(String.class));
+                    user.setFcmToken(snapshot.child("fcmToken").getValue(String.class));
+                    postedBy.setText(user.getName());
+                    // }
+
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 }

@@ -151,4 +151,6 @@
     <string name="fetching_orders">Fetching your orders</string>
     <string name="no_orders_placed">You have not placed any orders yet</string>
     <string name="no_orders_for_listing">No buyer has placed order for this listing.</string>
+    <string name="no_listings_for_user">This user has not posted any listing</string>
+    <string name="fetching_chats">Fetching Chats</string>
 </resources>

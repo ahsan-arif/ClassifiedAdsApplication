@@ -166,7 +166,7 @@ public class ActivityAdDetails extends AppCompatActivity {
             if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
                 imgChat.setVisibility(View.GONE);
             }
-            ImagePagerAdapter adapter = new ImagePagerAdapter(this,ad.getUrls());
+            ImagePagerAdapter adapter = new ImagePagerAdapter(this,ad.getUrls(),false);
             pagerImages.setAdapter(adapter);
         }
 
@@ -251,7 +251,7 @@ public class ActivityAdDetails extends AppCompatActivity {
         imgChat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(ActivityAdDetails.this,ActivityChat.class).putExtra("sellerId",ad.getPostedBy()));
+                startActivity(new Intent(ActivityAdDetails.this,ActivityChat.class).putExtra("sellerId",ad.getPostedBy()).putExtra("adId",ad.getId()));
             }
         });
         imgShare.setOnClickListener(new View.OnClickListener() {
@@ -453,6 +453,7 @@ public class ActivityAdDetails extends AppCompatActivity {
                 ToastUtils.showShort("report");
                 if (!reason[0].isEmpty()){
                     reportAd(adId,reason[0]);
+                    finish();
                 }
             }
         });
@@ -526,8 +527,11 @@ public class ActivityAdDetails extends AppCompatActivity {
                     List<String> fcmTokens = new ArrayList<>();
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()){
                         User user = dataSnapshot.getValue(User.class);
-                        if (user.getRole().equals("admin"))
-                            fcmTokens.add(user.getFcmToken());
+                        if (user.getRole()!=null){
+                            if (user.getRole().equals("admin"))
+                                fcmTokens.add(user.getFcmToken());
+                        }
+
                     }
                     for (String token : fcmTokens){
                         try {
@@ -852,7 +856,7 @@ public class ActivityAdDetails extends AppCompatActivity {
                             if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
                                 imgChat.setVisibility(View.GONE);
                             }
-                            ImagePagerAdapter adapter = new ImagePagerAdapter(ActivityAdDetails.this,ad.getUrls());
+                            ImagePagerAdapter adapter = new ImagePagerAdapter(ActivityAdDetails.this,ad.getUrls(),false);
                             pagerImages.setAdapter(adapter);
                         // Setup TabLayout with ViewPager
                         new TabLayoutMediator(tabsImg, pagerImages, (tab, position) -> {
