@@ -89,7 +89,7 @@ public class ActivityChat extends AppCompatActivity {
     String accessToken;
     boolean isAdmin;
     String adId;
-    CircleImageView imgProduct;
+    ImageView imgProduct;
     TextView tvProductTitle;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -188,6 +188,12 @@ public class ActivityChat extends AppCompatActivity {
                     LogUtils.e(e.getMessage());
                 }
                 etMessage.setText("");
+            }
+        });
+        imgProduct.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(ActivityChat.this,ActivityAdDetails.class).putExtra("id",adId));
             }
         });
 

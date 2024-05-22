@@ -149,11 +149,16 @@ public class ActivityAdDetails extends AppCompatActivity {
         tvViewOrders = findViewById(R.id.tv_view_orders);
 
         ad = getIntent().getParcelableExtra("ad");
+        String adId2 = getIntent().getStringExtra("adId");
         Bundle extras = getIntent().getExtras();
         if (ad==null && extras!=null){
+            LogUtils.e(extras);
             String adId = extras.getString("id");
             getListing(adId);
             LogUtils.e(extras);
+        }
+        if (adId2!=null){
+            getListing(adId2);
         }
 
         accessToken = SharedPrefManager.getInstance(ActivityAdDetails.this).getAccessToken();
