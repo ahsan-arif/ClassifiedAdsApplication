@@ -125,6 +125,8 @@ public class ActivityChat extends AppCompatActivity {
         accessToken = SharedPrefManager.getInstance(ActivityChat.this).getAccessToken();
         InputMethodManager mgr = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         mgr.showSoftInput(etMessage, InputMethodManager.SHOW_FORCED);
+        etMessage.setInputType(InputType.TYPE_CLASS_TEXT);
+        etMessage.requestFocus();
 //        LogUtils.e(accessToken);
         Bundle extras = getIntent().getExtras();
         if (extras!=null&&sellerId==null){
@@ -142,11 +144,6 @@ public class ActivityChat extends AppCompatActivity {
                 sellerId = items[0];
                 adId = items[1];
             }
-
-
-
-            etMessage.setInputType(InputType.TYPE_CLASS_TEXT);
-            etMessage.requestFocus();
 
             imgBack.setOnClickListener(new View.OnClickListener() {
                 @Override

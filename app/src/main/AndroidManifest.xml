@@ -129,7 +129,7 @@
             android:name=".ActivityChat"
             android:exported="false"
             android:launchMode="singleTask"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize|stateHidden">
             <intent-filter>
                 <action android:name="com.android.classifiedapp.ActivityChat" />
 
