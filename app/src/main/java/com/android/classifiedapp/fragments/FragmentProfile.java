@@ -252,12 +252,15 @@ showAlert();
         String[] permissions;
 
         if (targetSdk >= Build.VERSION_CODES.TIRAMISU) {
+            LogUtils.e(targetSdk);
             // Android 13 (API level 33) and above - use READ_MEDIA_IMAGES
             permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES};
         } else if (targetSdk >= Build.VERSION_CODES.R) {
+            LogUtils.e(targetSdk);
             // Android 12 (API level 31) and up to 12L (level 32) - use READ_EXTERNAL_STORAGE
             permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE};
         } else {
+            LogUtils.e(targetSdk);
             // Android 10 (API level 29) and below - use READ_EXTERNAL_STORAGE (hypothetical)
             // You likely wouldn't need to support such low API levels for requesting gallery access.
             permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE};

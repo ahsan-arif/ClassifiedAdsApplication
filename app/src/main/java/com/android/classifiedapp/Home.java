@@ -156,7 +156,7 @@ public class Home extends AppCompatActivity {
                 //LogUtils.e("beaerertoken:  " + beaerertoken);
                 BEARERTOKEN = beaerertoken;
                 SharedPrefManager.getInstance(Home.this).setAccessToken(beaerertoken);
-                LogUtils.e(beaerertoken);
+                //LogUtils.e(beaerertoken);
             } catch (IOException e) {
                 LogUtils.e("In error statement");
                 e.printStackTrace();

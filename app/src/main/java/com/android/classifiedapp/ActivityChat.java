@@ -176,6 +176,7 @@ public class ActivityChat extends AppCompatActivity {
                 message.setReceiverId(sellerId);
                 message.setMessage(etMessage.getText().toString().trim());
                 message.setMessageId(messageId);
+                message.setProductId(adId);
                 message.setTimestamp(System.currentTimeMillis());
                 databaseReference.setValue(message);
                 sellerChatRef.setValue(message);
@@ -341,9 +342,8 @@ public class ActivityChat extends AppCompatActivity {
         if (isAdmin){
             JSONObject dataObject = new JSONObject();
             dataObject.put("id",currentUserId);
-            LogUtils.e(currentUserId);
-            dataObject.put("deepLink","https://classifiedadsapplication.page.link/chat:"+currentUserId);
-
+            dataObject.put("adId",adId);
+            dataObject.put("deepLink","https://classifiedadsapplication.page.link/chat:"+currentUserId+"_"+adId);
             messageObject.put("data",dataObject);
         }else{
             JSONObject dataObject = new JSONObject();

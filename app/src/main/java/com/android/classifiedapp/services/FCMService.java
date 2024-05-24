@@ -79,7 +79,7 @@ public class FCMService extends FirebaseMessagingService {
             bundle.putString("id", id);
             notificationIntent = new Intent(getBaseContext(), ActivityChat.class).putExtra("data",bundle);
         }else if(clickAction.equals("com.android.classifiedapp.ActivityEditAd")){
-            notificationIntent = new Intent(getBaseContext(), ActivityEditAd.class);
+            notificationIntent = new Intent(getBaseContext(), ActivityEditAd.class).putExtra("id",id);
         }else if (clickAction.equals("com.android.classifiedapp.ActivityAdDetails")){
             notificationIntent = new Intent(getBaseContext(), ActivityAdDetails.class).putExtra("id",id);
         }else if (clickAction.equals("com.android.classifiedapp.ActivityMyOrders")){

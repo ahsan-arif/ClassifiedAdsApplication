@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.classifiedapp.ActivityChat;
 import com.android.classifiedapp.R;
+import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.Chat;
 import com.android.classifiedapp.models.User;
 import com.bumptech.glide.Glide;
@@ -48,21 +49,22 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Chat chat = chats.get(position);
 
-        Glide.with(context).load(chat.getAd().getUrls().get(0)).into(holder.imgUser);
-        holder.tvProductTitle.setText(chat.getAd().getTitle());
-        getPostedBy(context,chat.getReceiverId(),holder.tvUsername);
+       // Glide.with(context).load(chat.getAd().getUrls().get(0)).into(holder.imgUser);
+        //holder.tvProductTitle.setText(chat.getAd().getTitle());
+        getAdImageAndTitle(context,chat.getLastMessage().getProductId(),holder.tvProductTitle,holder.imgUser,holder.itemView,holder.tvUsername,chat.getReceiverId());
+       //getPostedBy(context,chat.getReceiverId(),holder.tvUsername);
         long time = chat.getLastMessage().getTimestamp();
         Date date = new Date(time);
         long now = System.currentTimeMillis();
         CharSequence ago = DateUtils.getRelativeTimeSpanString(date.getTime(), now, DateUtils.MINUTE_IN_MILLIS);
         holder.tvTime.setText(ago);
         holder.tvLasMessage.setText(chat.getLastMessage().getMessage());
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
+     /*   holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                context.startActivity(new Intent(context, ActivityChat.class).putExtra("sellerId",chat.getReceiverId()).putExtra("adId",chat.getAd().getId()));
+                context.startActivity(new Intent(context, ActivityChat.class).putExtra("sellerId",chat.getReceiverId()).putExtra("adId",chat.getLastMessage().getProductId()));
             }
-        });
+        });*/
     }
 
     @Override
@@ -81,6 +83,38 @@ ImageView imgUser;
             tvUsername = itemView.findViewById(R.id.tv_username);
             tvLasMessage = itemView.findViewById(R.id.tv_lasMessage);
         }
+    }
+
+    void getAdImageAndTitle(Context context,String adId,TextView tvTitle, ImageView imageView,View itemView,TextView tvPostedBy,String receiverId){
+        FirebaseDatabase.getInstance().getReference().child("ads").child(adId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    Ad ad = snapshot.getValue(Ad.class);
+
+                    tvTitle.setText(ad.getTitle());
+                    Glide.with(context).load(ad.getUrls().get(0)).into(imageView);
+                    //itemView.setOnClickListener(null);
+                    getPostedBy(context,ad.getPostedBy(),tvPostedBy);
+                    itemView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            context.startActivity(new Intent(context, ActivityChat.class).putExtra("sellerId",receiverId).putExtra("adId",adId));
+                        }
+                    });
+
+                }else{
+                    itemView.setOnClickListener(null);
+                    tvTitle.setText(context.getString(R.string.deleted_ad));
+                    tvPostedBy.setText(context.getString(R.string.deleted_user));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 
     void getPostedBy(Context context, String uid, TextView postedBy){

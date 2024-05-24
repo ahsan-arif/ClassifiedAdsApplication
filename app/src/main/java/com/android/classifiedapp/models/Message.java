@@ -8,6 +8,8 @@ public class Message {
     String messageId;
     long timestamp;
 
+    String productId;
+
     public String getSenderId() {
         return senderId;
     }
@@ -46,5 +48,13 @@ public class Message {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
     }
 }
