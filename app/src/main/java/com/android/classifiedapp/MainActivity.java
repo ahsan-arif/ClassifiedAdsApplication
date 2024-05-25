@@ -165,29 +165,15 @@ signIn(signInClient);
         Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
         try {
             GoogleSignInAccount account = task.getResult(ApiException.class);
+            LogUtils.e(account.getEmail(),account.getId());
             Toast.makeText(this, "Sign in success: " + account.getEmail(), Toast.LENGTH_SHORT).show();
-            FirebaseDatabase.getInstance().getReference().child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+
+            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users");
+            databaseReference.orderByChild("email").equalTo(account.getEmail()).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()){
-                        LogUtils.e(snapshot);
-                        for (DataSnapshot dataSnapshot :snapshot.getChildren()){
-                            User user = dataSnapshot.getValue(User.class);
-                            if (user.getEmail().equals(account.getEmail()) && user.getRole().equals("user")){
-                                startActivity(new Intent(MainActivity.this,ActivityVerifyLogin.class).putExtra("email",account.getEmail()));
-                                return;
-                            }else if (user.getEmail().equals(account.getEmail())&& user.getRole().equals("admin")){
-                                ToastUtils.showShort(getString(R.string.admin_cannot));
-                                GoogleSignInClient signInClient = GoogleSignIn.getClient(MainActivity.this, gso);
-                                signInClient.signOut();
-                                return;
-                            }
-                        }
-                        startActivity(new Intent(MainActivity.this,SignUp.class)
-                                .putExtra("fname",account.getDisplayName())
-                                .putExtra("email",account.getEmail())
-                                .putExtra("isEmailSignIn",true));
-
+                        startActivity(new Intent(MainActivity.this,ActivityVerifyLogin.class).putExtra("email",account.getEmail()));
                     }else{
                         startActivity(new Intent(MainActivity.this,SignUp.class)
                                 .putExtra("fname",account.getDisplayName())
@@ -201,6 +187,47 @@ signIn(signInClient);
 
                 }
             });
+           /* FirebaseDatabase.getInstance().getReference().child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()){
+                        LogUtils.e(snapshot);
+                        for (DataSnapshot dataSnapshot :snapshot.getChildren()){
+                            User user = dataSnapshot.getValue(User.class);
+                            if (user.getEmail()==null){
+                                LogUtils.e("here");
+                                startActivity(new Intent(MainActivity.this,SignUp.class)
+                                        .putExtra("fname",account.getDisplayName())
+                                        .putExtra("email",account.getEmail())
+                                        .putExtra("isEmailSignIn",true));
+                            }else {
+                                LogUtils.e("here");
+                                if (user.getEmail().equals(account.getEmail()) && user.getRole().equals("user")){
+                                    startActivity(new Intent(MainActivity.this,ActivityVerifyLogin.class).putExtra("email",account.getEmail()));
+                                    return;
+                                }else if (user.getEmail().equals(account.getEmail())&& user.getRole().equals("admin")){
+                                    ToastUtils.showShort(getString(R.string.admin_cannot));
+                                    GoogleSignInClient signInClient = GoogleSignIn.getClient(MainActivity.this, gso);
+                                    signInClient.signOut();
+                                    return;
+                                }
+                            }
+                        }
+
+
+                    }else{
+                        startActivity(new Intent(MainActivity.this,SignUp.class)
+                                .putExtra("fname",account.getDisplayName())
+                                .putExtra("email",account.getEmail())
+                                .putExtra("isEmailSignIn",true));
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });*/
         } catch (ApiException e) {
             Log.w(TAG, "signInResult:failed code=" + e.getMessage());
             Toast.makeText(this, "Sign in failed "+e.getStatusCode(), Toast.LENGTH_SHORT).show();
