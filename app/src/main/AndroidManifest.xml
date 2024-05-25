@@ -181,6 +181,14 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+        <receiver android:name=".services.LoginReceiver"
+            android:exported="true"
+            >
+            <intent-filter>
+                <action android:name="com.android.classifiedapp.ACTION_LOGIN_SUCCESS" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

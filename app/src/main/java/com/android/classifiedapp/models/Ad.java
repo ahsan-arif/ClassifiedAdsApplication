@@ -37,6 +37,12 @@ public class Ad implements Parcelable {
 
     int quantity;
 
+
+    long featuredOn;
+    long expiresOn;
+
+    String featured;
+
     public Ad() {
     }
 
@@ -62,6 +68,9 @@ public class Ad implements Parcelable {
         status = in.readString();
         blockedBy = in.createStringArrayList();
         quantity = in.readInt();
+        featured = in.readString();
+        featuredOn = in.readLong();
+        expiresOn = in.readLong();
     }
 
     public static final Creator<Ad> CREATOR = new Creator<Ad>() {
@@ -244,6 +253,30 @@ public class Ad implements Parcelable {
         this.quantity = quantity;
     }
 
+    public long getFeaturedOn() {
+        return featuredOn;
+    }
+
+    public void setFeaturedOn(long featuredOn) {
+        this.featuredOn = featuredOn;
+    }
+
+    public long getExpiresOn() {
+        return expiresOn;
+    }
+
+    public void setExpiresOn(long expiresOn) {
+        this.expiresOn = expiresOn;
+    }
+
+    public String getFeatured() {
+        return featured;
+    }
+
+    public void setFeatured(String featured) {
+        this.featured = featured;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -272,5 +305,8 @@ public class Ad implements Parcelable {
         dest.writeString(status);
         dest.writeStringList(blockedBy);
         dest.writeInt(quantity);
+        dest.writeString(featured);
+        dest.writeLong(featuredOn);
+        dest.writeLong(expiresOn);
     }
 }

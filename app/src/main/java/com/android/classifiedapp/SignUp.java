@@ -17,14 +17,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.classifiedapp.models.PlatformPrefs;
 import com.android.classifiedapp.models.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class SignUp extends AppCompatActivity {
 ImageView imgBack;
@@ -94,17 +98,46 @@ TextInputEditText etPassword;
                         if (task.isSuccessful()) {
                             // Account creation successful
                             // Handle success scenario (e.g., navigate to home screen)
-                            String userId = mAuth.getUid();
-                            Log.e("userId ",userId);
-                            DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference().getDatabase().getReference("users").child(userId);
-                            User user = new User();
-                            user.setEmail(email);
-                            user.setName(etName.getText().toString().trim());
-                            user.setRole("user");
-                            databaseRef.setValue(user);
-                            Toast.makeText(getApplicationContext(), "Account created!", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(SignUp.this, Home.class));
-                            finish();
+                            FirebaseDatabase.getInstance().getReference().child("platform_prefs").addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    if (snapshot.exists()){
+                                        PlatformPrefs prefs = snapshot.getValue(PlatformPrefs.class);
+                                        String userId = mAuth.getUid();
+                                        Log.e("userId ",userId);
+                                        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference().getDatabase().getReference("users").child(userId);
+                                        User user = new User();
+                                        user.setEmail(email);
+                                        user.setName(etName.getText().toString().trim());
+                                        user.setRole("user");
+                                        user.setPremiumUser(false);
+                                        user.setFreeAdsAvailable(prefs.getFreeAdsCount());
+                                        user.setFreeMessagesAvailable(prefs.getFreeMessagesCount());
+                                        databaseRef.setValue(user);
+                                        Toast.makeText(getApplicationContext(), "Account created!", Toast.LENGTH_SHORT).show();
+                                        startActivity(new Intent(SignUp.this, Home.class));
+                                        finish();
+                                    }else{
+                                        String userId = mAuth.getUid();
+                                        Log.e("userId ",userId);
+                                        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference().getDatabase().getReference("users").child(userId);
+                                        User user = new User();
+                                        user.setEmail(email);
+                                        user.setName(etName.getText().toString().trim());
+                                        user.setRole("user");
+                                        user.setPremiumUser(false);
+                                        databaseRef.setValue(user);
+                                        Toast.makeText(getApplicationContext(), "Account created!", Toast.LENGTH_SHORT).show();
+                                        startActivity(new Intent(SignUp.this, Home.class));
+                                        finish();
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+
+                                }
+                            });
                         } else {
                             progressDialog.dismiss();
                             // Account creation failed

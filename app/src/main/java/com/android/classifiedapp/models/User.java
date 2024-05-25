@@ -2,6 +2,8 @@ package com.android.classifiedapp.models;
 
 public class User {
     String name,email,profileImage,fcmToken,role;
+    boolean isPremiumUser;
+    int freeMessagesAvailable, freeAdsAvailable;
 
     public String getName() {
         return name;
@@ -41,5 +43,29 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public boolean isPremiumUser() {
+        return isPremiumUser;
+    }
+
+    public void setPremiumUser(boolean premiumUser) {
+        isPremiumUser = premiumUser;
+    }
+
+    public int getFreeMessagesAvailable() {
+        return freeMessagesAvailable;
+    }
+
+    public void setFreeMessagesAvailable(int freeMessagesAvailable) {
+        this.freeMessagesAvailable = freeMessagesAvailable;
+    }
+
+    public int getFreeAdsAvailable() {
+        return freeAdsAvailable;
+    }
+
+    public void setFreeAdsAvailable(int freeAdsAvailable) {
+        this.freeAdsAvailable = freeAdsAvailable;
     }
 }

@@ -155,4 +155,9 @@
     <string name="fetching_chats">Fetching Chats</string>
     <string name="deleted_ad">Deleted listing</string>
     <string name="deleted_user">Deleted user</string>
+    <string name="pay">Pay</string>
+    <string name="to_make_featured_for_24h">Make featured for 24h in </string>
+    <string name="featured">FEATURED</string>
+    <string name="buy_premium_to_post">Buy Premium To Post Ad.</string>
+    <string name="buy_premium_to_send">Buy Premium to send</string>
 </resources>

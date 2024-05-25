@@ -63,13 +63,13 @@ public class AdsAdapter extends RecyclerView.Adapter<AdsAdapter.ProductsViewHold
 
         final boolean isLiked = false ;
         FirebaseUser fIrebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-Ad ad = ads.get(position);
-holder.tvTitle.setText(ad.getTitle());
-holder.tvPrice.setText(ad.getCurrency()+" "+ad.getPrice());
-holder.tvAddress.setText(ad.getAddress());
+        Ad ad = ads.get(position);
+        holder.tvTitle.setText(ad.getTitle());
+        holder.tvPrice.setText(ad.getCurrency()+" "+ad.getPrice());
+        holder.tvAddress.setText(ad.getAddress());
         Glide.with(context).load(ad.getUrls().get(0)).into(holder.imgProduct);
-String posted = context.getString(R.string.posted);
-long timestamp = Long.parseLong(ad.getPostedOn());
+        String posted = context.getString(R.string.posted);
+        long timestamp = Long.parseLong(ad.getPostedOn());
         Date date = new Date(timestamp);
         long now = System.currentTimeMillis();
         CharSequence ago = DateUtils.getRelativeTimeSpanString(date.getTime(), now, DateUtils.MINUTE_IN_MILLIS);
@@ -91,14 +91,20 @@ long timestamp = Long.parseLong(ad.getPostedOn());
             holder.imgLike.setImageResource(R.drawable.heart);
         }
 
+        if (ad.getFeatured().equals("1")){
+            holder.tvFeatured.setVisibility(View.VISIBLE);
+        }else{
+            holder.tvFeatured.setVisibility(View.GONE);
+        }
+
         holder.imgLike.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-             toggleLike(ad,fIrebaseUser.getUid(),holder.getAdapterPosition(),holder.imgLike,isWishlist);
+                toggleLike(ad,fIrebaseUser.getUid(),holder.getAdapterPosition(),holder.imgLike,isWishlist);
             }
         });
 
-       // holder.tvPostedBy.setText(user.getName());
+        // holder.tvPostedBy.setText(user.getName());
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -115,9 +121,9 @@ long timestamp = Long.parseLong(ad.getPostedOn());
     }
 
     class ProductsViewHolder extends RecyclerView.ViewHolder{
-TextView tvTitle,tvPrice,tvPostedOn,tvPostedBy,tvAddress;
-ImageView imgProduct,imgLike;
-CircleImageView imgUser;
+        TextView tvTitle,tvPrice,tvPostedOn,tvPostedBy,tvAddress,tvFeatured;
+        ImageView imgProduct,imgLike;
+        CircleImageView imgUser;
         public ProductsViewHolder(@NonNull View itemView) {
             super(itemView);
             tvPrice = itemView.findViewById(R.id.tv_price);
@@ -128,6 +134,7 @@ CircleImageView imgUser;
             imgUser = itemView.findViewById(R.id.img_user);
             imgLike = itemView.findViewById(R.id.img_like);
             tvAddress = itemView.findViewById(R.id.tv_address);
+            tvFeatured = itemView.findViewById(R.id.tv_featured);
         }
     }
 
@@ -138,19 +145,19 @@ CircleImageView imgUser;
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()){
-                   // LogUtils.e(snapshot);
-                 //   for (DataSnapshot dataSnapshot : snapshot.getChildren()){
-                        User user = new User();
-                        user.setEmail(snapshot.child("email").getValue(String.class));
-                        // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
-                        user.setName(snapshot.child("name").getValue(String.class));
-                        user.setFcmToken(snapshot.child("fcmToken").getValue(String.class));
-                        postedBy.setText(user.getName());
-                        if (snapshot.hasChild("profileImage")){
-                            user.setProfileImage(snapshot.child("profileImage").getValue(String.class));
-                            Glide.with(context).load(user.getProfileImage()).into(circleImageView);
-                        }
-                   // }
+                    // LogUtils.e(snapshot);
+                    //   for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                    User user = new User();
+                    user.setEmail(snapshot.child("email").getValue(String.class));
+                    // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
+                    user.setName(snapshot.child("name").getValue(String.class));
+                    user.setFcmToken(snapshot.child("fcmToken").getValue(String.class));
+                    postedBy.setText(user.getName());
+                    if (snapshot.hasChild("profileImage")){
+                        user.setProfileImage(snapshot.child("profileImage").getValue(String.class));
+                        Glide.with(context).load(user.getProfileImage()).into(circleImageView);
+                    }
+                    // }
 
 
                 }
@@ -173,38 +180,38 @@ CircleImageView imgUser;
         postRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-            if (!snapshot.exists()){
-                List<String> likedByUsers = new ArrayList<>();
-                likedByUsers.add(currentUserId);
-                postRef.setValue(likedByUsers);
-                ad.setLikedByUsers(likedByUsers);
-                notifyItemChanged(position);
-                imageView.setImageResource(R.drawable.heart_red);
-            }else{
-                List<String> likedByUsers = new ArrayList<>();
-                for (DataSnapshot snapshot1 : snapshot.getChildren()){
-                    String userId = snapshot1.getValue(String.class);
-                    LogUtils.e(userId);
-                    likedByUsers.add(userId);
-                }
-                if (likedByUsers.contains(currentUserId)){
-                    likedByUsers.remove(currentUserId);
-                    imageView.setImageResource(R.drawable.heart);
-                    LogUtils.e("removing");
-                    if (isWishlist){
-                        removeAd(ad);
-                    }
-                    postRef.setValue(likedByUsers);
-                }
-                else {
+                if (!snapshot.exists()){
+                    List<String> likedByUsers = new ArrayList<>();
                     likedByUsers.add(currentUserId);
-                    imageView.setImageResource(R.drawable.heart_red);
-                    LogUtils.e("adding");
                     postRef.setValue(likedByUsers);
+                    ad.setLikedByUsers(likedByUsers);
+                    notifyItemChanged(position);
+                    imageView.setImageResource(R.drawable.heart_red);
+                }else{
+                    List<String> likedByUsers = new ArrayList<>();
+                    for (DataSnapshot snapshot1 : snapshot.getChildren()){
+                        String userId = snapshot1.getValue(String.class);
+                        LogUtils.e(userId);
+                        likedByUsers.add(userId);
+                    }
+                    if (likedByUsers.contains(currentUserId)){
+                        likedByUsers.remove(currentUserId);
+                        imageView.setImageResource(R.drawable.heart);
+                        LogUtils.e("removing");
+                        if (isWishlist){
+                            removeAd(ad);
+                        }
+                        postRef.setValue(likedByUsers);
+                    }
+                    else {
+                        likedByUsers.add(currentUserId);
+                        imageView.setImageResource(R.drawable.heart_red);
+                        LogUtils.e("adding");
+                        postRef.setValue(likedByUsers);
+                    }
+                    ad.setLikedByUsers(likedByUsers);
+                    notifyItemChanged(position);
                 }
-                ad.setLikedByUsers(likedByUsers);
-                notifyItemChanged(position);
-            }
             }
 
             @Override
@@ -214,7 +221,7 @@ CircleImageView imgUser;
         });
     }
     public void removeAd(Ad ad) {
-      ads.remove(ad);
-      notifyDataSetChanged();
+        ads.remove(ad);
+        notifyDataSetChanged();
     }
 }

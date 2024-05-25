@@ -23,6 +23,18 @@
                 android:id="@+id/img_product"
                 android:scaleType="centerCrop"
                 />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/featured"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/rectangle_white_cornered_end"
+                android:padding="8dp"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:id="@+id/tv_featured"
+                android:visibility="gone"
+                />
             <ImageView
                 android:layout_width="32dp"
                 android:layout_height="32dp"

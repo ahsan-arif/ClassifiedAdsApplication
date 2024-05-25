@@ -1,8 +1,6 @@
 package com.android.classifiedapp;
 
 import static com.android.classifiedapp.utilities.Constants.NOTIFICATION_URL;
-import static com.android.classifiedapp.utilities.FireNotification.getAccessToken;
-import static com.android.classifiedapp.utilities.FireNotification.prepNotification;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -10,7 +8,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -29,14 +26,10 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.android.classifiedapp.adapters.ImagePagerAdapter;
 import com.android.classifiedapp.adapters.MessagesAdapter;
 import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.Message;
 import com.android.classifiedapp.models.User;
-import com.android.classifiedapp.utilities.Constants;
-import com.android.classifiedapp.utilities.FCMSender;
-import com.android.classifiedapp.utilities.FireNotification;
 import com.android.classifiedapp.utilities.SharedPrefManager;
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -45,14 +38,9 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.ToastUtils;
 import com.bumptech.glide.Glide;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.tabs.TabLayoutMediator;
-import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -61,14 +49,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import org.checkerframework.checker.units.qual.A;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -91,6 +75,7 @@ public class ActivityChat extends AppCompatActivity {
     String adId;
     ImageView imgProduct;
     TextView tvProductTitle;
+    User currentUser;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -184,6 +169,20 @@ public class ActivityChat extends AppCompatActivity {
                     sendPushNotification(fcmToken,currentUserName,message.getMessage(),isAdmin);
                 } catch (JSONException e) {
                     LogUtils.e(e.getMessage());
+                }
+                if (!currentUser.isPremiumUser()){
+                    DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("freeMessagesAvailable");
+                    int updatedCount = currentUser.getFreeMessagesAvailable() - 1;
+                    userRef.setValue(updatedCount);
+                    currentUser.setFreeMessagesAvailable(updatedCount);
+                    btnSend.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            ToastUtils.showShort(getString(R.string.buy_premium_to_send));
+                            etMessage.setFocusable(false);
+                            etMessage.setClickable(false);
+                        }
+                    });
                 }
                 etMessage.setText("");
             }
@@ -307,11 +306,22 @@ public class ActivityChat extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()){
-                    User currentUser = snapshot.getValue(User.class);
+                     currentUser = snapshot.getValue(User.class);
                     currentUser.setEmail(snapshot.child("email").getValue(String.class));
                     // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
                     currentUser.setName(snapshot.child("name").getValue(String.class));
                     currentUserName = currentUser.getName();
+                    currentUser.setPremiumUser(snapshot.child("premiumUser").getValue(Boolean.class));
+                    currentUser.setFreeMessagesAvailable(snapshot.child("freeMessagesAvailable").getValue(Integer.class));
+
+                    if (!currentUser.isPremiumUser()&&currentUser.getFreeMessagesAvailable()==0){
+                        btnSend.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                ToastUtils.showShort(getString(R.string.buy_premium_to_send));
+                            }
+                        });
+                    }
                 }
             }
 

@@ -104,6 +104,8 @@ public class ActivityVerifyLogin extends AppCompatActivity {
                                 public void onComplete(@NonNull Task<AuthResult> task) {
                                     progressDialog.dismiss();
                                     if (task.isSuccessful()) {
+                                        Intent intent = new Intent("com.android.classifiedapp.ACTION_LOGIN_SUCCESS");
+                                        sendBroadcast(intent);
                                         FirebaseUser user = mAuth.getCurrentUser();
                                         startActivity(new Intent(ActivityVerifyLogin.this,Home.class));
                                         // Login successful, navigate to main activity

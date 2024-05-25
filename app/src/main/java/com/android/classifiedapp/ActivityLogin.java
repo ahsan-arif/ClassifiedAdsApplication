@@ -84,6 +84,8 @@ TextView btnLogin,tvForgot;
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 progressDialog.dismiss();
                                 if (task.isSuccessful()) {
+                                    Intent intent = new Intent("com.android.classifiedapp.ACTION_LOGIN_SUCCESS");
+                                    sendBroadcast(intent);
                                     // Login successful, navigate to main activity
                                     FirebaseUser user = mAuth.getCurrentUser();
                                     getUserDetails(user.getUid());

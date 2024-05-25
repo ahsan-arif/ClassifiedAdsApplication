@@ -1,6 +1,6 @@
 package com.android.classifiedapp;
 
-import static com.android.classifiedapp.utilities.FireNotification.getAccessToken;
+
 
 import android.os.Build;
 import android.os.Bundle;

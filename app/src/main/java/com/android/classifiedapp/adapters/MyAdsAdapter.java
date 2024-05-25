@@ -21,7 +21,9 @@ import com.android.classifiedapp.ActivityEditAd;
 import com.android.classifiedapp.ActivityVerifyLogin;
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.models.Ad;
+import com.android.classifiedapp.models.PlatformPrefs;
 import com.android.classifiedapp.models.User;
+import com.blankj.utilcode.util.LogUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -42,10 +44,10 @@ import java.util.List;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> {
-ArrayList<Ad> ads;
-Context context;
+    ArrayList<Ad> ads;
+    Context context;
 
-boolean unApprovedAd;
+    boolean unApprovedAd;
 
     public MyAdsAdapter(ArrayList<Ad> ads, Context context) {
         this.ads = ads;
@@ -78,6 +80,45 @@ boolean unApprovedAd;
         CharSequence ago = DateUtils.getRelativeTimeSpanString(date.getTime(), now, DateUtils.MINUTE_IN_MILLIS);
         holder.tvPostedOn.setText(posted+" "+ago);
 
+        if (ad.getExpiresOn()!=0){
+            if (now>ad.getExpiresOn()){
+                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId());
+                ad.setFeatured("0");
+                ad.setFeaturedOn(0);
+                ad.setExpiresOn(0);
+                databaseReference.setValue(ad);
+                holder.tvMakeFeatured.setVisibility(View.VISIBLE);
+                holder.tvFeatured.setVisibility(View.GONE);
+            }
+        }
+
+        if (ad.getFeatured()!=null){
+            if (ad.getFeatured().equals("1")){
+                holder.tvMakeFeatured.setVisibility(View.GONE);
+                holder.tvFeatured.setVisibility(View.VISIBLE);
+            }else {
+                FirebaseDatabase.getInstance().getReference().child("platform_prefs").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()){
+                            holder.tvMakeFeatured.setVisibility(View.VISIBLE);
+                            PlatformPrefs prefs = snapshot.getValue(PlatformPrefs.class);
+                            holder.tvMakeFeatured.setText(context.getString(R.string.to_make_featured_for_24h)+" "+ad.getCurrency()+" "+prefs.getFeaturedAdFee());
+                        }else{
+                            holder.tvMakeFeatured.setVisibility(View.GONE);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+                holder.tvFeatured.setVisibility(View.GONE);
+            }
+        }
+
+
         getPostedBy(context,ad.getPostedBy(),holder.tvPostedBy,holder.imgUser);
 
         // holder.tvPostedBy.setText(user.getName());
@@ -109,6 +150,25 @@ boolean unApprovedAd;
                         .putExtra("unApprovedAd",unApprovedAd));
             }
         });
+
+        holder.tvMakeFeatured.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId());
+                ad.setFeatured("1");
+                // Get the current time in milliseconds
+                long currentTimeMillis = System.currentTimeMillis();
+// Calculate 5 minutes in milliseconds (5 minutes * 60 seconds * 1000 milliseconds)
+                long fiveMinutesInMillis = 5 * 60 * 1000;
+// Add 5 minutes to the current time
+                long newTimeMillis = currentTimeMillis + fiveMinutesInMillis;
+                ad.setFeaturedOn(currentTimeMillis);
+                ad.setExpiresOn(newTimeMillis);
+                databaseReference.setValue(ad);
+                holder.tvMakeFeatured.setVisibility(View.GONE);
+                holder.tvFeatured.setVisibility(View.VISIBLE);
+            }
+        });
     }
 
     @Override
@@ -117,7 +177,7 @@ boolean unApprovedAd;
     }
 
     class ViewHolder extends RecyclerView.ViewHolder{
-        TextView tvTitle,tvPrice,tvPostedOn,tvPostedBy,tvAddress;
+        TextView tvTitle,tvPrice,tvPostedOn,tvPostedBy,tvAddress,tvMakeFeatured,tvFeatured;
         ImageView imgProduct,imgDelete,imgEdit;
         CircleImageView imgUser;
         public ViewHolder(@NonNull View itemView) {
@@ -131,6 +191,8 @@ boolean unApprovedAd;
             tvAddress = itemView.findViewById(R.id.tv_address);
             imgDelete = itemView.findViewById(R.id.img_delete);
             imgEdit = itemView.findViewById(R.id.img_edit);
+            tvMakeFeatured = itemView.findViewById(R.id.tv_make_featured);
+            tvFeatured  = itemView.findViewById(R.id.tv_featured);
         }
     }
 

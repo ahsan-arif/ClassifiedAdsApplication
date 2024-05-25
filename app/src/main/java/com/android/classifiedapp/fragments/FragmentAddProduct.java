@@ -390,7 +390,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
             }
         });
         getCurrencies();
-        //getCurrentUser();
+        getCurrentUser();
         getCategories();
 
         return view;
@@ -616,6 +616,9 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                 ad.setLongitude(longitude);
                 ad.setQuantity(Integer.parseInt(etQuantity.getText().toString()));
                 ad.setStatus(getString(R.string.approved));
+                ad.setFeatured("0");
+                ad.setFeaturedOn(0);
+                ad.setExpiresOn(0);
                 if (isShippingAvailable){
                     ad.setShippingPayer(shippingPayer);
                 }
@@ -631,6 +634,22 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                 // Save the Ad object in the database
                 // (Assuming you have a method to save Ad objects in the database)
                 databaseReference.setValue(ad);
+                if (!currentUser.isPremiumUser()){
+                    DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("freeAdsAvailable");
+                   int updatedCount= currentUser.getFreeAdsAvailable()-1;
+                   userRef.setValue(updatedCount);
+                   if (updatedCount==0){
+                       btnCreateAd.setOnClickListener(new View.OnClickListener() {
+                           @Override
+                           public void onClick(View v) {
+                               ToastUtils.showShort(getString(R.string.buy_premium_to_post));
+                           }
+                       });
+                       btnCreateAd.setBackgroundResource(R.drawable.bg_report_btn);
+                   }
+                }
+
+
                 ToastUtils.showShort(getString(R.string.ad_created));
                 //saveAdToDatabase(ad);
             }
@@ -757,24 +776,27 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
     void getCurrentUser(){
         String userEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
         LogUtils.e(userEmail);
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users");
-        Query query = databaseReference.orderByChild("email").equalTo(userEmail);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()){
-                    LogUtils.e(snapshot);
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
-                        currentUser = new User();
-                        currentUser.setEmail(dataSnapshot.child("email").getValue(String.class));
-                        // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
-                        currentUser.setName(dataSnapshot.child("name").getValue(String.class));
-                        if (dataSnapshot.hasChild("profileImage")){
-                            currentUser.setProfileImage(dataSnapshot.child("profileImage").getValue(String.class));
+                currentUser = new User();
+                currentUser.setEmail(snapshot.child("email").getValue(String.class));
+                // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
+                currentUser.setName(snapshot.child("name").getValue(String.class));
+                currentUser.setPremiumUser(snapshot.child("premiumUser").getValue(Boolean.class));
+                currentUser.setFreeMessagesAvailable(snapshot.child("freeMessagesAvailable").getValue(Integer.class));
+                currentUser.setFreeAdsAvailable(snapshot.child("freeAdsAvailable").getValue(Integer.class));
+
+                if (!currentUser.isPremiumUser()&&currentUser.getFreeAdsAvailable()==0){
+                    btnCreateAd.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            ToastUtils.showShort(getString(R.string.buy_premium_to_post));
                         }
-                    }
-
-
+                    });
+                    btnCreateAd.setBackgroundResource(R.drawable.bg_report_btn);
+                etLocation.setOnClickListener(null);
                 }
             }
 
