@@ -153,30 +153,43 @@ public class ActivityChat extends AppCompatActivity {
                 if (etMessage.getText().toString().isEmpty()){
                     return;
                 }
-                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats").child(adId).child(sellerId).push();
-                DatabaseReference sellerChatRef = FirebaseDatabase.getInstance().getReference().child("users").child(sellerId).child("chats").child(adId).child(currentUserId).push();
-                String messageId = databaseReference.getKey();
-                Message message = new Message();
-                message.setSenderId(currentUserId);
-                message.setReceiverId(sellerId);
-                message.setMessage(etMessage.getText().toString().trim());
-                message.setMessageId(messageId);
-                message.setProductId(adId);
-                message.setTimestamp(System.currentTimeMillis());
-                databaseReference.setValue(message);
-                sellerChatRef.setValue(message);
-                try {
-                    sendPushNotification(fcmToken,currentUserName,message.getMessage(),isAdmin);
-                } catch (JSONException e) {
-                    LogUtils.e(e.getMessage());
-                }
-                if (!currentUser.isPremiumUser()){
-                    DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("freeMessagesAvailable");
-                    int updatedCount = currentUser.getFreeMessagesAvailable() - 1;
-                    userRef.setValue(updatedCount);
-                    currentUser.setFreeMessagesAvailable(updatedCount);
 
-                    if (updatedCount==0){
+                if (!currentUser.isPremiumUser()){
+                    if (currentUser.getFreeMessagesAvailable()>0){
+                        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats").child(adId).child(sellerId).push();
+                        DatabaseReference sellerChatRef = FirebaseDatabase.getInstance().getReference().child("users").child(sellerId).child("chats").child(adId).child(currentUserId).push();
+                        String messageId = databaseReference.getKey();
+                        Message message = new Message();
+                        message.setSenderId(currentUserId);
+                        message.setReceiverId(sellerId);
+                        message.setMessage(etMessage.getText().toString().trim());
+                        message.setMessageId(messageId);
+                        message.setProductId(adId);
+                        message.setTimestamp(System.currentTimeMillis());
+                        databaseReference.setValue(message);
+                        sellerChatRef.setValue(message);
+                        try {
+                            sendPushNotification(fcmToken,currentUserName,message.getMessage(),isAdmin);
+                        } catch (JSONException e) {
+                            LogUtils.e(e.getMessage());
+                        }
+
+                        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("freeMessagesAvailable");
+                        int updatedCount = currentUser.getFreeMessagesAvailable() - 1;
+                        userRef.setValue(updatedCount);
+                        currentUser.setFreeMessagesAvailable(updatedCount);
+
+                        if (updatedCount==0){
+                            btnSend.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    ToastUtils.showShort(getString(R.string.buy_premium_to_send));
+                                    etMessage.setFocusable(false);
+                                    etMessage.setClickable(false);
+                                }
+                            });
+                        }
+                    }else{
                         btnSend.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -185,6 +198,37 @@ public class ActivityChat extends AppCompatActivity {
                                 etMessage.setClickable(false);
                             }
                         });
+                    }
+
+                }else{
+                    long now = System.currentTimeMillis();
+                    if (now>currentUser.getBenefitsExpiry()){
+                        btnSend.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                ToastUtils.showShort(getString(R.string.buy_premium_to_send));
+                                etMessage.setFocusable(false);
+                                etMessage.setClickable(false);
+                            }
+                        });
+                    }else{
+                        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats").child(adId).child(sellerId).push();
+                        DatabaseReference sellerChatRef = FirebaseDatabase.getInstance().getReference().child("users").child(sellerId).child("chats").child(adId).child(currentUserId).push();
+                        String messageId = databaseReference.getKey();
+                        Message message = new Message();
+                        message.setSenderId(currentUserId);
+                        message.setReceiverId(sellerId);
+                        message.setMessage(etMessage.getText().toString().trim());
+                        message.setMessageId(messageId);
+                        message.setProductId(adId);
+                        message.setTimestamp(System.currentTimeMillis());
+                        databaseReference.setValue(message);
+                        sellerChatRef.setValue(message);
+                        try {
+                            sendPushNotification(fcmToken,currentUserName,message.getMessage(),isAdmin);
+                        } catch (JSONException e) {
+                            LogUtils.e(e.getMessage());
+                        }
                     }
                 }
                 etMessage.setText("");
@@ -319,6 +363,7 @@ public class ActivityChat extends AppCompatActivity {
                     currentUserName = currentUser.getName();
                     currentUser.setPremiumUser(snapshot.child("premiumUser").getValue(Boolean.class));
                     currentUser.setFreeMessagesAvailable(snapshot.child("freeMessagesAvailable").getValue(Integer.class));
+                    currentUser.setBenefitsExpiry(snapshot.child("benefitsExpiry").getValue(Long.class));
 
                     if (!currentUser.isPremiumUser()&&currentUser.getFreeMessagesAvailable()==0){
                         btnSend.setOnClickListener(new View.OnClickListener() {

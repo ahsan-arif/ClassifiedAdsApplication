@@ -335,16 +335,22 @@ public class FragmentProfile extends Fragment  {
                                 Glide.with(context).load(user.getProfileImage()).into(imgProfile);
                             }
                             if (user.isPremiumUser()){
-                                cardGoPremium.setVisibility(View.GONE);
-                                cardPremium.setVisibility(View.VISIBLE);
+                                long now = System.currentTimeMillis();
+                                if (now>user.getBenefitsExpiry()){
+                                    cardGoPremium.setVisibility(View.VISIBLE);
+                                    cardPremium.setVisibility(View.GONE);
+                                }else{
+                                    cardGoPremium.setVisibility(View.GONE);
+                                    cardPremium.setVisibility(View.VISIBLE);
+                                    Date date = new Date(user.getBenefitsExpiry());
 
-                                Date date = new Date(user.getBenefitsExpiry());
+                                    // Format the date
+                                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+                                    String formattedDate = sdf.format(date);
 
-                                // Format the date
-                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-                                String formattedDate = sdf.format(date);
+                                    tvMemberTill.setText(context.getString(R.string.expires_on)+" "+formattedDate);
+                                }
 
-                                tvMemberTill.setText(context.getString(R.string.expires_on)+" "+formattedDate);
                             }else{
                                 cardPremium.setVisibility(View.GONE);
                                 cardGoPremium.setVisibility(View.VISIBLE);

@@ -197,7 +197,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         btnCreateAd = view.findViewById(R.id.btn_create_ad);
         etQuantity = view.findViewById(R.id.et_quantity);
 
-        bottomNavigationView = getActivity().findViewById(R.id.bottom_navigation);
+        //bottomNavigationView = getActivity().findViewById(R.id.bottom_navigation);
         Places.initialize(context, getString(R.string.places_api_key), Locale.US);
         fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS
         );
@@ -659,7 +659,21 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                    }
                 }
 
-                bottomNavigationView.setSelectedItemId(R.id.item_home);
+               // bottomNavigationView.setSelectedItemId(R.id.item_home);
+                etProductTitle.setText("");
+                etDetails.setText("");
+                isImage1Selected = false;
+                isImage2Selected = false;
+                isImage3Selected = false;
+                image1.setImageResource(R.drawable.add_image);
+                image2.setImageResource(R.drawable.add_image);
+                image3.setImageResource(R.drawable.add_image);
+                etPrice.setText("");
+                delete1.setVisibility(View.GONE);
+                delete2.setVisibility(View.GONE);
+                delete3.setVisibility(View.GONE);
+                etQuantity.setText("");
+
                 ToastUtils.showShort(getString(R.string.ad_created));
                 //saveAdToDatabase(ad);
             }

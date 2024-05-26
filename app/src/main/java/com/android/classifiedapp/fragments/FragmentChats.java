@@ -258,6 +258,9 @@ public class FragmentChats extends Fragment {
                         }
                     }
                     setAdapter(chats);
+                }else {
+                    progressCircular.setVisibility(View.GONE);
+                    tvNoChats.setVisibility(View.VISIBLE);
                 }
             }
 
