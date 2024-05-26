@@ -1,6 +1,7 @@
 package com.android.classifiedapp.fragments;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -12,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.classifiedapp.R;
@@ -42,7 +44,8 @@ public class FragmentRandom extends Fragment implements AdsAdapter.OnAdClickList
 
     RecyclerView rvAds;
     TextView tvNoListing;
-
+Context context;
+ProgressBar progressCircular;
     public FragmentRandom() {
         // Required empty public constructor
     }
@@ -81,18 +84,16 @@ public class FragmentRandom extends Fragment implements AdsAdapter.OnAdClickList
         View view =inflater.inflate(R.layout.fragment_random, container, false);
         rvAds = view.findViewById(R.id.rv_ads);
         tvNoListing = view.findViewById(R.id.tv_no_listing);
+        progressCircular = view.findViewById(R.id.progress_circular);
         getAds();
         return view;
     }
     void getAds(){
-        ProgressDialog progressDialog = new ProgressDialog(getContext());
-        progressDialog.setTitle(getResources().getString(R.string.please_wait));
-        progressDialog.setCancelable(false);
-        progressDialog.show();
+
         FirebaseDatabase.getInstance().getReference().child("ads").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                progressDialog.dismiss();
+
                 if (snapshot.exists()){
                     ArrayList<Ad> ads = new ArrayList<>();
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()){
@@ -102,27 +103,37 @@ public class FragmentRandom extends Fragment implements AdsAdapter.OnAdClickList
                     }
                     setAdsAdapter(ads);
 
+                }else{
+                    progressCircular.setVisibility(View.GONE);
+                    tvNoListing.setVisibility(View.VISIBLE);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                progressDialog.dismiss();
+                progressCircular.setVisibility(View.GONE);
             }
         });
     }
 
     void setAdsAdapter(ArrayList<Ad> ads){
+        progressCircular.setVisibility(View.GONE);
         if (ads!=null){
             tvNoListing.setVisibility(View.VISIBLE);
         }
         tvNoListing.setVisibility(View.GONE);
-        rvAds.setLayoutManager(new LinearLayoutManager(getContext()));
-        rvAds.setAdapter(new AdsAdapter(ads,getContext(),this));
+        rvAds.setLayoutManager(new LinearLayoutManager(context));
+        rvAds.setAdapter(new AdsAdapter(ads,context,this));
     }
 
     @Override
     public void onLikeClicked(Ad ad, ImageView imageView) {
 
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        this.context = context;
     }
 }

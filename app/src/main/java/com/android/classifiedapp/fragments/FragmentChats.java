@@ -1,6 +1,7 @@
 package com.android.classifiedapp.fragments;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.classifiedapp.R;
@@ -45,6 +47,8 @@ public class FragmentChats extends Fragment {
     ArrayList<Chat> chats;
     RecyclerView rvChats;
     TextView tvNoChats;
+    Context context;
+    ProgressBar progressCircular;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -90,6 +94,7 @@ public class FragmentChats extends Fragment {
         View view = inflater.inflate(R.layout.fragment_chats, container, false);
         rvChats = view.findViewById(R.id.rv_chats);
         tvNoChats = view.findViewById(R.id.tv_no_chats);
+        progressCircular = view.findViewById(R.id.progress_circular);
         return view;
     }
 
@@ -136,8 +141,8 @@ public class FragmentChats extends Fragment {
                     }
                     //set adapter
                     LogUtils.e(chats);
-                    ChatsAdapter adapter = new ChatsAdapter(chats,getContext());
-                    rvChats.setLayoutManager(new LinearLayoutManager(getContext()));
+                    ChatsAdapter adapter = new ChatsAdapter(chats,context);
+                    rvChats.setLayoutManager(new LinearLayoutManager(context));
                     rvChats.setAdapter(adapter);
 
                 }
@@ -219,16 +224,10 @@ public class FragmentChats extends Fragment {
     }*/
 
     void getChats() {
-        ProgressDialog progressDialog = new ProgressDialog(getContext());
-        progressDialog.setTitle(getString(R.string.please_wait));
-        progressDialog.setMessage(getString(R.string.fetching_chats));
-        progressDialog.setCancelable(false);
-        progressDialog.show();
         LogUtils.json(currentUserId);
         FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                progressDialog.dismiss();
                 if (snapshot.exists()) {
                     List<Chat> chats = new ArrayList<>();
                     ArrayList<Message> messages  =new ArrayList<>();
@@ -264,7 +263,7 @@ public class FragmentChats extends Fragment {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                progressDialog.dismiss();
+                progressCircular.setVisibility(View.GONE);
                 // Handle error
             }
         });
@@ -274,14 +273,21 @@ public class FragmentChats extends Fragment {
 
     // Method to set adapter after all user details are fetched
     private void setAdapter(List<Chat> chats) {
+        progressCircular.setVisibility(View.GONE);
         LogUtils.e(chats.size());
         if (chats.isEmpty()){
           tvNoChats.setVisibility(View.VISIBLE);
         }else{
             tvNoChats.setVisibility(View.GONE);
         }
-        ChatsAdapter adapter = new ChatsAdapter(chats, getContext());
-        rvChats.setLayoutManager(new LinearLayoutManager(getContext()));
+        ChatsAdapter adapter = new ChatsAdapter(chats, context);
+        rvChats.setLayoutManager(new LinearLayoutManager(context));
         rvChats.setAdapter(adapter);
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        this.context = context;
     }
 }

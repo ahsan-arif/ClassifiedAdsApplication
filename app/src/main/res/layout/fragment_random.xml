@@ -19,8 +19,16 @@
         android:gravity="center"
         android:padding="8dp"
         android:id="@+id/tv_no_listing"
+        android:visibility="gone"
         android:layout_gravity="center_vertical"
         android:text="@string/no_listings"
+        />
+
+    <ProgressBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:id="@+id/progress_circular"
         />
 
 </FrameLayout>

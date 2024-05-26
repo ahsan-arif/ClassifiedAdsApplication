@@ -113,6 +113,10 @@ public class ActivityAdDetails extends AppCompatActivity {
     User postedByUser;
 
     TextView tvViewOrders;
+
+    int ordersAvailable;
+    boolean isPremiumUser;
+    long benefitsExpiry;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -277,7 +281,21 @@ public class ActivityAdDetails extends AppCompatActivity {
         tvBuy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showBuySheet();
+                long now = System.currentTimeMillis();
+                LogUtils.e(ordersAvailable);
+                LogUtils.e(isPremiumUser);
+                if (isPremiumUser){
+                    if (benefitsExpiry >= now){
+                        showBuySheet();
+                    }
+                }
+                else{
+                    if (ordersAvailable>0){
+                        showBuySheet();
+                    }else{
+                        ToastUtils.showShort(getString(R.string.cannot_accept_orders));
+                    }
+                }
             }
         });
         if (ad!=null){
@@ -304,6 +322,7 @@ public class ActivityAdDetails extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()){
+                    LogUtils.e(uid);
                     // LogUtils.e(snapshot);
                     //   for (DataSnapshot dataSnapshot : snapshot.getChildren()){
                     User user = new User();
@@ -311,6 +330,18 @@ public class ActivityAdDetails extends AppCompatActivity {
                     // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
                     user.setName(snapshot.child("name").getValue(String.class));
                     user.setFcmToken(snapshot.child("fcmToken").getValue(String.class));
+                    if (snapshot.hasChild("maximumOrdersAvailable")){
+                        ordersAvailable = snapshot.child("maximumOrdersAvailable").getValue(Integer.class);
+                    }
+                    if (snapshot.hasChild("premiumUser")){
+                        isPremiumUser = snapshot.child("premiumUser").getValue(Boolean.class);
+                    }
+                    LogUtils.e(ordersAvailable);
+                    if (snapshot.hasChild("benefitsExpiry")){
+                        benefitsExpiry = snapshot.child("benefitsExpiry").getValue(Long.class);
+                    }
+
+
                     postedBy.setText(user.getName());
                     if (snapshot.hasChild("profileImage")){
                         user.setProfileImage(snapshot.child("profileImage").getValue(String.class));
@@ -667,6 +698,12 @@ public class ActivityAdDetails extends AppCompatActivity {
 
                     DatabaseReference productReference=  FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId()).child("orders").child(key);
                     productReference.setValue(order);
+
+                    if (!isPremiumUser){
+                        DatabaseReference userReference = FirebaseDatabase.getInstance().getReference().child("users").child(ad.getPostedBy()).child("maximumOrdersAvailable");
+                        ordersAvailable = ordersAvailable-1;
+                        userReference.setValue(ordersAvailable);
+                    }
 
                     try {
                         sendPushNotification(getString(R.string.new_order),getString(R.string.somebody_placed));

@@ -6,6 +6,8 @@ public class PlatformPrefs {
     int freeAdsCount;
     int freeMessagesCount;
 
+    int maximumOrdersAllowed;
+
     public String getPlatformFee() {
         return platformFee;
     }
@@ -36,5 +38,13 @@ public class PlatformPrefs {
 
     public void setFreeMessagesCount(int freeMessagesCount) {
         this.freeMessagesCount = freeMessagesCount;
+    }
+
+    public int getMaximumOrdersAllowed() {
+        return maximumOrdersAllowed;
+    }
+
+    public void setMaximumOrdersAllowed(int maximumOrdersAllowed) {
+        this.maximumOrdersAllowed = maximumOrdersAllowed;
     }
 }

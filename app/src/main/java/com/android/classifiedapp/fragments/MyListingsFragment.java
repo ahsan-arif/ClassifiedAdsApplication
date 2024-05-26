@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.classifiedapp.ActivityMyAds;
@@ -83,6 +84,7 @@ public class MyListingsFragment extends Fragment {
     ArrayList<Ad> ads;
     TextView tvNoItem;
     RecyclerView rvAds;
+    ProgressBar progressCircular;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -91,6 +93,7 @@ public class MyListingsFragment extends Fragment {
         View view =inflater.inflate(R.layout.fragment_my_listings, container, false);
         tvNoItem = view.findViewById(R.id.tv_no_item);
         rvAds = view.findViewById(R.id.rv_ads);
+        progressCircular = view.findViewById(R.id.progress_circular);
         if (position==0)
         getMyApprovedListings(FirebaseAuth.getInstance().getCurrentUser().getUid());
         else if (position==1)
@@ -116,9 +119,11 @@ public class MyListingsFragment extends Fragment {
                     }
                 }
                 if (!ads.isEmpty()){
+                    progressCircular.setVisibility(View.GONE);
                     tvNoItem.setVisibility(View.GONE);
                     setMyListingsAdapter();
                 }else{
+                    progressCircular.setVisibility(View.GONE);
                     tvNoItem.setVisibility(View.VISIBLE);
                 }
             }
@@ -145,9 +150,11 @@ public class MyListingsFragment extends Fragment {
                     }
                 }
                 if (!ads.isEmpty()){
+                    progressCircular.setVisibility(View.GONE);
                     tvNoItem.setVisibility(View.GONE);
                     setMyListingsAdapter(isNotApprovedAd);
                 }else{
+                    progressCircular.setVisibility(View.GONE);
                     tvNoItem.setVisibility(View.VISIBLE);
                 }
             }
@@ -169,21 +176,27 @@ public class MyListingsFragment extends Fragment {
                 if (snapshot.exists()){
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()){
                         Ad ad = dataSnapshot.getValue(Ad.class);
-                        if (ad.getStatus().equals(getString(R.string.pending_approval)))
-                            ads.add(ad);
+                        if (ad!=null){
+                            if (ad.getStatus()!=null){
+                                if (ad.getStatus().equals(getString(R.string.pending_approval)))
+                                    ads.add(ad);
+                            }
+                        }
                     }
                 }
                 if (!ads.isEmpty()){
+                    progressCircular.setVisibility(View.GONE);
                     tvNoItem.setVisibility(View.GONE);
                     setMyListingsAdapter(unApprovedAd);
                 }else{
+                    progressCircular.setVisibility(View.GONE);
                     tvNoItem.setVisibility(View.VISIBLE);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                progressCircular.setVisibility(View.GONE);
             }
         });
     }
@@ -200,9 +213,18 @@ public class MyListingsFragment extends Fragment {
 
     @Override
     public void onAttach(@NonNull Context context) {
-        this.context = context;
         super.onAttach(context);
+        this.context = context;
     }
 
-
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (position==0)
+            getMyApprovedListings(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        else if (position==1)
+            getPendingApprovalAds(true,FirebaseAuth.getInstance().getCurrentUser().getUid());
+        else
+            getRequireUpdateAds(true,FirebaseAuth.getInstance().getCurrentUser().getUid());
+    }
 }

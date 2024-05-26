@@ -3,7 +3,8 @@ package com.android.classifiedapp.models;
 public class User {
     String name,email,profileImage,fcmToken,role;
     boolean isPremiumUser;
-    int freeMessagesAvailable, freeAdsAvailable;
+    int freeMessagesAvailable, freeAdsAvailable,maximumOrdersAvailable;
+    long benefitsExpiry;
 
     public String getName() {
         return name;
@@ -67,5 +68,21 @@ public class User {
 
     public void setFreeAdsAvailable(int freeAdsAvailable) {
         this.freeAdsAvailable = freeAdsAvailable;
+    }
+
+    public int getMaximumOrdersAvailable() {
+        return maximumOrdersAvailable;
+    }
+
+    public void setMaximumOrdersAvailable(int maximumOrdersAvailable) {
+        this.maximumOrdersAvailable = maximumOrdersAvailable;
+    }
+
+    public long getBenefitsExpiry() {
+        return benefitsExpiry;
+    }
+
+    public void setBenefitsExpiry(long benefitsExpiry) {
+        this.benefitsExpiry = benefitsExpiry;
     }
 }

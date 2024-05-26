@@ -5,6 +5,7 @@ import static android.app.Activity.RESULT_OK;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -52,6 +53,7 @@ import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -135,6 +137,9 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
     User currentUser;
     Double latitude,longitude;
     String address;
+    Context context;
+
+    BottomNavigationView bottomNavigationView;
 
     public FragmentAddProduct() {
         // Required empty public constructor
@@ -191,7 +196,9 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         etPrice = view.findViewById(R.id.et_price);
         btnCreateAd = view.findViewById(R.id.btn_create_ad);
         etQuantity = view.findViewById(R.id.et_quantity);
-        Places.initialize(getContext(), getString(R.string.places_api_key), Locale.US);
+
+        bottomNavigationView = getActivity().findViewById(R.id.bottom_navigation);
+        Places.initialize(context, getString(R.string.places_api_key), Locale.US);
         fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS
         );
         placesIntent = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
@@ -269,7 +276,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         etLocation.setOnClickListener((v) -> {
             @SuppressLint("ClickableViewAccessibility") Intent intent = new Autocomplete.IntentBuilder(
                     AutocompleteActivityMode.FULLSCREEN, fields)
-                    .build(getContext());
+                    .build(context);
             placesIntent.launch(intent);
         });
         image1.setOnClickListener(new View.OnClickListener() {
@@ -325,6 +332,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
             public void onClick(View v) {
                 image1.setImageResource(R.drawable.add_image);
                 delete1.setVisibility(View.GONE);
+                isImage1Selected = false;
             }
         });
         delete2.setOnClickListener(new View.OnClickListener() {
@@ -332,6 +340,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
             public void onClick(View v) {
                 image2.setImageResource(R.drawable.add_image);
                 delete2.setVisibility(View.GONE);
+                isImage2Selected = false;
             }
         });
         delete3.setOnClickListener(new View.OnClickListener() {
@@ -339,6 +348,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
             public void onClick(View v) {
                 image3.setImageResource(R.drawable.add_image);
                 delete3.setVisibility(View.GONE);
+                isImage3Selected = false;
             }
         });
         etCategory.setOnClickListener(new View.OnClickListener() {
@@ -406,7 +416,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                     Currency currency = dataSnapshot.getValue(Currency.class);
                     currencies.add(currency);
                 }
-                CurrencyAdapter currencyAdapter = new CurrencyAdapter(getContext(),R.layout.item_currency,currencies);
+                CurrencyAdapter currencyAdapter = new CurrencyAdapter(context,R.layout.item_currency,currencies);
                 ddCurrency.setAdapter(currencyAdapter);
                 ddCurrency.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
@@ -477,7 +487,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
     }
 
     void getCategories(){
-        ProgressDialog progressDialog = new ProgressDialog(getContext());
+        ProgressDialog progressDialog = new ProgressDialog(context);
         progressDialog.setCancelable(false);
         progressDialog.setTitle(getString(R.string.please_wait));
         progressDialog.setMessage(getString(R.string.fetching_categories));
@@ -517,14 +527,14 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
     }
 
     void showCategoriesSheet(){
-        categoriesSheet = new BottomSheetDialog(getContext());
+        categoriesSheet = new BottomSheetDialog(context);
         categoriesSheet.setContentView(R.layout.bottom_sheet_dialog_categories_layout);
         TextView tvTitle = categoriesSheet.findViewById(R.id.tv_title);
         tvTitle.setText(R.string.select_category);
         ImageView imgClose = categoriesSheet.findViewById(R.id.img_close);
         RecyclerView rvCategories = categoriesSheet.findViewById(R.id.rv_categories);
-        categoriesRecyclerAdapter = new CategoriesRecyclerAdapter(categories,getContext(),this);
-        rvCategories.setLayoutManager(new LinearLayoutManager(getContext()));
+        categoriesRecyclerAdapter = new CategoriesRecyclerAdapter(categories,context,this);
+        rvCategories.setLayoutManager(new LinearLayoutManager(context));
         rvCategories.setAdapter(categoriesRecyclerAdapter);
         imgClose.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -536,14 +546,14 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
 
     }
     void showSubcategoriesSheet(){
-        subCategoriesSheet = new BottomSheetDialog(getContext());
+        subCategoriesSheet = new BottomSheetDialog(context);
         subCategoriesSheet.setContentView(R.layout.bottom_sheet_dialog_categories_layout);
         TextView tvTitle = subCategoriesSheet.findViewById(R.id.tv_title);
         tvTitle.setText(R.string.select_category);
         ImageView imgClose = subCategoriesSheet.findViewById(R.id.img_close);
         RecyclerView rvCategories = subCategoriesSheet.findViewById(R.id.rv_categories);
-        subcategoriesRecyclerAdapter = new SubcategoriesRecyclerAdapter(subCategories,getContext(),this);
-        rvCategories.setLayoutManager(new LinearLayoutManager(getContext()));
+        subcategoriesRecyclerAdapter = new SubcategoriesRecyclerAdapter(subCategories,context,this);
+        rvCategories.setLayoutManager(new LinearLayoutManager(context));
         rvCategories.setAdapter(subcategoriesRecyclerAdapter);
         imgClose.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -580,7 +590,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         if (!validateForm()){
             return;
         }
-        ProgressDialog progressDialog = new ProgressDialog(getContext());
+        ProgressDialog progressDialog = new ProgressDialog(context);
         progressDialog.setTitle(getString(R.string.please_wait));
         progressDialog.setMessage(getString(R.string.creating_ad));
         progressDialog.setCancelable(false);
@@ -649,7 +659,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                    }
                 }
 
-
+                bottomNavigationView.setSelectedItemId(R.id.item_home);
                 ToastUtils.showShort(getString(R.string.ad_created));
                 //saveAdToDatabase(ad);
             }
@@ -807,4 +817,9 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         });
     }
 
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        this.context = context;
+    }
 }

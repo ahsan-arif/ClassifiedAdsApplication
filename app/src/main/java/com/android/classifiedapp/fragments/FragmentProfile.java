@@ -38,6 +38,7 @@ import com.android.classifiedapp.MainActivity;
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.adapters.MyAdsAdapter;
 import com.android.classifiedapp.models.Ad;
+import com.android.classifiedapp.models.PlatformPrefs;
 import com.android.classifiedapp.models.User;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
@@ -67,8 +68,13 @@ import com.permissionx.guolindev.callback.RequestCallback;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -103,7 +109,14 @@ public class FragmentProfile extends Fragment  {
     CardView cardWishlist;
     CardView cardMyListings,cardMyOrders;
 
-    TextView tvDeleteAccount;
+    TextView tvDeleteAccount,tvCancelMembership;
+
+    Context context;
+
+    TextView tvMemberTill;
+
+    CardView cardPremium;
+    CardView cardGoPremium;
 
     public FragmentProfile() {
         // Required empty public constructor
@@ -151,6 +164,10 @@ public class FragmentProfile extends Fragment  {
         cardMyListings = view.findViewById(R.id.card_my_listings);
         tvDeleteAccount = view.findViewById(R.id.tv_delete_account);
         cardMyOrders = view.findViewById(R.id.card_my_orders);
+        tvCancelMembership = view.findViewById(R.id.tv_cancel_membership);
+        tvMemberTill = view.findViewById(R.id.tv_member_till);
+        cardPremium = view.findViewById(R.id.card_premium);
+        cardGoPremium = view.findViewById(R.id.card_go_premium);
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         getUserDetails(user.getUid());
@@ -161,7 +178,7 @@ public class FragmentProfile extends Fragment  {
             @Override
             public void onClick(View v) {
                 FirebaseAuth.getInstance().signOut();
-                startActivity(new Intent(getContext(), MainActivity.class));
+                startActivity(new Intent(context, MainActivity.class));
                 getActivity().finish();
             }
         });
@@ -172,8 +189,8 @@ public class FragmentProfile extends Fragment  {
                 if(o.getResultCode() == RESULT_OK){
                     Intent data = o.getData();
                     image1Uri=data.getData();
-                        uploadImage(FirebaseAuth.getInstance().getCurrentUser().getUid(),image1Uri);
-                        //image1.setImageBitmap(img);
+                    uploadImage(FirebaseAuth.getInstance().getCurrentUser().getUid(),image1Uri);
+                    //image1.setImageBitmap(img);
 
                     LogUtils.e(o.getData());
                 }
@@ -202,28 +219,105 @@ public class FragmentProfile extends Fragment  {
         cardWishlist.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getContext(), ActivityMyWishlist.class));
+                startActivity(new Intent(context, ActivityMyWishlist.class));
             }
         });
         cardMyListings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getContext(), ActivityMyAds.class));
+                startActivity(new Intent(context, ActivityMyAds.class));
             }
         });
         tvDeleteAccount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-showAlert();
+                showAlert();
             }
         });
         cardMyOrders.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getContext(), ActivityMyOrders.class));
+                startActivity(new Intent(context, ActivityMyOrders.class));
             }
         });
+        cardGoPremium.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DatabaseReference databaseReference= FirebaseDatabase.getInstance().getReference().child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("premiumUser", true);
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTimeInMillis(System.currentTimeMillis());
+                // Add one month to the calendar
+                calendar.add(Calendar.MONTH, 1);
+                // Get the new time in milliseconds
+                long newTimeMillis = calendar.getTimeInMillis();
+                updates.put("benefitsExpiry",newTimeMillis);
+                databaseReference.updateChildren(updates).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()){
+                            cardGoPremium.setVisibility(View.GONE);
+                            cardPremium.setVisibility(View.VISIBLE);
 
+                            Date date = new Date(newTimeMillis);
+
+                            // Format the date
+                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+                            String formattedDate = sdf.format(date);
+                            LogUtils.e("benefits updated");
+                        }else{
+                            LogUtils.e("failed to update benefits");
+                        }
+                    }
+                });
+            }
+        });
+        tvCancelMembership.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FirebaseDatabase.getInstance().getReference().child("platform_prefs").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()){
+                            PlatformPrefs prefs =snapshot.getValue(PlatformPrefs.class);
+                            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                            // Create a Map to hold the child updates
+                            Map<String, Object> updates = new HashMap<>();
+                            updates.put("premiumUser", false);
+                            updates.put("maximumOrdersAvailable",prefs.getMaximumOrdersAllowed() );
+                            updates.put("freeMessagesAvailable",prefs.getFreeMessagesCount());
+                            updates.put("freeAdsAvailable",prefs.getFreeAdsCount());
+                            Calendar calendar = Calendar.getInstance();
+                            calendar.setTimeInMillis(System.currentTimeMillis());
+                            // Add one month to the calendar
+                            calendar.add(Calendar.MONTH, 1);
+                            // Get the new time in milliseconds
+                            long newTimeMillis = calendar.getTimeInMillis();
+                            updates.put("benefitsExpiry",newTimeMillis);
+
+                            databaseReference.updateChildren(updates).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()){
+                                        cardGoPremium.setVisibility(View.VISIBLE);
+                                        cardPremium.setVisibility(View.GONE);
+                                        LogUtils.e("benefits updated");
+                                    }else{
+                                        LogUtils.e("failed to update benefits");
+                                    }
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+            }
+        });
         return view;
     }
 
@@ -231,16 +325,38 @@ showAlert();
         FirebaseDatabase.getInstance().getReference().child("users").child(userId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()){
-                    User user = snapshot.getValue(User.class);
-                    etName.setText(user.getName());
+                try {
+                    if (snapshot.exists()){
+                        User user = snapshot.getValue(User.class);
 
-                    if (user.getProfileImage()!=null){
-                        Glide.with(getContext()).load(user.getProfileImage()).into(imgProfile);
+                        if (user!=null){
+                            etName.setText(user.getName());
+                            if (user.getProfileImage()!=null){
+                                Glide.with(context).load(user.getProfileImage()).into(imgProfile);
+                            }
+                            if (user.isPremiumUser()){
+                                cardGoPremium.setVisibility(View.GONE);
+                                cardPremium.setVisibility(View.VISIBLE);
+
+                                Date date = new Date(user.getBenefitsExpiry());
+
+                                // Format the date
+                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+                                String formattedDate = sdf.format(date);
+
+                                tvMemberTill.setText(context.getString(R.string.expires_on)+" "+formattedDate);
+                            }else{
+                                cardPremium.setVisibility(View.GONE);
+                                cardGoPremium.setVisibility(View.VISIBLE);
+                            }
+                        }
+
                     }
+                }catch (Exception e){
+                    e.printStackTrace();
                 }
-            }
 
+            }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
@@ -302,37 +418,37 @@ showAlert();
     void uploadImage(String userId, Uri uri) {
         fabUpdateProfileImg.setVisibility(View.GONE);
         progressCircular.setVisibility(View.VISIBLE);
-            StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("profile_images").child(userId).child("image"+ userId);
+        StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("profile_images").child(userId).child("image"+ userId);
 
-            storageReference.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    fabUpdateProfileImg.setVisibility(View.VISIBLE);
-                    progressCircular.setVisibility(View.GONE);
-                    storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                        @Override
-                        public void onSuccess(Uri uri) {
-                            String downloadUrl = uri.toString();
-                            Glide.with(getContext()).load(downloadUrl).into(imgProfile);
-                            //set image url in user object
-                            updaterUserImage(downloadUrl,userId);
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            fabUpdateProfileImg.setVisibility(View.VISIBLE);
-                            progressCircular.setVisibility(View.GONE);
-                        }
-                    });
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    fabUpdateProfileImg.setVisibility(View.VISIBLE);
-                    progressCircular.setVisibility(View.GONE);
+        storageReference.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                fabUpdateProfileImg.setVisibility(View.VISIBLE);
+                progressCircular.setVisibility(View.GONE);
+                storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+                        String downloadUrl = uri.toString();
+                        Glide.with(context).load(downloadUrl).into(imgProfile);
+                        //set image url in user object
+                        updaterUserImage(downloadUrl,userId);
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        fabUpdateProfileImg.setVisibility(View.VISIBLE);
+                        progressCircular.setVisibility(View.GONE);
+                    }
+                });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                fabUpdateProfileImg.setVisibility(View.VISIBLE);
+                progressCircular.setVisibility(View.GONE);
 
-                }
-            });
+            }
+        });
     }
 
     void updaterUserImage(String imgUrl,String currentUserId){
@@ -341,7 +457,7 @@ showAlert();
     }
 
     void showAlert(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
         builder.setTitle(getString(R.string.are_you_sure));
 
@@ -349,13 +465,19 @@ showAlert();
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-               // ToastUtils.showShort("yes");
-                startActivity(new Intent(getContext(), ActivityVerifyLogin.class)
+                // ToastUtils.showShort("yes");
+                startActivity(new Intent(context, ActivityVerifyLogin.class)
                         .putExtra("email",FirebaseAuth.getInstance().getCurrentUser().getEmail())
                         .putExtra("isDeleteProfile",true));
             }
         });
         builder.setNegativeButton("Cancel", null);
         builder.show();
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        this.context = context;
     }
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,193 +8,278 @@
     android:layout_marginStart="16dp"
     android:layout_marginEnd="16dp"
     tools:context=".fragments.FragmentProfile">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/my_profile"
-            android:textColor="@color/black"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp"
-            />
-
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_weight="1"
             >
-
-                <androidx.coordinatorlayout.widget.CoordinatorLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="@string/my_profile"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:layout_marginTop="16dp"
+                    />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_weight="1"
                     >
-                        <de.hdodenhof.circleimageview.CircleImageView
-                            android:layout_width="60dp"
-                            android:layout_height="60dp"
-                            android:id="@+id/img_profile"
-                            android:layout_gravity="center_horizontal"
-                            android:src="@drawable/outline_account_circle_24"
-                            />
-                        <ProgressBar
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_horizontal"
-                            android:id="@+id/progress_circular"
-                            android:visibility="gone"
-                            />
-                        <com.google.android.material.floatingactionbutton.FloatingActionButton
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:id="@+id/fab_update_profile_img"
-                            app:fabSize="mini"
-                            app:layout_anchor="@id/img_profile"
-                            app:layout_anchorGravity="bottom|right|end"
-                            android:src="@drawable/baseline_add_24"
-                            app:tint="@color/white"
-                            app:fabCustomSize="28dp"
-                            android:layout_marginTop="12dp"
-                            />
 
-                </androidx.coordinatorlayout.widget.CoordinatorLayout>
-                <com.google.android.material.textfield.TextInputLayout
-
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/full_name"
-                    android:layout_marginTop="16dp"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-                        <com.google.android.material.textfield.TextInputEditText
+                        <androidx.coordinatorlayout.widget.CoordinatorLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:inputType="textPersonName"
-                            android:id="@+id/et_name"
-                            />
+                            >
+                                <de.hdodenhof.circleimageview.CircleImageView
+                                    android:layout_width="60dp"
+                                    android:layout_height="60dp"
+                                    android:id="@+id/img_profile"
+                                    android:layout_gravity="center_horizontal"
+                                    android:src="@drawable/outline_account_circle_24"
+                                    />
+                                <ProgressBar
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:id="@+id/progress_circular"
+                                    android:visibility="gone"
+                                    />
+                                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:id="@+id/fab_update_profile_img"
+                                    app:fabSize="mini"
+                                    app:layout_anchor="@id/img_profile"
+                                    app:layout_anchorGravity="bottom|right|end"
+                                    android:src="@drawable/baseline_add_24"
+                                    app:tint="@color/white"
+                                    app:fabCustomSize="28dp"
+                                    android:layout_marginTop="12dp"
+                                    />
 
-                </com.google.android.material.textfield.TextInputLayout>
+                        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+                        <com.google.android.material.textfield.TextInputLayout
 
-                <com.google.android.material.textfield.TextInputLayout
-
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/email"
-                    android:focusable="false"
-                    android:focusableInTouchMode="false"
-                    android:layout_marginTop="16dp"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-                        <com.google.android.material.textfield.TextInputEditText
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:inputType="textEmailAddress"
-                            android:id="@+id/et_email"
+                            android:hint="@string/full_name"
+                            android:layout_marginTop="16dp"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="textPersonName"
+                                    android:id="@+id/et_name"
+                                    />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/email"
                             android:focusable="false"
                             android:focusableInTouchMode="false"
-                            />
+                            android:layout_marginTop="16dp"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-                </com.google.android.material.textfield.TextInputLayout>
-                <androidx.cardview.widget.CardView
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="textEmailAddress"
+                                    android:id="@+id/et_email"
+                                    android:focusable="false"
+                                    android:focusableInTouchMode="false"
+                                    />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardUseCompatPadding="true"
+                            android:layout_marginTop="16dp"
+                            android:id="@+id/card_wishlist"
+                            >
+                                <RelativeLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent">
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/my_wishlist"
+                                            android:padding="8dp"
+                                            android:layout_centerInParent="true"
+                                            />
+                                        <ImageView
+                                            android:layout_width="32dp"
+                                            android:layout_height="32dp"
+                                            android:layout_alignParentEnd="true"
+                                            android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
+                                            />
+                                </RelativeLayout>
+                        </androidx.cardview.widget.CardView>
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardUseCompatPadding="true"
+                            android:layout_marginTop="16dp"
+                            android:id="@+id/card_my_listings"
+                            >
+                                <RelativeLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent">
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/my_listings"
+                                            android:padding="8dp"
+                                            android:layout_centerInParent="true"
+                                            />
+                                        <ImageView
+                                            android:layout_width="32dp"
+                                            android:layout_height="32dp"
+                                            android:layout_alignParentEnd="true"
+                                            android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
+                                            />
+                                </RelativeLayout>
+                        </androidx.cardview.widget.CardView>
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardUseCompatPadding="true"
+                            android:layout_marginTop="16dp"
+                            android:id="@+id/card_my_orders"
+                            >
+                                <RelativeLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent">
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/my_orders"
+                                            android:padding="8dp"
+                                            android:layout_centerInParent="true"
+                                            />
+                                        <ImageView
+                                            android:layout_width="32dp"
+                                            android:layout_height="32dp"
+                                            android:layout_alignParentEnd="true"
+                                            android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
+                                            />
+                                </RelativeLayout>
+                        </androidx.cardview.widget.CardView>
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardUseCompatPadding="true"
+                            android:layout_marginTop="16dp"
+                            android:id="@+id/card_go_premium"
+                            android:visibility="gone"
+                            >
+                                <RelativeLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent">
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/buy_pro_cancel_anytime"
+                                            android:padding="8dp"
+                                            android:layout_centerInParent="true"
+                                            android:id="@+id/tv_buy_pro"
+                                            />
+                                        <ImageView
+                                            android:layout_width="32dp"
+                                            android:layout_height="32dp"
+                                            android:layout_alignParentEnd="true"
+                                            android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
+                                            />
+                                </RelativeLayout>
+                        </androidx.cardview.widget.CardView>
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardUseCompatPadding="true"
+                            android:layout_marginTop="16dp"
+                            android:id="@+id/card_premium"
+                            android:visibility="gone"
+                            >
+                                <RelativeLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent">
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/pro_activated"
+                                            android:textStyle="bold"
+                                            android:padding="8dp"
+                                            android:layout_marginTop="4dp"
+                                            android:layout_marginBottom="4dp"
+                                            android:layout_marginStart="8dp"
+                                            android:id="@+id/tv_pro_activated"
+                                            />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/expires_on"
+                                            android:padding="8dp"
+                                            android:layout_marginTop="4dp"
+                                            android:layout_marginBottom="4dp"
+                                            android:layout_marginStart="8dp"
+                                            android:textStyle="italic"
+                                            android:textSize="10sp"
+                                            android:id="@+id/tv_member_till"
+                                            android:layout_below="@id/tv_pro_activated"
+                                            />
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/cancel"
+                                            android:layout_alignParentEnd="true"
+                                            android:layout_centerVertical="true"
+                                            android:padding="8dp"
+                                            android:layout_marginTop="4dp"
+                                            android:layout_marginBottom="4dp"
+                                            android:layout_marginEnd="8dp"
+                                            android:id="@+id/tv_cancel_membership"
+                                            android:background="@drawable/bg_report_btn"
+                                            />
+                                </RelativeLayout>
+                        </androidx.cardview.widget.CardView>
+                </LinearLayout>
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardUseCompatPadding="true"
+                    android:background="@drawable/btn_sign_in_opts"
+                    android:text="@string/logout"
+                    android:gravity="center_horizontal"
+                    android:padding="12dp"
+                    android:id="@+id/tv_logout"
                     android:layout_marginTop="16dp"
-                    android:id="@+id/card_wishlist"
-                    >
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/my_wishlist"
-                                    android:padding="8dp"
-                                    android:layout_centerInParent="true"
-                                    />
-                                <ImageView
-                                    android:layout_width="32dp"
-                                    android:layout_height="32dp"
-                                    android:layout_alignParentEnd="true"
-                                    android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
-                                    />
-                        </RelativeLayout>
-                </androidx.cardview.widget.CardView>
-                <androidx.cardview.widget.CardView
+                    />
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardUseCompatPadding="true"
+                    android:background="@drawable/bg_report_btn"
+                    android:text="@string/delete_account"
+                    android:textStyle="bold"
+                    android:textColor="@color/red"
+                    android:gravity="center_horizontal"
+                    android:padding="12dp"
+                    android:id="@+id/tv_delete_account"
                     android:layout_marginTop="16dp"
-                    android:id="@+id/card_my_listings"
-                    >
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/my_listings"
-                                    android:padding="8dp"
-                                    android:layout_centerInParent="true"
-                                    />
-                                <ImageView
-                                    android:layout_width="32dp"
-                                    android:layout_height="32dp"
-                                    android:layout_alignParentEnd="true"
-                                    android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
-                                    />
-                        </RelativeLayout>
-                </androidx.cardview.widget.CardView>
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:cardUseCompatPadding="true"
-                    android:layout_marginTop="16dp"
-                    android:id="@+id/card_my_orders"
-                    >
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/my_orders"
-                                    android:padding="8dp"
-                                    android:layout_centerInParent="true"
-                                    />
-                                <ImageView
-                                    android:layout_width="32dp"
-                                    android:layout_height="32dp"
-                                    android:layout_alignParentEnd="true"
-                                    android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
-                                    />
-                        </RelativeLayout>
-                </androidx.cardview.widget.CardView>
+                    android:layout_marginBottom="?attr/actionBarSize"
+                    />
         </LinearLayout>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/btn_sign_in_opts"
-            android:text="@string/logout"
-            android:gravity="center_horizontal"
-            android:padding="12dp"
-            android:id="@+id/tv_logout"
-            android:layout_marginTop="16dp"
-            />
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_report_btn"
-            android:text="@string/delete_account"
-            android:textStyle="bold"
-            android:textColor="@color/red"
-            android:gravity="center_horizontal"
-            android:padding="12dp"
-            android:id="@+id/tv_delete_account"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="?attr/actionBarSize"
-            />
 
-</LinearLayout>
+
+
+</ScrollView>

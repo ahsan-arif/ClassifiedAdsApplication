@@ -156,8 +156,12 @@
     <string name="deleted_ad">Deleted listing</string>
     <string name="deleted_user">Deleted user</string>
     <string name="pay">Pay</string>
-    <string name="to_make_featured_for_24h">Make featured for 24h in </string>
+    <string name="to_make_featured_for_24h">Feature for 24h, </string>
     <string name="featured">FEATURED</string>
     <string name="buy_premium_to_post">Buy Premium To Post Ad.</string>
     <string name="buy_premium_to_send">Buy Premium to send</string>
+    <string name="cannot_accept_orders">Buyer cannot accept more orders</string>
+    <string name="buy_pro_cancel_anytime">Buy Pro? Cancel Anytime</string>
+    <string name="expires_on">Expires On:</string>
+    <string name="pro_activated">Pro Activated</string>
 </resources>

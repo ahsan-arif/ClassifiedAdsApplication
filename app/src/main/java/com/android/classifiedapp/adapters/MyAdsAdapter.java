@@ -48,6 +48,8 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
     Context context;
 
     boolean unApprovedAd;
+    boolean isPremiumUser;
+    int freeAdsAvailable;
 
     public MyAdsAdapter(ArrayList<Ad> ads, Context context) {
         this.ads = ads;
@@ -57,6 +59,7 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
     public MyAdsAdapter(ArrayList<Ad> ads, Context context, boolean unApprovedAd) {
         this.ads = ads;
         this.context = context;
+        getUser(ads.get(0));
         this.unApprovedAd = unApprovedAd;
     }
 
@@ -158,10 +161,10 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
                 ad.setFeatured("1");
                 // Get the current time in milliseconds
                 long currentTimeMillis = System.currentTimeMillis();
-// Calculate 5 minutes in milliseconds (5 minutes * 60 seconds * 1000 milliseconds)
-                long fiveMinutesInMillis = 5 * 60 * 1000;
+// Calculate 24 hrs in milliseconds (1440 minutes * 60 seconds * 1000 milliseconds)
+                long twentyFourHours = 1440 * 60 * 1000; //24hrs
 // Add 5 minutes to the current time
-                long newTimeMillis = currentTimeMillis + fiveMinutesInMillis;
+                long newTimeMillis = currentTimeMillis + twentyFourHours;
                 ad.setFeaturedOn(currentTimeMillis);
                 ad.setExpiresOn(newTimeMillis);
                 databaseReference.setValue(ad);
@@ -273,6 +276,13 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
                     public void onSuccess(Void aVoid) {
                         progressDialog.dismiss();
                         removeAdfromList(ad);
+
+                        if (!isPremiumUser){
+                            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(ad.getPostedBy()).child("freeAdsAvailable");
+                        freeAdsAvailable = freeAdsAvailable+1;
+                        databaseReference.setValue(freeAdsAvailable);
+                        }
+
                         Toast.makeText(context, "Ad deleted successfully", Toast.LENGTH_SHORT).show();
                     }
                 }).addOnFailureListener(new OnFailureListener() {
@@ -325,5 +335,27 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
 
         ads.remove(ad);
         notifyDataSetChanged();
+    }
+
+    void getUser(Ad ad){
+        FirebaseDatabase.getInstance().getReference().child("users").child(ad.getPostedBy()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    User user = new User();
+                    isPremiumUser = snapshot.child("premiumUser").getValue(Boolean.class);
+                    if (!isPremiumUser)
+                    freeAdsAvailable = snapshot.child("freeAdsAvailable").getValue(Integer.class);
+                    else{
+                        freeAdsAvailable = 0;
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 }

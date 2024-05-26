@@ -27,6 +27,8 @@ import com.android.classifiedapp.fragments.FragmentProfile;
 import com.android.classifiedapp.fragments.FragmentRandom;
 import com.android.classifiedapp.models.Category;
 import com.android.classifiedapp.models.Currency;
+import com.android.classifiedapp.models.PlatformPrefs;
+import com.android.classifiedapp.models.User;
 import com.android.classifiedapp.utilities.SharedPrefManager;
 import com.blankj.utilcode.util.LogUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -45,7 +47,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Home extends AppCompatActivity {
     BottomNavigationView bottomNavigation;
@@ -105,6 +110,7 @@ public class Home extends AppCompatActivity {
             }
         });
         bottomNavigation.setSelectedItemId(R.id.item_home);
+        getUserBenefits();
         getFCMToken();
     }
 
@@ -121,7 +127,7 @@ public class Home extends AppCompatActivity {
     public void startFragment(FragmentManager manager, Fragment fragment) {
         FragmentTransaction transaction = manager.beginTransaction();
         transaction.replace(R.id.container, fragment);
-        transaction.commit();
+        transaction.commitAllowingStateLoss();
     }
 
     void getFCMToken(){
@@ -131,7 +137,7 @@ public class Home extends AppCompatActivity {
                 if (task.isSuccessful()){
                     String token = task.getResult();
                     updateUserToken(token);
-                   // LogUtils.e(token);
+                    // LogUtils.e(token);
                 }
             }
         });
@@ -163,5 +169,60 @@ public class Home extends AppCompatActivity {
             }
         }).start();
     }
+    void getUserBenefits(){
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseDatabase.getInstance().getReference().child("users").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    User user = snapshot.getValue(User.class);
+                    if (user.getBenefitsExpiry()<System.currentTimeMillis()){
+                        FirebaseDatabase.getInstance().getReference().child("platform_prefs").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                if (snapshot.exists()){
+                                    PlatformPrefs prefs =snapshot.getValue(PlatformPrefs.class);
+                                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(uid);
+                                    // Create a Map to hold the child updates
+                                    Map<String, Object> updates = new HashMap<>();
+                                    updates.put("premiumUser", false);
+                                    updates.put("maximumOrdersAvailable",prefs.getMaximumOrdersAllowed() );
+                                    updates.put("freeMessagesAvailable",prefs.getFreeMessagesCount());
+                                    updates.put("freeAdsAvailable",prefs.getFreeAdsCount());
+                                    Calendar calendar = Calendar.getInstance();
+                                    calendar.setTimeInMillis(System.currentTimeMillis());
+                                    // Add one month to the calendar
+                                    calendar.add(Calendar.MONTH, 1);
+                                    // Get the new time in milliseconds
+                                    long newTimeMillis = calendar.getTimeInMillis();
+                                    updates.put("benefitsExpiry",newTimeMillis);
 
+                                    databaseReference.updateChildren(updates).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful()){
+                                                LogUtils.e("benefits updated");
+                                            }else{
+                                                LogUtils.e("failed to update benefits");
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
 }

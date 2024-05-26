@@ -30,12 +30,14 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.Calendar;
+
 public class SignUp extends AppCompatActivity {
-ImageView imgBack;
-TextView btnCreateAccount;
-TextInputEditText etName;
-TextInputEditText etEmail;
-TextInputEditText etPassword;
+    ImageView imgBack;
+    TextView btnCreateAccount;
+    TextInputEditText etName;
+    TextInputEditText etEmail;
+    TextInputEditText etPassword;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,7 +61,8 @@ TextInputEditText etPassword;
             etEmail.setText(email);
             etName.setText(name);
             etEmail.setEnabled(false);
-            etName.setEnabled(false);
+            if (name!=null)
+                etName.setEnabled(false);
         }
         //FirebaseApp.initializeApp(SignUp.this);
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
@@ -75,6 +78,11 @@ TextInputEditText etPassword;
             public void onClick(View view) {
                 String email = etEmail.getText().toString().trim();
                 String password = etPassword.getText().toString().trim();
+
+                if (etName.getText().toString().trim().isEmpty()){
+                    etName.setError(getString(R.string.cannot_be_empty));
+                    return;
+                }
 
                 if (email.isEmpty()){
                     etEmail.setError(getString(R.string.cannot_be_empty));
@@ -113,6 +121,17 @@ TextInputEditText etPassword;
                                         user.setPremiumUser(false);
                                         user.setFreeAdsAvailable(prefs.getFreeAdsCount());
                                         user.setFreeMessagesAvailable(prefs.getFreeMessagesCount());
+                                        user.setMaximumOrdersAvailable(prefs.getMaximumOrdersAllowed());
+                                        long currentTimeMillis = System.currentTimeMillis();
+
+                                        // Create a Calendar object and set it to the current time
+                                        Calendar calendar = Calendar.getInstance();
+                                        calendar.setTimeInMillis(currentTimeMillis);
+                                        // Add one month to the calendar
+                                        calendar.add(Calendar.MONTH, 1);
+                                        // Get the new time in milliseconds
+                                        long newTimeMillis = calendar.getTimeInMillis();
+                                        user.setBenefitsExpiry(newTimeMillis);
                                         databaseRef.setValue(user);
                                         Toast.makeText(getApplicationContext(), "Account created!", Toast.LENGTH_SHORT).show();
                                         startActivity(new Intent(SignUp.this, Home.class));

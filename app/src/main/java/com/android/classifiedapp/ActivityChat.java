@@ -175,14 +175,17 @@ public class ActivityChat extends AppCompatActivity {
                     int updatedCount = currentUser.getFreeMessagesAvailable() - 1;
                     userRef.setValue(updatedCount);
                     currentUser.setFreeMessagesAvailable(updatedCount);
-                    btnSend.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            ToastUtils.showShort(getString(R.string.buy_premium_to_send));
-                            etMessage.setFocusable(false);
-                            etMessage.setClickable(false);
-                        }
-                    });
+
+                    if (updatedCount==0){
+                        btnSend.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                ToastUtils.showShort(getString(R.string.buy_premium_to_send));
+                                etMessage.setFocusable(false);
+                                etMessage.setClickable(false);
+                            }
+                        });
+                    }
                 }
                 etMessage.setText("");
             }
@@ -269,14 +272,17 @@ public class ActivityChat extends AppCompatActivity {
                     user.setName(snapshot.child("name").getValue(String.class));
                     user.setFcmToken(snapshot.child("fcmToken").getValue(String.class));
                     user.setRole(snapshot.child("role").getValue(String.class));
-                    if (user.getRole().equals("admin")){
-                        isAdmin = true;
-                    }else{
-                        isAdmin = false;
+                    if (user!=null){
+                        if (user.getRole().equals("admin")){
+                            isAdmin = true;
+                        }else{
+                            isAdmin = false;
+                        }
                     }
                    // tvUserName.setText(user.getName());
                     LogUtils.e(user.getFcmToken());
                     fcmToken = user.getFcmToken();
+                    LogUtils.e(fcmToken);
                     if (snapshot.hasChild("profileImage")){
                         user.setProfileImage(snapshot.child("profileImage").getValue(String.class));
                         Glide.with(ActivityChat.this).load(user.getProfileImage()).into(imgUser);
@@ -348,6 +354,7 @@ public class ActivityChat extends AppCompatActivity {
 
         messageObject.put("notification",notificationObject);
         messageObject.put("token",fcmToken);
+        LogUtils.e(fcmToken);
 
         if (isAdmin){
             JSONObject dataObject = new JSONObject();

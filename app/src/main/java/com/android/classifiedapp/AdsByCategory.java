@@ -74,7 +74,11 @@ public class AdsByCategory extends AppCompatActivity {
                 if (snapshot.exists()){
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()){
                         Ad ad = dataSnapshot.getValue(Ad.class);
-                        ads.add(ad);
+                        if (ad!=null){
+                            if (ad.getStatus().equals("Approved"))
+                                ads.add(ad);
+                        }
+
                     }
                     setAdsAdapter(ads);
                     noListings.setVisibility(View.GONE);

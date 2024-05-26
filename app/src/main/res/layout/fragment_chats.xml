@@ -35,8 +35,15 @@
         android:layout_centerInParent="true"
         android:padding="8dp"
         android:gravity="center"
-        android:visibility="visible"
+        android:visibility="gone"
         android:id="@+id/tv_no_chats"
+        />
+
+    <ProgressBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:id="@+id/progress_circular"
         />
 
 </RelativeLayout>

@@ -137,12 +137,20 @@ public class ActivityEditAd extends AppCompatActivity {
         isUnApprovedAd = getIntent().getBooleanExtra("unApprovedAd",false);
         Bundle extras = getIntent().getExtras();
         if (ad == null && extras!=null){
+            LogUtils.e(extras);
             String deeplink = extras.getString("deepLink");
-            String strings[] = deeplink.split(":");
-            String adId  = strings[2];
-            getListing(adId);
-            LogUtils.e(deeplink);
+            if (deeplink!=null){
+                String strings[] = deeplink.split(":");
+                String adId  = strings[2];
+                getListing(adId);
+                LogUtils.e(deeplink);
+
+            }else{
+                String adId = extras.getString("id");
+                getListing(adId);
+            }
             isUnApprovedAd = true;
+
         }
 
         LogUtils.e(isUnApprovedAd);
@@ -627,24 +635,22 @@ public class ActivityEditAd extends AppCompatActivity {
     }
 
     void notifyAdmin(String adId){
-        List<String> adminFCMs = new ArrayList<>();
-
-        FirebaseDatabase.getInstance().getReference().child("admins").addListenerForSingleValueEvent(new ValueEventListener() {
+        FirebaseDatabase.getInstance().getReference().child("users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()){
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()){
                         User user = dataSnapshot.getValue(User.class);
-                        if (user.getFcmToken()!=null){
-                            adminFCMs.add(user.getFcmToken());
-                        }
-                    }
-                    //send push notifications to admins
-                    for (int i=0;i<adminFCMs.size();i++){
-                        try {
-                            sendPushNotification(adminFCMs.get(i),getString(R.string.update),getString(R.string.made_changes));
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
+                        if (user!=null){
+                            if (user.getFcmToken()!=null&&user.getRole()!=null){
+                                if (user.getRole().equals("admin")){
+                                    try {
+                                        sendPushNotification(user.getFcmToken(),getString(R.string.update),getString(R.string.made_changes));
+                                    } catch (JSONException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }
+                            }
                         }
                     }
                 }

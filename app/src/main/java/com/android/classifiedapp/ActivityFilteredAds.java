@@ -88,45 +88,82 @@ public class ActivityFilteredAds extends AppCompatActivity {
                     ads = new ArrayList<>();
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()){
                         Ad ad = dataSnapshot.getValue(Ad.class);
-                        if (category!=null){
-                            if (subCategory!=null){
-                                Double price = Double.parseDouble(ad.getPrice());
-                                if (price>=from&&price<=to){
-                                    Double adLat = ad.getLatitude();
-                                    Double adLong = ad.getLongitude();
-                                    if (latitude>0){
-                                        double distance = calculateDistance(latitude,longitude,adLat,adLong);
-                                        LogUtils.e(distance);
-                                        if (currency!=null){
-                                            if (ad.getCurrency().equals(currency.getCurrency())){
-                                                if (distance<=50
+                        LogUtils.e(ad.getStatus());
+                        if (ad.getStatus().equals("Approved")){
+                            if (category!=null){
+                                if (subCategory!=null){
+                                    Double price = Double.parseDouble(ad.getPrice());
+                                    if (price>=from&&price<=to){
+                                        Double adLat = ad.getLatitude();
+                                        Double adLong = ad.getLongitude();
+                                        if (latitude>0){
+                                            double distance = calculateDistance(latitude,longitude,adLat,adLong);
+                                            LogUtils.e(distance);
+                                            if (currency!=null){
+                                                if (ad.getCurrency().equals(currency.getCurrency())){
+                                                    if (distance<=50
+                                                            && ad.getSubcategoryId().equals(subCategory.getId())
+                                                            && ad.getCategoryId().equals(category.getId())
+                                                            && ad.getCurrency().equals(currency.getCurrency()))
+                                                        ads.add(ad);
+                                                }
+                                            }else{ //currency not selected
+                                                if (distance<=50 && ad.getSubcategoryId().equals(subCategory.getId()) && ad.getCategoryId().equals(category.getId()))
+                                                    ads.add(ad);
+                                            }
+                                            LogUtils.e(calculateDistance(latitude,longitude,adLat,adLong));
+                                        }else{ //latitude not selected
+                                            if (currency!=null){
+                                                if (ad.getCurrency().equals(currency.getCurrency())
                                                         && ad.getSubcategoryId().equals(subCategory.getId())
-                                                        && ad.getCategoryId().equals(category.getId())
-                                                        && ad.getCurrency().equals(currency.getCurrency()))
-                                                            ads.add(ad);
-                                            }
-                                        }else{ //currency not selected
-                                            if (distance<=50 && ad.getSubcategoryId().equals(subCategory.getId()) && ad.getCategoryId().equals(category.getId()))
-                                                ads.add(ad);
-                                        }
-                                        LogUtils.e(calculateDistance(latitude,longitude,adLat,adLong));
-                                    }else{ //latitude not selected
-                                        if (currency!=null){
-                                            if (ad.getCurrency().equals(currency.getCurrency())
-                                                    && ad.getSubcategoryId().equals(subCategory.getId())
-                                                    && ad.getCategoryId().equals(category.getId())){
+                                                        && ad.getCategoryId().equals(category.getId())){
+                                                    ads.add(ad);
+                                                }
+                                            }else{ //currency not selected
+                                                if (ad.getCategoryId().equals(category.getId())&& ad.getSubcategoryId().equals(subCategory.getId()))
                                                     ads.add(ad);
                                             }
-                                        }else{ //currency not selected
-                                            if (ad.getCategoryId().equals(category.getId())&& ad.getSubcategoryId().equals(subCategory.getId()))
-                                                ads.add(ad);
                                         }
+
                                     }
 
                                 }
+                                else{//if subcat is not selected or doesn't exist
+                                    Double price = Double.parseDouble(ad.getPrice());
+                                    if (price>=from&&price<=to){
+                                        Double adLat = ad.getLatitude();
+                                        Double adLong = ad.getLongitude();
+                                        if (latitude>0){
+                                            double distance = calculateDistance(latitude,longitude,adLat,adLong);
+                                            LogUtils.e(distance);
+                                            if (currency!=null){
+                                                if (ad.getCurrency().equals(currency.getCurrency())){
+                                                    if (distance<=50
+                                                            && ad.getCategoryId().equals(category.getId())
+                                                            && ad.getCurrency().equals(currency.getCurrency()))
+                                                        ads.add(ad);
+                                                }
+                                            }else{ //currency not selected
+                                                if (distance<=50 && ad.getCategoryId().equals(category.getId()))
+                                                    ads.add(ad);
+                                            }
+                                            LogUtils.e(calculateDistance(latitude,longitude,adLat,adLong));
+                                        }else{ //latitude not selected
+                                            if (currency!=null){
+                                                if (ad.getCurrency().equals(currency.getCurrency())
+                                                        && ad.getCategoryId().equals(category.getId())){
+                                                    ads.add(ad);
+                                                }
+                                            }else{ //currency not selected
+                                                if (ad.getCategoryId().equals(category.getId()))
+                                                    ads.add(ad);
+                                            }
+                                        }
 
+                                    }
+                                }
                             }
-                            else{//if subcat is not selected or doesn't exist
+                            else{//if category is not selected
                                 Double price = Double.parseDouble(ad.getPrice());
                                 if (price>=from&&price<=to){
                                     Double adLat = ad.getLatitude();
@@ -137,59 +174,25 @@ public class ActivityFilteredAds extends AppCompatActivity {
                                         if (currency!=null){
                                             if (ad.getCurrency().equals(currency.getCurrency())){
                                                 if (distance<=50
-                                                        && ad.getCategoryId().equals(category.getId())
                                                         && ad.getCurrency().equals(currency.getCurrency()))
                                                     ads.add(ad);
                                             }
                                         }else{ //currency not selected
-                                            if (distance<=50 && ad.getCategoryId().equals(category.getId()))
+                                            if (distance<=50)
                                                 ads.add(ad);
                                         }
                                         LogUtils.e(calculateDistance(latitude,longitude,adLat,adLong));
                                     }else{ //latitude not selected
                                         if (currency!=null){
-                                            if (ad.getCurrency().equals(currency.getCurrency())
-                                                    && ad.getCategoryId().equals(category.getId())){
+                                            if (ad.getCurrency().equals(currency.getCurrency())){
                                                 ads.add(ad);
                                             }
                                         }else{ //currency not selected
-                                            if (ad.getCategoryId().equals(category.getId()))
-                                                ads.add(ad);
+                                            ads.add(ad);
                                         }
                                     }
 
                                 }
-                            }
-                        }
-                        else{//if category is not selected
-                            Double price = Double.parseDouble(ad.getPrice());
-                            if (price>=from&&price<=to){
-                                Double adLat = ad.getLatitude();
-                                Double adLong = ad.getLongitude();
-                                if (latitude>0){
-                                    double distance = calculateDistance(latitude,longitude,adLat,adLong);
-                                    LogUtils.e(distance);
-                                    if (currency!=null){
-                                        if (ad.getCurrency().equals(currency.getCurrency())){
-                                            if (distance<=50
-                                                    && ad.getCurrency().equals(currency.getCurrency()))
-                                                ads.add(ad);
-                                        }
-                                    }else{ //currency not selected
-                                        if (distance<=50)
-                                            ads.add(ad);
-                                    }
-                                    LogUtils.e(calculateDistance(latitude,longitude,adLat,adLong));
-                                }else{ //latitude not selected
-                                    if (currency!=null){
-                                        if (ad.getCurrency().equals(currency.getCurrency())){
-                                            ads.add(ad);
-                                        }
-                                    }else{ //currency not selected
-                                            ads.add(ad);
-                                    }
-                                }
-
                             }
                         }
                     }

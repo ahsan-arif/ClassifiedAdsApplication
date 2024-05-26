@@ -1,6 +1,7 @@
 package com.android.classifiedapp.fragments;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -14,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.classifiedapp.ActivitySelectFilters;
@@ -44,6 +46,9 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
     RecyclerView rvCategories,rv_ads;
     LinearLayout vgFilters;
     TextView tvNoListing;
+    
+    Context context;
+    ProgressBar progressCircular;
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -93,10 +98,11 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
         rv_ads = view.findViewById(R.id.rv_ads);
         vgFilters = view.findViewById(R.id.vg_filters);
         tvNoListing = view.findViewById(R.id.tv_no_listing);
+        progressCircular = view.findViewById(R.id.progress_circular);
         vgFilters.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getContext(), ActivitySelectFilters.class));
+                startActivity(new Intent(context, ActivitySelectFilters.class));
             }
         });
         getCategories();
@@ -118,9 +124,9 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
 
                     categories.add(category);
                 }
-                homeCategoriesAdapter = new HomeCategoriesAdapter(categories, getContext());
+                homeCategoriesAdapter = new HomeCategoriesAdapter(categories, context);
                 rvCategories.setAdapter(homeCategoriesAdapter);
-                rvCategories.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.HORIZONTAL,false));
+                rvCategories.setLayoutManager(new LinearLayoutManager(context,LinearLayoutManager.HORIZONTAL,false));
             }
 
             @Override
@@ -131,46 +137,74 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
     }
 
     void getAds(){
-        ProgressDialog progressDialog = new ProgressDialog(getContext());
-        progressDialog.setTitle(getString(R.string.please_wait));
-        progressDialog.setMessage(getString(R.string.fetching_ad));
-        progressDialog.setCancelable(false);
-        progressDialog.show();
         FirebaseDatabase.getInstance().getReference().child("ads").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                progressDialog.dismiss();
-                if (snapshot.exists()){
-                    ArrayList<Ad> ads = new ArrayList<>();
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
-                        Ad ad = dataSnapshot.getValue(Ad.class);
-                        if (ad.getStatus().equals(getString(R.string.approved))){
-                            ads.add(ad);
-                            tvNoListing.setVisibility(View.GONE);
-                        }
-                    }
-                    setAdsAdapter(ads);
 
-                }else{
-                    tvNoListing.setVisibility(View.VISIBLE);
+                try {
+                    if (snapshot.exists()){
+                        ArrayList<Ad> ads = new ArrayList<>();
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                            Ad ad = dataSnapshot.getValue(Ad.class);
+                            if (ad!=null){
+                                if (ad.getStatus()!=null){
+                                    if (ad.getStatus().equals(getString(R.string.approved))){
+                                        ads.add(ad);
+                                        tvNoListing.setVisibility(View.GONE);
+                                    }
+                                }
+                            }
+
+                        }
+                        setAdsAdapter(ads);
+
+                    }else{
+                        progressCircular.setVisibility(View.GONE);
+                        rv_ads.setVisibility(View.GONE);
+                        tvNoListing.setVisibility(View.VISIBLE);
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
                 }
+
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                progressDialog.dismiss();
+               progressCircular.setVisibility(View.GONE);
 
             }
         });
     }
 
     void setAdsAdapter(ArrayList<Ad> ads){
-        rv_ads.setLayoutManager(new LinearLayoutManager(getContext()));
-        rv_ads.setAdapter(new AdsAdapter(ads,getContext(),this));
+        progressCircular.setVisibility(View.GONE);
+        if (ads.size()>0){
+            rv_ads.setVisibility(View.VISIBLE);
+            tvNoListing.setVisibility(View.GONE);
+        }else {
+            rv_ads.setVisibility(View.GONE);
+            tvNoListing.setVisibility(View.VISIBLE);
+        }
+
+        rv_ads.setLayoutManager(new LinearLayoutManager(context));
+        rv_ads.setAdapter(new AdsAdapter(ads,context,this));
     }
 
     @Override
     public void onLikeClicked(Ad ad, ImageView imageView) {
 
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        this.context = context;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        getAds();
     }
 }
