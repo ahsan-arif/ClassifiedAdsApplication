@@ -13,12 +13,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.classifiedapp.ActivityMyAds;
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.adapters.MyAdsAdapter;
 import com.android.classifiedapp.models.Ad;
 import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.ToastUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -26,6 +28,22 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.paypal.checkout.approve.Approval;
+import com.paypal.checkout.approve.OnApprove;
+import com.paypal.checkout.createorder.CreateOrder;
+import com.paypal.checkout.createorder.CreateOrderActions;
+import com.paypal.checkout.createorder.CurrencyCode;
+import com.paypal.checkout.createorder.OrderIntent;
+import com.paypal.checkout.createorder.UserAction;
+import com.paypal.checkout.order.Amount;
+import com.paypal.checkout.order.AppContext;
+import com.paypal.checkout.order.CaptureOrderResult;
+import com.paypal.checkout.order.OnCaptureComplete;
+import com.paypal.checkout.order.OrderRequest;
+import com.paypal.checkout.order.PurchaseUnit;
+import com.paypal.checkout.paymentbutton.PaymentButtonContainer;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -34,7 +52,7 @@ import java.util.ArrayList;
  * Use the {@link MyListingsFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MyListingsFragment extends Fragment {
+public class MyListingsFragment extends Fragment implements MyAdsAdapter.PaymentButtonClickListener {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -111,17 +129,24 @@ public class MyListingsFragment extends Fragment {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 ads = new ArrayList<>();
                 if (snapshot.exists()){
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
-                        Ad ad = dataSnapshot.getValue(Ad.class);
-                        LogUtils.e(ad.getTitle());
-                        if (ad.getStatus().equals(getString(R.string.approved)))
-                            ads.add(ad);
+                    try {
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                            Ad ad = dataSnapshot.getValue(Ad.class);
+                            LogUtils.e(ad.getTitle());
+                            if (ad.getStatus().equals(getString(R.string.approved)))
+                                ads.add(ad);
+                        }
+                        if (!ads.isEmpty()){
+                            progressCircular.setVisibility(View.GONE);
+                            tvNoItem.setVisibility(View.GONE);
+                            setMyListingsAdapter();
+                        }else{
+                            progressCircular.setVisibility(View.GONE);
+                            tvNoItem.setVisibility(View.VISIBLE);
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
-                }
-                if (!ads.isEmpty()){
-                    progressCircular.setVisibility(View.GONE);
-                    tvNoItem.setVisibility(View.GONE);
-                    setMyListingsAdapter();
                 }else{
                     progressCircular.setVisibility(View.GONE);
                     tvNoItem.setVisibility(View.VISIBLE);
@@ -130,7 +155,8 @@ public class MyListingsFragment extends Fragment {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                progressCircular.setVisibility(View.GONE);
+                ToastUtils.showShort(error.getMessage());
             }
         });
     }
@@ -202,12 +228,12 @@ public class MyListingsFragment extends Fragment {
     }
 
     void setMyListingsAdapter(){
-        rvAds.setAdapter(new MyAdsAdapter(ads, context));
+        rvAds.setAdapter(new MyAdsAdapter(ads, context,getActivity().getApplication(),this));
         rvAds.setLayoutManager(new LinearLayoutManager(context));
     }
 
     void setMyListingsAdapter(boolean isApproved){
-        rvAds.setAdapter(new MyAdsAdapter(ads, context,isApproved));
+        rvAds.setAdapter(new MyAdsAdapter(ads, context,isApproved,getActivity().getApplication(),this));
         rvAds.setLayoutManager(new LinearLayoutManager(context));
     }
 
@@ -226,5 +252,58 @@ public class MyListingsFragment extends Fragment {
             getPendingApprovalAds(true,FirebaseAuth.getInstance().getCurrentUser().getUid());
         else
             getRequireUpdateAds(true,FirebaseAuth.getInstance().getCurrentUser().getUid());
+    }
+
+    @Override
+    public void onButtonClicked(Ad ad, String amount, PaymentButtonContainer container) {
+        container.setup( new CreateOrder() {
+            @Override
+            public void create(@NotNull CreateOrderActions createOrderActions) {
+                LogUtils.e("create: ");
+                ArrayList<PurchaseUnit> purchaseUnits = new ArrayList<>();
+                purchaseUnits.add(
+                        new PurchaseUnit.Builder()
+                                .amount(
+                                        new Amount.Builder()
+                                                .currencyCode(CurrencyCode.USD)
+                                                .value(amount)
+                                                .build()
+                                )
+                                .build()
+                );
+                OrderRequest order = new OrderRequest(
+                        OrderIntent.CAPTURE,
+                        new AppContext.Builder()
+                                .userAction(UserAction.PAY_NOW)
+                                .build(),
+                        purchaseUnits
+                );
+                createOrderActions.create(order, (CreateOrderActions.OnOrderCreated) null);
+            }
+        }, new OnApprove() {
+            @Override
+            public void onApprove(@NotNull Approval approval) {
+                approval.getOrderActions().capture(new OnCaptureComplete() {
+                    @Override
+                    public void onCaptureComplete(@NotNull CaptureOrderResult result) {
+                        LogUtils.e(String.format("CaptureOrderResult: %s", result));
+                        ToastUtils.showShort( "Successful", Toast.LENGTH_SHORT);
+                        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId());
+                        ad.setFeatured("1");
+                        // Get the current time in milliseconds
+                        long currentTimeMillis = System.currentTimeMillis();
+// Calculate 24 hrs in milliseconds (1440 minutes * 60 seconds * 1000 milliseconds)
+                        long twentyFourHours = 1440 * 60 * 1000; //24hrs
+// Add 5 minutes to the current time
+                        long newTimeMillis = currentTimeMillis + twentyFourHours;
+                        ad.setFeaturedOn(currentTimeMillis);
+                        ad.setExpiresOn(newTimeMillis);
+                        databaseReference.setValue(ad);
+                       // holder.paymentButtonContainer.setVisibility(View.GONE);
+                        //holder.tvFeatured.setVisibility(View.VISIBLE);
+                    }
+                });
+            }
+        });
     }
 }

@@ -1,5 +1,7 @@
 package com.android.classifiedapp.adapters;
 
+import android.app.Activity;
+import android.app.Application;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -24,6 +26,7 @@ import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.PlatformPrefs;
 import com.android.classifiedapp.models.User;
 import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.ToastUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -36,10 +39,42 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.paypal.android.corepayments.CoreConfig;
+import com.paypal.android.corepayments.Environment;
+import com.paypal.android.corepayments.PayPalSDKError;
+import com.paypal.android.paypalnativepayments.PayPalNativeCheckoutClient;
+import com.paypal.android.paypalnativepayments.PayPalNativeCheckoutListener;
+import com.paypal.android.paypalnativepayments.PayPalNativeCheckoutRequest;
+import com.paypal.android.paypalnativepayments.PayPalNativeCheckoutResult;
+import com.paypal.checkout.approve.Approval;
+import com.paypal.checkout.approve.OnApprove;
+import com.paypal.checkout.cancel.OnCancel;
+import com.paypal.checkout.createorder.CreateOrder;
+import com.paypal.checkout.createorder.CreateOrderActions;
+import com.paypal.checkout.createorder.CurrencyCode;
+import com.paypal.checkout.createorder.OrderIntent;
+import com.paypal.checkout.createorder.UserAction;
+import com.paypal.checkout.error.ErrorInfo;
+import com.paypal.checkout.error.OnError;
+import com.paypal.checkout.order.Amount;
+import com.paypal.checkout.order.AppContext;
+import com.paypal.checkout.order.CaptureOrderResult;
+import com.paypal.checkout.order.OnCaptureComplete;
+import com.paypal.checkout.order.OrderRequest;
+import com.paypal.checkout.order.PurchaseUnit;
+import com.paypal.checkout.paymentbutton.PaymentButtonContainer;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -51,16 +86,23 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
     boolean isPremiumUser;
     int freeAdsAvailable;
 
-    public MyAdsAdapter(ArrayList<Ad> ads, Context context) {
+    Application application;
+    PaymentButtonClickListener listener;
+
+    public MyAdsAdapter(ArrayList<Ad> ads, Context context,Application application,PaymentButtonClickListener listener) {
         this.ads = ads;
         this.context = context;
+        this.application = application;
+        this.listener = listener;
     }
 
-    public MyAdsAdapter(ArrayList<Ad> ads, Context context, boolean unApprovedAd) {
+    public MyAdsAdapter(ArrayList<Ad> ads, Context context, boolean unApprovedAd,Application application,PaymentButtonClickListener listener) {
         this.ads = ads;
         this.context = context;
         getUser(ads.get(0));
         this.unApprovedAd = unApprovedAd;
+        this.application = application;
+        this.listener = listener;
     }
 
     @NonNull
@@ -72,6 +114,7 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Ad ad = ads.get(position);
+        final String[] featureAdFee = new String[1];
         holder.tvTitle.setText(ad.getTitle());
         holder.tvPrice.setText(ad.getCurrency()+" "+ad.getPrice());
         holder.tvAddress.setText(ad.getAddress());
@@ -90,25 +133,26 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
                 ad.setFeaturedOn(0);
                 ad.setExpiresOn(0);
                 databaseReference.setValue(ad);
-                holder.tvMakeFeatured.setVisibility(View.VISIBLE);
+                holder.paymentButtonContainer.setVisibility(View.VISIBLE);
                 holder.tvFeatured.setVisibility(View.GONE);
             }
         }
 
         if (ad.getFeatured()!=null){
             if (ad.getFeatured().equals("1")){
-                holder.tvMakeFeatured.setVisibility(View.GONE);
+                holder.paymentButtonContainer.setVisibility(View.GONE);
                 holder.tvFeatured.setVisibility(View.VISIBLE);
             }else {
                 FirebaseDatabase.getInstance().getReference().child("platform_prefs").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (snapshot.exists()){
-                            holder.tvMakeFeatured.setVisibility(View.VISIBLE);
+                            holder.paymentButtonContainer.setVisibility(View.VISIBLE);
                             PlatformPrefs prefs = snapshot.getValue(PlatformPrefs.class);
-                            holder.tvMakeFeatured.setText(context.getString(R.string.to_make_featured_for_24h)+" "+ad.getCurrency()+" "+prefs.getFeaturedAdFee());
+                           // holder.paymentButtonContainer.setPaypalButtonLabel(context.getString(R.string.to_make_featured_for_24h)+" "+ad.getCurrency()+" "+prefs.getFeaturedAdFee());
+                            featureAdFee[0] =prefs.getFeaturedAdFee();
                         }else{
-                            holder.tvMakeFeatured.setVisibility(View.GONE);
+                            holder.paymentButtonContainer.setVisibility(View.GONE);
                         }
                     }
 
@@ -154,10 +198,11 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
             }
         });
 
-        holder.tvMakeFeatured.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId());
+        //  holder.tvMakeFeatured.setOnClickListener(new View.OnClickListener() {
+        //   @Override
+        //   public void onClick(View v) {
+        //mark ad as featured in the database
+/*                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId());
                 ad.setFeatured("1");
                 // Get the current time in milliseconds
                 long currentTimeMillis = System.currentTimeMillis();
@@ -169,9 +214,70 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
                 ad.setExpiresOn(newTimeMillis);
                 databaseReference.setValue(ad);
                 holder.tvMakeFeatured.setVisibility(View.GONE);
-                holder.tvFeatured.setVisibility(View.VISIBLE);
+                holder.tvFeatured.setVisibility(View.VISIBLE);*/
+
+
+        //makePayment(ad.getId(),application);
+
+        //    }
+        //  });
+
+       /* holder.paymentButtonContainer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listener.onButtonClicked(ad,featureAdFee[0],holder.paymentButtonContainer);
             }
-        });
+        });*/
+
+        holder.paymentButtonContainer.setup( new CreateOrder() {
+                                                 @Override
+                                                 public void create(@NotNull CreateOrderActions createOrderActions) {
+                                                     LogUtils.e("create: ");
+                                                     ArrayList<PurchaseUnit> purchaseUnits = new ArrayList<>();
+                                                     purchaseUnits.add(
+                                                             new PurchaseUnit.Builder()
+                                                                     .amount(
+                                                                             new Amount.Builder()
+                                                                                     .currencyCode(CurrencyCode.USD)
+                                                                                     .value(featureAdFee[0])
+                                                                                     .build()
+                                                                     )
+                                                                     .build()
+                                                     );
+                                                     OrderRequest order = new OrderRequest(
+                                                             OrderIntent.CAPTURE,
+                                                             new AppContext.Builder()
+                                                                     .userAction(UserAction.PAY_NOW)
+                                                                     .build(),
+                                                             purchaseUnits
+                                                     );
+                                                     createOrderActions.create(order, (CreateOrderActions.OnOrderCreated) null);
+                                                 }
+                                             }, new OnApprove() {
+                    @Override
+                    public void onApprove(@NotNull Approval approval) {
+                        approval.getOrderActions().capture(new OnCaptureComplete() {
+                            @Override
+                            public void onCaptureComplete(@NotNull CaptureOrderResult result) {
+                                LogUtils.e(String.format("CaptureOrderResult: %s", result));
+                                ToastUtils.showShort( "Successful", Toast.LENGTH_SHORT);
+                                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId());
+                                ad.setFeatured("1");
+                                // Get the current time in milliseconds
+                                long currentTimeMillis = System.currentTimeMillis();
+// Calculate 24 hrs in milliseconds (1440 minutes * 60 seconds * 1000 milliseconds)
+                                long twentyFourHours = 1440 * 60 * 1000; //24hrs
+// Add 5 minutes to the current time
+                                long newTimeMillis = currentTimeMillis + twentyFourHours;
+                                ad.setFeaturedOn(currentTimeMillis);
+                                ad.setExpiresOn(newTimeMillis);
+                                databaseReference.setValue(ad);
+                                holder.paymentButtonContainer.setVisibility(View.GONE);
+                                holder.tvFeatured.setVisibility(View.VISIBLE);
+                            }
+                        });
+                    }
+                });
     }
 
     @Override
@@ -183,6 +289,7 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
         TextView tvTitle,tvPrice,tvPostedOn,tvPostedBy,tvAddress,tvMakeFeatured,tvFeatured;
         ImageView imgProduct,imgDelete,imgEdit;
         CircleImageView imgUser;
+        PaymentButtonContainer paymentButtonContainer;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvPrice = itemView.findViewById(R.id.tv_price);
@@ -194,8 +301,9 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
             tvAddress = itemView.findViewById(R.id.tv_address);
             imgDelete = itemView.findViewById(R.id.img_delete);
             imgEdit = itemView.findViewById(R.id.img_edit);
-            tvMakeFeatured = itemView.findViewById(R.id.tv_make_featured);
+            // tvMakeFeatured = itemView.findViewById(R.id.tv_make_featured);
             tvFeatured  = itemView.findViewById(R.id.tv_featured);
+            paymentButtonContainer = itemView.findViewById(R.id.payment_button_container);
         }
     }
 
@@ -279,8 +387,8 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
 
                         if (!isPremiumUser){
                             DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(ad.getPostedBy()).child("freeAdsAvailable");
-                        freeAdsAvailable = freeAdsAvailable+1;
-                        databaseReference.setValue(freeAdsAvailable);
+                            freeAdsAvailable = freeAdsAvailable+1;
+                            databaseReference.setValue(freeAdsAvailable);
                         }
 
                         Toast.makeText(context, "Ad deleted successfully", Toast.LENGTH_SHORT).show();
@@ -345,7 +453,7 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
                     User user = new User();
                     isPremiumUser = snapshot.child("premiumUser").getValue(Boolean.class);
                     if (!isPremiumUser)
-                    freeAdsAvailable = snapshot.child("freeAdsAvailable").getValue(Integer.class);
+                        freeAdsAvailable = snapshot.child("freeAdsAvailable").getValue(Integer.class);
                     else{
                         freeAdsAvailable = 0;
                     }
@@ -357,5 +465,39 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
 
             }
         });
+    }
+
+    void makePayment(String adId,Application application){
+        String clientID = "AQlOefvrxsESdnd_UV3h8C70_e7XRACjk5ODy_NJZUBAyygNaXKeYipCcZNU_tYTQvgZkfZWR2rcLvNQ";
+        String returnUrl = "com.android.classifiedapp://paypalpay";
+        CoreConfig coreConfig = new CoreConfig(clientID, Environment.SANDBOX);
+        PayPalNativeCheckoutClient client = new PayPalNativeCheckoutClient(application,coreConfig,returnUrl);
+        client.setListener(new PayPalNativeCheckoutListener() {
+            @Override
+            public void onPayPalCheckoutStart() {
+                LogUtils.e("starting payment process");
+            }
+
+            @Override
+            public void onPayPalCheckoutSuccess(@NonNull PayPalNativeCheckoutResult payPalNativeCheckoutResult) {
+                LogUtils.e(payPalNativeCheckoutResult.getPayerId());
+            }
+
+            @Override
+            public void onPayPalCheckoutFailure(@NonNull PayPalSDKError payPalSDKError) {
+                LogUtils.e(payPalSDKError.getMessage());
+            }
+
+            @Override
+            public void onPayPalCheckoutCanceled() {
+                LogUtils.e("operation cancelled");
+            }
+        });
+        LogUtils.e("order"+System.currentTimeMillis());
+        client.startCheckout(new PayPalNativeCheckoutRequest("order"+System.currentTimeMillis()));
+    }
+
+    public interface PaymentButtonClickListener{
+        void onButtonClicked(Ad ad, String amount,PaymentButtonContainer container);
     }
 }

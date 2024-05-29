@@ -145,8 +145,7 @@
                 android:id="@+id/tv_postedOn"
                 android:layout_below="@+id/vg_user_location"
                 />
-
-            <TextView
+       <!--     <TextView
                 android:layout_width="150dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/tv_make_featured"
@@ -160,7 +159,19 @@
                 android:padding="8dp"
                 android:background="@drawable/btn_buy"
                 android:layout_marginBottom="8dp"
-                />
+                />-->
+            <com.paypal.checkout.paymentbutton.PaymentButtonContainer
+                android:id="@+id/payment_button_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/vg_user_location"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                app:paypal_button_color="white"
+                app:paypal_button_enabled="true"
+                app:paypal_button_shape="pill"
+                app:paypal_button_size="small" />
 
         </RelativeLayout>
 
