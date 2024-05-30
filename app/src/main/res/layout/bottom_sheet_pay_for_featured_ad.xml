@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:minHeight="100dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="@string/mark_as_featured"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/black"
+        android:layout_centerHorizontal="true"
+        android:textStyle="bold"
+        android:id="@+id/tv_title"
+        />
+    <View
+        android:layout_width="25dp"
+        android:layout_height="1dp"
+        android:background="@color/black"
+        android:alpha="0.5"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:id="@+id/view"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/tv_title"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="12dp"
+        android:id="@+id/tv_subtitle"
+        android:layout_below="@id/view"
+        />
+
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_subtitle"
+        android:visibility="gone"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/progress_circular"
+        />
+
+    <com.paypal.checkout.paymentbutton.PaymentButtonContainer
+        android:id="@+id/payment_button_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="12dp"
+        app:paypal_button_color="white"
+        app:paypal_button_enabled="true"
+        android:layout_centerHorizontal="true"
+        app:paypal_button_label="pay"
+        app:paypal_button_shape="pill"
+        android:layout_gravity="center_horizontal"
+        android:layout_below="@id/tv_subtitle"
+        app:paypal_button_size="large" />
+
+</RelativeLayout>

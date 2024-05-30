@@ -165,4 +165,6 @@
     <string name="expires_on">Expires On:</string>
     <string name="pro_activated">Pro Activated</string>
     <string name="paypal_client_id">AX-XvQtaS3Qqg2dgPkJGDD0D8U1_4nFUAkR2hLJOZFPZy0yNIiwA06iVzcAfNX1d3JfAjbd81SuT4UiA</string>
+    <string name="mark_as_featured">Mark As Featured</string>
+    <string name="pay_eur_to_make">Attract more buyers by marking your listing as featured for 24h in</string>
 </resources>

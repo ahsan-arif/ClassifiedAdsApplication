@@ -78,6 +78,7 @@ public class MyListingsFragment extends Fragment implements MyAdsAdapter.Payment
     // TODO: Rename and change types and number of parameters
     int position;
     Context context;
+    MyAdsAdapter adapter;
     public static MyListingsFragment newInstance(String param1, String param2) {
         MyListingsFragment fragment = new MyListingsFragment();
         Bundle args = new Bundle();
@@ -124,7 +125,7 @@ public class MyListingsFragment extends Fragment implements MyAdsAdapter.Payment
     void getMyApprovedListings(String currentUserId){
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("ads");
         Query query = databaseReference.orderByChild("postedBy").equalTo(currentUserId);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
+        query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 ads = new ArrayList<>();
@@ -164,15 +165,19 @@ public class MyListingsFragment extends Fragment implements MyAdsAdapter.Payment
     void getRequireUpdateAds(boolean isNotApprovedAd,String currentUserId){
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("ads");
         Query query = databaseReference.orderByChild("postedBy").equalTo(currentUserId);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
+        query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 ads = new ArrayList<>();
                 if (snapshot.exists()){
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
-                        Ad ad = dataSnapshot.getValue(Ad.class);
-                        if (ad.getStatus().equals(getString(R.string.require_update)))
-                            ads.add(ad);
+                    try {
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                            Ad ad = dataSnapshot.getValue(Ad.class);
+                            if (ad.getStatus().equals(getString(R.string.require_update)))
+                                ads.add(ad);
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
                 }
                 if (!ads.isEmpty()){
@@ -200,14 +205,18 @@ public class MyListingsFragment extends Fragment implements MyAdsAdapter.Payment
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 ads = new ArrayList<>();
                 if (snapshot.exists()){
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
-                        Ad ad = dataSnapshot.getValue(Ad.class);
-                        if (ad!=null){
-                            if (ad.getStatus()!=null){
-                                if (ad.getStatus().equals(getString(R.string.pending_approval)))
-                                    ads.add(ad);
+                    try {
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                            Ad ad = dataSnapshot.getValue(Ad.class);
+                            if (ad!=null){
+                                if (ad.getStatus()!=null){
+                                    if (ad.getStatus().equals(getString(R.string.pending_approval)))
+                                        ads.add(ad);
+                                }
                             }
                         }
+                    }catch (Exception e){
+                       e.printStackTrace();
                     }
                 }
                 if (!ads.isEmpty()){
@@ -233,7 +242,8 @@ public class MyListingsFragment extends Fragment implements MyAdsAdapter.Payment
     }
 
     void setMyListingsAdapter(boolean isApproved){
-        rvAds.setAdapter(new MyAdsAdapter(ads, context,isApproved,getActivity().getApplication(),this));
+        adapter = new MyAdsAdapter(ads, context,isApproved,getActivity().getApplication(),this);
+        rvAds.setAdapter(adapter);
         rvAds.setLayoutManager(new LinearLayoutManager(context));
     }
 
@@ -255,55 +265,19 @@ public class MyListingsFragment extends Fragment implements MyAdsAdapter.Payment
     }
 
     @Override
-    public void onButtonClicked(Ad ad, String amount, PaymentButtonContainer container) {
-        container.setup( new CreateOrder() {
-            @Override
-            public void create(@NotNull CreateOrderActions createOrderActions) {
-                LogUtils.e("create: ");
-                ArrayList<PurchaseUnit> purchaseUnits = new ArrayList<>();
-                purchaseUnits.add(
-                        new PurchaseUnit.Builder()
-                                .amount(
-                                        new Amount.Builder()
-                                                .currencyCode(CurrencyCode.USD)
-                                                .value(amount)
-                                                .build()
-                                )
-                                .build()
-                );
-                OrderRequest order = new OrderRequest(
-                        OrderIntent.CAPTURE,
-                        new AppContext.Builder()
-                                .userAction(UserAction.PAY_NOW)
-                                .build(),
-                        purchaseUnits
-                );
-                createOrderActions.create(order, (CreateOrderActions.OnOrderCreated) null);
-            }
-        }, new OnApprove() {
-            @Override
-            public void onApprove(@NotNull Approval approval) {
-                approval.getOrderActions().capture(new OnCaptureComplete() {
-                    @Override
-                    public void onCaptureComplete(@NotNull CaptureOrderResult result) {
-                        LogUtils.e(String.format("CaptureOrderResult: %s", result));
-                        ToastUtils.showShort( "Successful", Toast.LENGTH_SHORT);
-                        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId());
-                        ad.setFeatured("1");
-                        // Get the current time in milliseconds
-                        long currentTimeMillis = System.currentTimeMillis();
-// Calculate 24 hrs in milliseconds (1440 minutes * 60 seconds * 1000 milliseconds)
-                        long twentyFourHours = 1440 * 60 * 1000; //24hrs
-// Add 5 minutes to the current time
-                        long newTimeMillis = currentTimeMillis + twentyFourHours;
-                        ad.setFeaturedOn(currentTimeMillis);
-                        ad.setExpiresOn(newTimeMillis);
-                        databaseReference.setValue(ad);
-                       // holder.paymentButtonContainer.setVisibility(View.GONE);
-                        //holder.tvFeatured.setVisibility(View.VISIBLE);
-                    }
-                });
-            }
-        });
+    public void onButtonClicked(Ad ad, TextView tvMakeFeatured, TextView tvFeatured,int position) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId());
+        ad.setFeatured("1");
+        // Get the current time in milliseconds
+        long currentTimeMillis = System.currentTimeMillis();
+        // Calculate 24 hrs in milliseconds (1440 minutes * 60 seconds * 1000 milliseconds)
+        long twentyFourHours = 1440 * 60 * 1000; //24hrs
+        // Add 5 minutes to the current time
+        long newTimeMillis = currentTimeMillis + twentyFourHours;
+        ad.setFeaturedOn(currentTimeMillis);
+        ad.setExpiresOn(newTimeMillis);
+        databaseReference.setValue(ad);
+        tvFeatured.setVisibility(View.VISIBLE);
+        tvFeatured.setVisibility(View.GONE);
     }
 }

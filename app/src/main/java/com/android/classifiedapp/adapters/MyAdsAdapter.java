@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +31,7 @@ import com.blankj.utilcode.util.ToastUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -113,6 +115,7 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        int pos = position;
         Ad ad = ads.get(position);
         final String[] featureAdFee = new String[1];
         holder.tvTitle.setText(ad.getTitle());
@@ -133,26 +136,26 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
                 ad.setFeaturedOn(0);
                 ad.setExpiresOn(0);
                 databaseReference.setValue(ad);
-                holder.paymentButtonContainer.setVisibility(View.VISIBLE);
+                holder.tvMakeFeatured.setVisibility(View.VISIBLE);
                 holder.tvFeatured.setVisibility(View.GONE);
             }
         }
 
         if (ad.getFeatured()!=null){
             if (ad.getFeatured().equals("1")){
-                holder.paymentButtonContainer.setVisibility(View.GONE);
+                holder.tvMakeFeatured.setVisibility(View.GONE);
                 holder.tvFeatured.setVisibility(View.VISIBLE);
             }else {
                 FirebaseDatabase.getInstance().getReference().child("platform_prefs").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (snapshot.exists()){
-                            holder.paymentButtonContainer.setVisibility(View.VISIBLE);
+                            holder.tvMakeFeatured.setVisibility(View.VISIBLE);
                             PlatformPrefs prefs = snapshot.getValue(PlatformPrefs.class);
-                           // holder.paymentButtonContainer.setPaypalButtonLabel(context.getString(R.string.to_make_featured_for_24h)+" "+ad.getCurrency()+" "+prefs.getFeaturedAdFee());
+                             holder.tvMakeFeatured.setText(context.getString(R.string.to_make_featured_for_24h)+" "+ad.getCurrency()+" "+prefs.getFeaturedAdFee());
                             featureAdFee[0] =prefs.getFeaturedAdFee();
                         }else{
-                            holder.paymentButtonContainer.setVisibility(View.GONE);
+                            holder.tvMakeFeatured.setVisibility(View.GONE);
                         }
                     }
 
@@ -198,10 +201,10 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
             }
         });
 
-        //  holder.tvMakeFeatured.setOnClickListener(new View.OnClickListener() {
-        //   @Override
-        //   public void onClick(View v) {
-        //mark ad as featured in the database
+        holder.tvMakeFeatured.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //mark ad as featured in the database
 /*                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId());
                 ad.setFeatured("1");
                 // Get the current time in milliseconds
@@ -215,21 +218,11 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
                 databaseReference.setValue(ad);
                 holder.tvMakeFeatured.setVisibility(View.GONE);
                 holder.tvFeatured.setVisibility(View.VISIBLE);*/
-
-
-        //makePayment(ad.getId(),application);
-
-        //    }
-        //  });
-
-       /* holder.paymentButtonContainer.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                listener.onButtonClicked(ad,featureAdFee[0],holder.paymentButtonContainer);
+                showPaypalSheet(holder.tvMakeFeatured,holder.tvFeatured,ad,context,featureAdFee[0],ad.getCurrency(),pos);
             }
-        });*/
+        });
 
-        holder.paymentButtonContainer.setup( new CreateOrder() {
+/*        holder.paymentButtonContainer.setup( new CreateOrder() {
                                                  @Override
                                                  public void create(@NotNull CreateOrderActions createOrderActions) {
                                                      LogUtils.e("create: ");
@@ -265,9 +258,9 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
                                 ad.setFeatured("1");
                                 // Get the current time in milliseconds
                                 long currentTimeMillis = System.currentTimeMillis();
-// Calculate 24 hrs in milliseconds (1440 minutes * 60 seconds * 1000 milliseconds)
+                                // Calculate 24 hrs in milliseconds (1440 minutes * 60 seconds * 1000 milliseconds)
                                 long twentyFourHours = 1440 * 60 * 1000; //24hrs
-// Add 5 minutes to the current time
+                                // Add 5 minutes to the current time
                                 long newTimeMillis = currentTimeMillis + twentyFourHours;
                                 ad.setFeaturedOn(currentTimeMillis);
                                 ad.setExpiresOn(newTimeMillis);
@@ -277,7 +270,7 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
                             }
                         });
                     }
-                });
+        });*/
     }
 
     @Override
@@ -289,7 +282,7 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
         TextView tvTitle,tvPrice,tvPostedOn,tvPostedBy,tvAddress,tvMakeFeatured,tvFeatured;
         ImageView imgProduct,imgDelete,imgEdit;
         CircleImageView imgUser;
-        PaymentButtonContainer paymentButtonContainer;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvPrice = itemView.findViewById(R.id.tv_price);
@@ -301,9 +294,8 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
             tvAddress = itemView.findViewById(R.id.tv_address);
             imgDelete = itemView.findViewById(R.id.img_delete);
             imgEdit = itemView.findViewById(R.id.img_edit);
-            // tvMakeFeatured = itemView.findViewById(R.id.tv_make_featured);
+            tvMakeFeatured = itemView.findViewById(R.id.tv_make_featured);
             tvFeatured  = itemView.findViewById(R.id.tv_featured);
-            paymentButtonContainer = itemView.findViewById(R.id.payment_button_container);
         }
     }
 
@@ -467,37 +459,57 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
         });
     }
 
-    void makePayment(String adId,Application application){
-        String clientID = "AQlOefvrxsESdnd_UV3h8C70_e7XRACjk5ODy_NJZUBAyygNaXKeYipCcZNU_tYTQvgZkfZWR2rcLvNQ";
-        String returnUrl = "com.android.classifiedapp://paypalpay";
-        CoreConfig coreConfig = new CoreConfig(clientID, Environment.SANDBOX);
-        PayPalNativeCheckoutClient client = new PayPalNativeCheckoutClient(application,coreConfig,returnUrl);
-        client.setListener(new PayPalNativeCheckoutListener() {
-            @Override
-            public void onPayPalCheckoutStart() {
-                LogUtils.e("starting payment process");
-            }
-
-            @Override
-            public void onPayPalCheckoutSuccess(@NonNull PayPalNativeCheckoutResult payPalNativeCheckoutResult) {
-                LogUtils.e(payPalNativeCheckoutResult.getPayerId());
-            }
-
-            @Override
-            public void onPayPalCheckoutFailure(@NonNull PayPalSDKError payPalSDKError) {
-                LogUtils.e(payPalSDKError.getMessage());
-            }
-
-            @Override
-            public void onPayPalCheckoutCanceled() {
-                LogUtils.e("operation cancelled");
-            }
-        });
-        LogUtils.e("order"+System.currentTimeMillis());
-        client.startCheckout(new PayPalNativeCheckoutRequest("order"+System.currentTimeMillis()));
+    public interface PaymentButtonClickListener{
+        void onButtonClicked(Ad ad, TextView tvMakeFeatured,TextView tvFeatured,int position);
     }
 
-    public interface PaymentButtonClickListener{
-        void onButtonClicked(Ad ad, String amount,PaymentButtonContainer container);
+    void showPaypalSheet(TextView makeFeatured, TextView tvFeatured,Ad ad,Context context,String rate,String currency,int position){
+        BottomSheetDialog paypalDialog = new BottomSheetDialog(context);
+        paypalDialog.setContentView(R.layout.bottom_sheet_pay_for_featured_ad);
+        TextView tvSubtitle = paypalDialog.findViewById(R.id.tv_subtitle);
+        ProgressBar progressCircular = paypalDialog.findViewById(R.id.progress_circular);
+        tvSubtitle.setText(context.getString(R.string.pay_eur_to_make)+" "+currency+" "+rate);
+        PaymentButtonContainer paymentButtonContainer = paypalDialog.findViewById(R.id.payment_button_container);
+
+                paymentButtonContainer.setup( new CreateOrder() {
+                                                 @Override
+                                                 public void create(@NotNull CreateOrderActions createOrderActions) {
+                                                     LogUtils.e("create: ");
+                                                     ArrayList<PurchaseUnit> purchaseUnits = new ArrayList<>();
+                                                     purchaseUnits.add(
+                                                             new PurchaseUnit.Builder()
+                                                                     .amount(
+                                                                             new Amount.Builder()
+                                                                                     .currencyCode(CurrencyCode.USD)
+                                                                                     .value(rate)
+                                                                                     .build()
+                                                                     )
+                                                                     .build()
+                                                     );
+                                                     OrderRequest order = new OrderRequest(
+                                                             OrderIntent.CAPTURE,
+                                                             new AppContext.Builder()
+                                                                     .userAction(UserAction.PAY_NOW)
+                                                                     .build(),
+                                                             purchaseUnits
+                                                     );
+                                                     createOrderActions.create(order, (CreateOrderActions.OnOrderCreated) null);
+                                                 }
+                                             }, new OnApprove() {
+                    @Override
+                    public void onApprove(@NotNull Approval approval) {
+                        approval.getOrderActions().capture(new OnCaptureComplete() {
+                            @Override
+                            public void onCaptureComplete(@NotNull CaptureOrderResult result) {
+                                LogUtils.e(String.format("CaptureOrderResult: %s", result));
+                                ToastUtils.showShort( "Successful", Toast.LENGTH_SHORT);
+                                paypalDialog.dismiss();
+                                listener.onButtonClicked(ad,tvFeatured,makeFeatured,position);
+                            }
+                        });
+                    }
+        });
+
+        paypalDialog.show();
     }
 }
