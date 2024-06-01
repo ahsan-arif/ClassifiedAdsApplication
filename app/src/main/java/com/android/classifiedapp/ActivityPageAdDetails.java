@@ -109,6 +109,9 @@ public class ActivityPageAdDetails extends AppCompatActivity {
     Ad ad1;
     User postedByUser;
     TextView tvViewOrders;
+    int ordersAvailable;
+    boolean isPremiumUser;
+    long benefitsExpiry;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -190,7 +193,21 @@ public class ActivityPageAdDetails extends AppCompatActivity {
         tvBuy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showBuySheet();
+                long now = System.currentTimeMillis();
+                LogUtils.e(ordersAvailable);
+                LogUtils.e(isPremiumUser);
+                if (isPremiumUser){
+                    if (benefitsExpiry >= now){
+                        showBuySheet();
+                    }
+                }
+                else{
+                    if (ordersAvailable>0){
+                        showBuySheet();
+                    }else{
+                        ToastUtils.showShort(getString(R.string.cannot_accept_orders));
+                    }
+                }
             }
         });
         tvViewOrders.setOnClickListener(new View.OnClickListener() {
@@ -338,6 +355,17 @@ public class ActivityPageAdDetails extends AppCompatActivity {
                         Glide.with(context).load(user.getProfileImage()).into(circleImageView);
                     }else{
                         circleImageView.setImageResource(R.drawable.outline_account_circle_24);
+                    }
+
+                    if (snapshot.hasChild("maximumOrdersAvailable")){
+                        ordersAvailable = snapshot.child("maximumOrdersAvailable").getValue(Integer.class);
+                    }
+                    if (snapshot.hasChild("premiumUser")){
+                        isPremiumUser = snapshot.child("premiumUser").getValue(Boolean.class);
+                    }
+                    LogUtils.e(ordersAvailable);
+                    if (snapshot.hasChild("benefitsExpiry")){
+                        benefitsExpiry = snapshot.child("benefitsExpiry").getValue(Long.class);
                     }
                     postedByUser = user;
                     // }
@@ -659,39 +687,32 @@ public class ActivityPageAdDetails extends AppCompatActivity {
         tvPay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (Integer.parseInt(etQuantity.getText().toString())<=ad1.getQuantity()){
-                    String uid= FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    DatabaseReference databaseReference=  FirebaseDatabase.getInstance().getReference().child("users").child(uid).child("orders").push();
-                    String key = databaseReference.getKey();
-                    Order order = new Order();
-                    order.setAmount(Double.valueOf(etQuantity.getText().toString())*Double.valueOf(ad1.getPrice()));
-                    order.setBuyerId(uid);
-                    order.setSellerId(ad1.getPostedBy());
-                    order.setProductId(ad1.getId());
-                    order.setTitle(ad1.getTitle());
-                    order.setQuantity(Integer.parseInt(etQuantity.getText().toString()));
-                    order.setStatus(getString(R.string.paid));
-                    if (!etLocation.getText().toString().isEmpty()){
-                        order.setAddress(etLocation.getText().toString());
+                if (!etQuantity.getText().toString().isEmpty()){
+                    if (Integer.parseInt(etQuantity.getText().toString())<=ad1.getQuantity()){
+                        String location;
+                        if (!ad1.isShippingAvailable()){
+                            location="";
+                        }else{
+                            location=  etLocation.getText().toString();
+                            if (location.isEmpty()){
+                                etLocation.setError(getString(R.string.cannot_be_empty));
+                                return;
+                            }
+                        }
+                        startActivity(new Intent(ActivityPageAdDetails.this, ActivityCheckout.class)
+                                .putExtra("fcmToken",postedByUser.getFcmToken())
+                                .putExtra("quantity",etQuantity.getText().toString())
+                                .putExtra("location",location)
+                                .putExtra("isPremiumUser",isPremiumUser)
+                                .putExtra("ordersAvailable",ordersAvailable)
+                                .putExtra("ad",ad1)
+                        );
+                        buyDialog.dismiss();
+                    }else{
+                        etQuantity.setError(getString(R.string.cannot_buy_more));
                     }
-                    order.setCurrency(ad1.getCurrency());
-                    order.setPlaceOn(String.valueOf(System.currentTimeMillis()));
-                    order.setId(key);
-
-                    databaseReference.setValue(order);
-
-                    DatabaseReference productReference=  FirebaseDatabase.getInstance().getReference().child("ads").child(ad1.getId()).child("orders").child(key);
-                    productReference.setValue(order);
-
-                    try {
-                        sendOrderPlacementPushNotification(getString(R.string.new_order),getString(R.string.somebody_placed));
-                    } catch (JSONException e) {
-                        throw new RuntimeException(e);
-                    }
-                    startActivity(new Intent(ActivityPageAdDetails.this, ActivityPaymentSuccessful.class).putExtra("order",order));
-                    buyDialog.dismiss();
                 }else{
-                    etQuantity.setError(getString(R.string.cannot_buy_more));
+                    etQuantity.setError(getString(R.string.cannot_be_empty));
                 }
 
 

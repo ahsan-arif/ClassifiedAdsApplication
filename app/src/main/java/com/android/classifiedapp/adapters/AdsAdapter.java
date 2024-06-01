@@ -92,6 +92,16 @@ public class AdsAdapter extends RecyclerView.Adapter<AdsAdapter.ProductsViewHold
         }
 
         if (ad.getFeatured().equals("1")){
+            if (ad.getExpiresOn()<now){
+                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId());
+                ad.setFeatured("0");
+                ad.setFeaturedOn(0);
+                ad.setExpiresOn(0);
+                databaseReference.setValue(ad);
+            }
+        }
+
+        if (ad.getFeatured().equals("1")){
             holder.tvFeatured.setVisibility(View.VISIBLE);
         }else{
             holder.tvFeatured.setVisibility(View.GONE);

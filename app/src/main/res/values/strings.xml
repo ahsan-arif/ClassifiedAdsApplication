@@ -161,10 +161,18 @@
     <string name="buy_premium_to_post">Buy Premium To Post Ad.</string>
     <string name="buy_premium_to_send">Buy Premium to send</string>
     <string name="cannot_accept_orders">Buyer cannot accept more orders</string>
-    <string name="buy_pro_cancel_anytime">Buy Pro? Cancel Anytime</string>
+    <string name="buy_pro">Buy Pro? </string>
+    <string name="cancel_anytime">Cancel Anytime</string>
+    <string name="in_just">in just</string>
     <string name="expires_on">Expires On:</string>
     <string name="pro_activated">Pro Activated</string>
     <string name="paypal_client_id">AX-XvQtaS3Qqg2dgPkJGDD0D8U1_4nFUAkR2hLJOZFPZy0yNIiwA06iVzcAfNX1d3JfAjbd81SuT4UiA</string>
     <string name="mark_as_featured">Mark As Featured</string>
     <string name="pay_eur_to_make">Attract more buyers by marking your listing as featured for 24h in</string>
+    <string name="buy_premium">Buy Premium</string>
+    <string name="to_complete_order">to complete order</string>
+    <string name="please_select_location">Please select dropoff location</string>
+    <string name="please_provide">Please provide relevant details</string>
+    <string name="review_order_details">Please review order details and pay via PayPal</string>
+    <string name="product">Product</string>
 </resources>

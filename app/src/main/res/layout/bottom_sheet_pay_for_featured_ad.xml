@@ -29,10 +29,12 @@
         android:layout_below="@id/tv_title"
         />
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:padding="4dp"
         android:id="@+id/tv_subtitle"
         android:layout_below="@id/view"
         />

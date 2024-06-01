@@ -675,47 +675,33 @@ public class ActivityAdDetails extends AppCompatActivity {
         tvPay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (Integer.parseInt(etQuantity.getText().toString())<=ad.getQuantity()){
-                    String uid= FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    DatabaseReference databaseReference=  FirebaseDatabase.getInstance().getReference().child("users").child(uid).child("orders").push();
-                    String key = databaseReference.getKey();
-                    Order order = new Order();
-                    order.setAmount(Double.valueOf(etQuantity.getText().toString())*Double.valueOf(ad.getPrice()));
-                    order.setBuyerId(uid);
-                    order.setSellerId(ad.getPostedBy());
-                    order.setProductId(ad.getId());
-                    order.setTitle(ad.getTitle());
-                    order.setQuantity(Integer.parseInt(etQuantity.getText().toString()));
-                    order.setStatus(getString(R.string.paid));
-                    if (!etLocation.getText().toString().isEmpty()){
-                        order.setAddress(etLocation.getText().toString());
+                if (!etQuantity.getText().toString().isEmpty()){
+                    if (Integer.parseInt(etQuantity.getText().toString())<=ad.getQuantity()){
+                        String location;
+                        if (!ad.isShippingAvailable()){
+                            location="";
+                        }else{
+                            location=  etLocation.getText().toString();
+                            if (location.isEmpty()){
+                                etLocation.setError(getString(R.string.cannot_be_empty));
+                                return;
+                            }
+                        }
+                        startActivity(new Intent(ActivityAdDetails.this, ActivityCheckout.class)
+                                .putExtra("fcmToken",postedByUser.getFcmToken())
+                                .putExtra("quantity",etQuantity.getText().toString())
+                                .putExtra("location",location)
+                                .putExtra("isPremiumUser",isPremiumUser)
+                                .putExtra("ordersAvailable",ordersAvailable)
+                                .putExtra("ad",ad)
+                        );
+                        buyDialog.dismiss();
+                    }else{
+                        etQuantity.setError(getString(R.string.cannot_buy_more));
                     }
-                    order.setCurrency(ad.getCurrency());
-                    order.setPlaceOn(String.valueOf(System.currentTimeMillis()));
-                    order.setId(key);
-
-                    databaseReference.setValue(order);
-
-                    DatabaseReference productReference=  FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId()).child("orders").child(key);
-                    productReference.setValue(order);
-
-                    if (!isPremiumUser){
-                        DatabaseReference userReference = FirebaseDatabase.getInstance().getReference().child("users").child(ad.getPostedBy()).child("maximumOrdersAvailable");
-                        ordersAvailable = ordersAvailable-1;
-                        userReference.setValue(ordersAvailable);
-                    }
-
-                    try {
-                        sendPushNotification(getString(R.string.new_order),getString(R.string.somebody_placed));
-                    } catch (JSONException e) {
-                        throw new RuntimeException(e);
-                    }
-                    startActivity(new Intent(ActivityAdDetails.this, ActivityPaymentSuccessful.class).putExtra("order",order));
-                    buyDialog.dismiss();
                 }else{
-                    etQuantity.setError(getString(R.string.cannot_buy_more));
+                    etQuantity.setError(getString(R.string.cannot_be_empty));
                 }
-
 
             }
         });
@@ -890,16 +876,16 @@ public class ActivityAdDetails extends AppCompatActivity {
                         }else{
                             imgLike.setImageResource(R.drawable.heart);
                         }
-                            if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
-                                tvReportListing.setVisibility(View.GONE);
-                                tvBuy.setVisibility(View.GONE);
-                                tvViewOrders.setVisibility(View.VISIBLE);
-                            }
-                            if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
-                                imgChat.setVisibility(View.GONE);
-                            }
-                            ImagePagerAdapter adapter = new ImagePagerAdapter(ActivityAdDetails.this,ad.getUrls(),false);
-                            pagerImages.setAdapter(adapter);
+                        if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
+                            tvReportListing.setVisibility(View.GONE);
+                            tvBuy.setVisibility(View.GONE);
+                            tvViewOrders.setVisibility(View.VISIBLE);
+                        }
+                        if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
+                            imgChat.setVisibility(View.GONE);
+                        }
+                        ImagePagerAdapter adapter = new ImagePagerAdapter(ActivityAdDetails.this,ad.getUrls(),false);
+                        pagerImages.setAdapter(adapter);
                         // Setup TabLayout with ViewPager
                         new TabLayoutMediator(tabsImg, pagerImages, (tab, position) -> {
                             // You can set custom tab view here if needed, for now, just add empty text

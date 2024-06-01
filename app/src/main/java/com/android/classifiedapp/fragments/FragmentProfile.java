@@ -48,6 +48,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.AuthCredential;
@@ -62,6 +63,20 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.paypal.checkout.approve.Approval;
+import com.paypal.checkout.approve.OnApprove;
+import com.paypal.checkout.createorder.CreateOrder;
+import com.paypal.checkout.createorder.CreateOrderActions;
+import com.paypal.checkout.createorder.CurrencyCode;
+import com.paypal.checkout.createorder.OrderIntent;
+import com.paypal.checkout.createorder.UserAction;
+import com.paypal.checkout.order.Amount;
+import com.paypal.checkout.order.AppContext;
+import com.paypal.checkout.order.CaptureOrderResult;
+import com.paypal.checkout.order.OnCaptureComplete;
+import com.paypal.checkout.order.OrderRequest;
+import com.paypal.checkout.order.PurchaseUnit;
+import com.paypal.checkout.paymentbutton.PaymentButtonContainer;
 import com.permissionx.guolindev.PermissionX;
 import com.permissionx.guolindev.callback.RequestCallback;
 
@@ -117,6 +132,7 @@ public class FragmentProfile extends Fragment  {
 
     CardView cardPremium;
     CardView cardGoPremium;
+    TextView tvBuyPro;
 
     public FragmentProfile() {
         // Required empty public constructor
@@ -168,6 +184,22 @@ public class FragmentProfile extends Fragment  {
         tvMemberTill = view.findViewById(R.id.tv_member_till);
         cardPremium = view.findViewById(R.id.card_premium);
         cardGoPremium = view.findViewById(R.id.card_go_premium);
+        tvBuyPro = view.findViewById(R.id.tv_buy_pro);
+
+        FirebaseDatabase.getInstance().getReference().child("platform_prefs").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    PlatformPrefs prefs = snapshot.getValue(PlatformPrefs.class);
+                    tvBuyPro.setText(getString(R.string.buy_premium)+" "+getString(R.string.in_just)+" EUR "+"0.99");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         getUserDetails(user.getUid());
@@ -243,7 +275,7 @@ public class FragmentProfile extends Fragment  {
         cardGoPremium.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DatabaseReference databaseReference= FirebaseDatabase.getInstance().getReference().child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                /*DatabaseReference databaseReference= FirebaseDatabase.getInstance().getReference().child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
                 Map<String, Object> updates = new HashMap<>();
                 updates.put("premiumUser", true);
                 Calendar calendar = Calendar.getInstance();
@@ -270,7 +302,8 @@ public class FragmentProfile extends Fragment  {
                             LogUtils.e("failed to update benefits");
                         }
                     }
-                });
+                });*/
+                showGoPremiumSheet();
             }
         });
         tvCancelMembership.setOnClickListener(new View.OnClickListener() {
@@ -485,5 +518,85 @@ public class FragmentProfile extends Fragment  {
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         this.context = context;
+    }
+
+    void showGoPremiumSheet(){
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(context);
+        bottomSheetDialog.setContentView(R.layout.bottom_sheet_pay_for_featured_ad);
+        TextView tvTitle = bottomSheetDialog.findViewById(R.id.tv_title);
+        TextView tvSubtitle = bottomSheetDialog.findViewById(R.id.tv_subtitle);
+
+        tvTitle.setText(getString(R.string.buy_premium));
+        tvSubtitle.setText(getString(R.string.buy_premium)+" "+getString(R.string.in_just)+" EUR "+"0.99");
+        PaymentButtonContainer paymentButtonContainer = bottomSheetDialog.findViewById(R.id.payment_button_container);
+
+        paymentButtonContainer.setup( new CreateOrder() {
+            @Override
+            public void create(@NotNull CreateOrderActions createOrderActions) {
+                LogUtils.e("create: ");
+                ArrayList<PurchaseUnit> purchaseUnits = new ArrayList<>();
+                purchaseUnits.add(
+                        new PurchaseUnit.Builder()
+                                .amount(
+                                        new Amount.Builder()
+                                                .currencyCode(CurrencyCode.USD)
+                                                .value("0.99")
+                                                .build()
+                                )
+                                .build()
+                );
+                OrderRequest order = new OrderRequest(
+                        OrderIntent.CAPTURE,
+                        new AppContext.Builder()
+                                .userAction(UserAction.PAY_NOW)
+                                .build(),
+                        purchaseUnits
+                );
+                createOrderActions.create(order, (CreateOrderActions.OnOrderCreated) null);
+            }
+        }, new OnApprove() {
+            @Override
+            public void onApprove(@NotNull Approval approval) {
+                approval.getOrderActions().capture(new OnCaptureComplete() {
+                    @Override
+                    public void onCaptureComplete(@NotNull CaptureOrderResult result) {
+                        LogUtils.e(String.format("CaptureOrderResult: %s", result));
+                        ToastUtils.showShort( "Successful", Toast.LENGTH_SHORT);
+                        bottomSheetDialog.dismiss();
+
+                        DatabaseReference databaseReference= FirebaseDatabase.getInstance().getReference().child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                        Map<String, Object> updates = new HashMap<>();
+                        updates.put("premiumUser", true);
+                        Calendar calendar = Calendar.getInstance();
+                        calendar.setTimeInMillis(System.currentTimeMillis());
+                        // Add one month to the calendar
+                        calendar.add(Calendar.MONTH, 1);
+                        // Get the new time in milliseconds
+                        long newTimeMillis = calendar.getTimeInMillis();
+                        updates.put("benefitsExpiry",newTimeMillis);
+                        databaseReference.updateChildren(updates).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()){
+                                    cardGoPremium.setVisibility(View.GONE);
+                                    cardPremium.setVisibility(View.VISIBLE);
+
+                                    Date date = new Date(newTimeMillis);
+
+                                    // Format the date
+                                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+                                    String formattedDate = sdf.format(date);
+                                    LogUtils.e("benefits updated");
+                                }else{
+                                    LogUtils.e("failed to update benefits");
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        bottomSheetDialog.show();
     }
 }

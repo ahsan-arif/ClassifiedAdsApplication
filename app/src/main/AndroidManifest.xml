@@ -27,11 +27,14 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:usesCleartextTraffic="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ClassifiedApp"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
+        <activity
+            android:name=".ActivityCheckout"
+            android:exported="false" />
         <activity
             android:name=".SellerProfile"
             android:exported="false" />
@@ -183,14 +186,14 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-        <receiver android:name=".services.LoginReceiver"
-            android:exported="true"
-            >
+
+        <receiver
+            android:name=".services.LoginReceiver"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.android.classifiedapp.ACTION_LOGIN_SUCCESS" />
             </intent-filter>
         </receiver>
-
     </application>
 
 </manifest>
