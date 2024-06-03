@@ -175,4 +175,20 @@
     <string name="please_provide">Please provide relevant details</string>
     <string name="review_order_details">Please review order details and pay via PayPal</string>
     <string name="product">Product</string>
+    <string name="confirm_pickup">Confirm Pickup</string>
+    <string name="contact_seller">Contact Seller</string>
+    <string name="orderid">OrderID</string>
+    <string name="preparing_order">The seller will soon ship your order.</string>
+    <string name="contact_seller_for_pickup_spot">* Contact seller to decide for a pickup spot.</string>
+    <string name="confirm_delivery">Confirm Delivery</string>
+    <string name="received">Received</string>
+    <string name="delivered">Delivered</string>
+    <string name="item_received">Item Received</string>
+    <string name="buyer_confirm_received">Buyer confirmed the item has been received.</string>
+    <string name="mark_as_shipped">Mark As Shipped</string>
+    <string name="shipped">Shipped</string>
+    <string name="item_shipped">Item Shipped</string>
+    <string name="item_on_its_way">The product is on its way to you.</string>
+    <string name="confirm_product_received">Press Confirm Delivery after receiving items to complete the order.</string>
+    <string name="buyer_received">The buyer has received items.</string>
 </resources>

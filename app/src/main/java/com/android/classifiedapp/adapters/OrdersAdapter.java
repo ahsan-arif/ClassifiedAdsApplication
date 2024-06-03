@@ -3,16 +3,19 @@ package com.android.classifiedapp.adapters;
 import static com.android.classifiedapp.utilities.Constants.NOTIFICATION_URL;
 
 import android.content.Context;
+import android.content.Intent;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.classifiedapp.ActivityAdDetails;
+import com.android.classifiedapp.ActivityChat;
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.models.Order;
 import com.android.classifiedapp.models.User;
@@ -71,11 +74,41 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
         holder.tvStatus.setText(context.getString(R.string.status)+": "+order.getStatus());
         holder.tvTotal.setText(order.getCurrency()+" "+order.getAmount());
         holder.tvQuantity.setText(context.getString(R.string.quantity)+": "+String.valueOf(order.getQuantity()));
+        holder.tvOrderId.setText(order.getId());
 
-        if (order.getSellerId().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())){
-            holder.tvConfirmOrder.setVisibility(View.VISIBLE);
-        }else{
+        if (isMyOrders){
+            LogUtils.e(isMyOrders);
             holder.tvConfirmOrder.setVisibility(View.GONE);
+            if (order.getStatus().equals(context.getString(R.string.order_confirmed))){
+                if (order.getAddress()!=null){
+                    holder.tvInstructions.setText(context.getString(R.string.preparing_order));
+                    holder.tvInstructions.setVisibility(View.VISIBLE);
+                    holder.vgConfirm.setVisibility(View.GONE);
+                }else{
+                    holder.tvInstructions.setText(context.getString(R.string.contact_seller_for_pickup_spot));
+                    holder.tvInstructions.setVisibility(View.VISIBLE);
+                    holder.vgConfirm.setVisibility(View.VISIBLE);
+                    holder.tvConfirmPickup.setVisibility(View.VISIBLE);
+                    holder.tvConfirmDelivery.setVisibility(View.GONE);
+                }
+            }else if (order.getStatus().equals(context.getString(R.string.shipped))){
+                holder.tvInstructions.setText(context.getString(R.string.confirm_product_received));
+                holder.tvInstructions.setVisibility(View.VISIBLE);
+                holder.vgConfirm.setVisibility(View.VISIBLE);
+                holder.tvConfirmPickup.setVisibility(View.GONE);
+                holder.tvConfirmDelivery.setVisibility(View.VISIBLE);
+            }
+        }else{
+            if (order.getSellerId().equals(FirebaseAuth.getInstance().getCurrentUser().getUid()) && order.getStatus().equals(context.getString(R.string.paid))){
+                holder.tvConfirmOrder.setVisibility(View.VISIBLE);
+                holder.tvMarkShipped.setVisibility(View.GONE);
+            }else if (order.getSellerId().equals(FirebaseAuth.getInstance().getCurrentUser().getUid()) && order.getStatus().equals(context.getString(R.string.order_confirmed))){
+                holder.tvConfirmOrder.setVisibility(View.GONE);
+                holder.tvMarkShipped.setVisibility(View.VISIBLE);
+            }else{
+                holder.tvConfirmOrder.setVisibility(View.GONE);
+                holder.tvMarkShipped.setVisibility(View.GONE);
+            }
         }
 
         long timestamp = Long.parseLong(order.getPlaceOn());
@@ -91,12 +124,6 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
             holder.tvAddress.setVisibility(View.GONE);
         }
 
-        if (order.getStatus().equals(context.getString(R.string.order_confirmed))){
-            holder.tvConfirmOrder.setVisibility(View.GONE);
-        }else{
-            holder.tvConfirmOrder.setVisibility(View.VISIBLE);
-        }
-
         holder.tvConfirmOrder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -109,6 +136,14 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
                           oderReference.setValue(context.getString(R.string.order_confirmed));
                       }else{
                           ToastUtils.showShort("Ref not found");
+                      }
+                      if (!isMyOrders){
+                          if (order.getAddress()!=null){
+                              holder.tvMarkShipped.setVisibility(View.VISIBLE);
+                              holder.tvConfirmOrder.setVisibility(View.GONE);
+                          }else{
+                              holder.tvMarkShipped.setVisibility(View.GONE);
+                          }
                       }
                   }
 
@@ -133,8 +168,147 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
 
                   }
               });
+              //get fcm token and send notification
+              getUserFcm(order.getBuyerId(),context.getString(R.string.order_confirmed),context.getString(R.string.your_order_confirmed));
+            }
+        });
+        LogUtils.e(order.getBuyerId());
+        LogUtils.e(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
-              getUserFcm(order.getBuyerId());
+        holder.tvContactSeller.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                context.startActivity(new Intent(context, ActivityChat.class)
+                        .putExtra("sellerId",order.getSellerId())
+                        .putExtra("adId",order.getProductId()));
+            }
+        });
+        holder.tvConfirmPickup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DatabaseReference oderReference=  FirebaseDatabase.getInstance().getReference().child("ads").child(order.getProductId()).child("orders").child(order.getId()).child("status");
+                oderReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()){
+                            oderReference.setValue(context.getString(R.string.received));
+                        }else{
+                            ToastUtils.showShort("Ref not found");
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+
+                DatabaseReference buyerReference=  FirebaseDatabase.getInstance().getReference().child("users").child(order.getBuyerId()).child("orders").child(order.getId()).child("status");
+                buyerReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()){
+                            buyerReference.setValue(context.getString(R.string.received));
+                            holder.tvStatus.setText(context.getString(R.string.received));
+                            holder.vgConfirm.setVisibility(View.GONE);
+                            holder.tvInstructions.setVisibility(View.GONE);
+                            getUserFcm(order.getSellerId(),context.getString(R.string.item_received),context.getString(R.string.buyer_confirm_received));
+
+                            //TODO notify admin to release payment
+                        }else{
+                            ToastUtils.showShort("User Ref not found");
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+            }
+        });
+        holder.tvMarkShipped.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DatabaseReference oderReference=  FirebaseDatabase.getInstance().getReference().child("ads").child(order.getProductId()).child("orders").child(order.getId()).child("status");
+                oderReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()){
+                            oderReference.setValue(context.getString(R.string.shipped));
+                        }else{
+                            ToastUtils.showShort("Ref not found");
+                        }
+                        holder.tvMarkShipped.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+
+                DatabaseReference buyerReference=  FirebaseDatabase.getInstance().getReference().child("users").child(order.getBuyerId()).child("orders").child(order.getId()).child("status");
+                buyerReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()){
+                            buyerReference.setValue(context.getString(R.string.shipped));
+                        }else{
+                            ToastUtils.showShort("User Ref not found");
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+                //get fcm token and send notification
+                getUserFcm(order.getBuyerId(),context.getString(R.string.item_shipped),context.getString(R.string.item_on_its_way));
+            }
+        });
+
+        holder.tvConfirmDelivery.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DatabaseReference oderReference=  FirebaseDatabase.getInstance().getReference().child("ads").child(order.getProductId()).child("orders").child(order.getId()).child("status");
+                oderReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()){
+                            oderReference.setValue(context.getString(R.string.delivered));
+                        }else{
+                            ToastUtils.showShort("Ref not found");
+                        }
+                        holder.vgConfirm.setVisibility(View.GONE);
+                        holder.tvInstructions.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+
+                DatabaseReference buyerReference=  FirebaseDatabase.getInstance().getReference().child("users").child(order.getBuyerId()).child("orders").child(order.getId()).child("status");
+                buyerReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()){
+                            buyerReference.setValue(context.getString(R.string.delivered));
+                        }else{
+                            ToastUtils.showShort("User Ref not found");
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+                //get fcm token and send notification
+                getUserFcm(order.getSellerId(),context.getString(R.string.item_shipped),context.getString(R.string.buyer_received));
             }
         });
         getOrderedBy(context,order.getBuyerId(),holder.tvUser,holder.imgUser);
@@ -147,8 +321,9 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
     }
 
     class ViewHolder extends RecyclerView.ViewHolder{
-        TextView tvTitle,tvQuantity,tvTotal,tvStatus,tvUser,tvOrderedOn,tvAddress,tvConfirmOrder;
+        TextView tvTitle,tvQuantity,tvTotal,tvStatus,tvUser,tvOrderedOn,tvAddress,tvConfirmOrder,tvOrderId,tvInstructions,tvConfirmDelivery,tvConfirmPickup,tvContactSeller,tvMarkShipped;
         CircleImageView imgUser;
+        LinearLayout vgConfirm;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitle = itemView.findViewById(R.id.tv_title);
@@ -160,6 +335,14 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
             imgUser = itemView.findViewById(R.id.img_user);
             tvAddress = itemView.findViewById(R.id.tv_address);
             tvConfirmOrder = itemView.findViewById(R.id.tv_confirm_order);
+            tvOrderId = itemView.findViewById(R.id.tv_order_id);
+            tvInstructions = itemView.findViewById(R.id.tv_instructions);
+            vgConfirm = itemView.findViewById(R.id.vg_confirm);
+            tvConfirmDelivery  = itemView.findViewById(R.id.tv_confirm_delivery);
+            tvConfirmPickup = itemView.findViewById(R.id.tv_confirm_pickup);
+            tvContactSeller = itemView.findViewById(R.id.tv_contact_seller);
+            tvMarkShipped = itemView.findViewById(R.id.tv_mark_shipped);
+
 
         }
     }
@@ -182,6 +365,8 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
                     if (snapshot.hasChild("profileImage")){
                         user.setProfileImage(snapshot.child("profileImage").getValue(String.class));
                         Glide.with(context).load(user.getProfileImage()).into(circleImageView);
+                    }else{
+                        circleImageView.setImageResource(R.drawable.outline_account_circle_24);
                     }
                     // }
 
@@ -196,7 +381,7 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
         });
     }
 
-    void getUserFcm(String buyerId){
+    void getUserFcm(String buyerId,String title, String message){
         FirebaseDatabase.getInstance().getReference().child("users").child(buyerId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -204,7 +389,7 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
                     User user = new User();
                     user.setFcmToken(snapshot.child("fcmToken").getValue(String.class));
                     try {
-                        sendPushNotification(context.getString(R.string.order_confirmed),context.getString(R.string.your_order_confirmed),buyerId, user.getFcmToken(), context );
+                        sendPushNotification(title,message,buyerId, user.getFcmToken(), context );
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }

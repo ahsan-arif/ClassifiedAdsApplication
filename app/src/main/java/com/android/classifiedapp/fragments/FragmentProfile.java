@@ -388,6 +388,11 @@ public class FragmentProfile extends Fragment  {
                                 cardPremium.setVisibility(View.GONE);
                                 cardGoPremium.setVisibility(View.VISIBLE);
                             }
+                            if (user.getProfileImage()!=null){
+                                Glide.with(context).load(user.getProfileImage()).into(imgProfile);
+                            }else{
+                                imgProfile.setImageResource(R.drawable.outline_account_circle_24);
+                            }
                         }
 
                     }

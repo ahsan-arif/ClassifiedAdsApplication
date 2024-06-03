@@ -93,16 +93,18 @@ ProgressBar progressCircular;
         FirebaseDatabase.getInstance().getReference().child("ads").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-
                 if (snapshot.exists()){
-                    ArrayList<Ad> ads = new ArrayList<>();
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
-                        Ad ad = dataSnapshot.getValue(Ad.class);
-                        if (ad.getStatus().equals(getString(R.string.approved)))
-                            ads.add(ad);
+                    try {
+                        ArrayList<Ad> ads = new ArrayList<>();
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                            Ad ad = dataSnapshot.getValue(Ad.class);
+                            if (ad.getStatus().equals(getString(R.string.approved)))
+                                ads.add(ad);
+                        }
+                        setAdsAdapter(ads);
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
-                    setAdsAdapter(ads);
-
                 }else{
                     progressCircular.setVisibility(View.GONE);
                     tvNoListing.setVisibility(View.VISIBLE);
