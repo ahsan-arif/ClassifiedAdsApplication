@@ -22,6 +22,7 @@ import com.android.classifiedapp.ActivityChat;
 import com.android.classifiedapp.ActivityEditAd;
 import com.android.classifiedapp.ActivityMyOrders;
 import com.android.classifiedapp.ActivityPageAdDetails;
+import com.android.classifiedapp.ActivityViewOrders;
 import com.android.classifiedapp.Home;
 import com.android.classifiedapp.MainActivity;
 import com.android.classifiedapp.R;
@@ -47,18 +48,23 @@ public class FCMService extends FirebaseMessagingService {
         if (data.get("adId")!=null){
             adId = data.get("adId");
         }
+        String title = "";
+        if (data.get("title")!=null){
+            title = data.get("title");
+        }
 
-        LogUtils.e(id);
+        //LogUtils.e(id);
         LogUtils.e(adId);
+        LogUtils.e(title);
         String clickAction = remoteMessage.getNotification().getClickAction();
-        showNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody(),clickAction,id,adId);
+        showNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody(),clickAction,id,adId,title);
     }
     @Override
     public void onNewToken(@NonNull String s) {
         super.onNewToken(s);
     }
 
-    private void showNotification(String title, String body,String clickAction,String id,String adId) {
+    private void showNotification(String title, String body,String clickAction,String id,String adId,String productTitle) {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         String NOTIFICATION_CHANNEL_ID = "com.android.classifiedapp";
@@ -84,6 +90,8 @@ public class FCMService extends FirebaseMessagingService {
             notificationIntent = new Intent(getBaseContext(), ActivityAdDetails.class).putExtra("id",id);
         }else if (clickAction.equals("com.android.classifiedapp.ActivityMyOrders")){
             notificationIntent = new Intent(getBaseContext(), ActivityMyOrders.class);
+        }else if (clickAction.equals("com.android.classifiedapp.ActivityViewOrders")){
+            notificationIntent = new Intent(getBaseContext(), ActivityViewOrders.class).putExtra("adId",adId).putExtra("title",productTitle);
         }
         else{
             notificationIntent = new Intent(getBaseContext(),Home.class);

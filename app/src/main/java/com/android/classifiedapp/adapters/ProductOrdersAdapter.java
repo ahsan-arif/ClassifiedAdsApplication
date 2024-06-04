@@ -3,19 +3,15 @@ package com.android.classifiedapp.adapters;
 import static com.android.classifiedapp.utilities.Constants.NOTIFICATION_URL;
 
 import android.content.Context;
-import android.content.Intent;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.android.classifiedapp.ActivityAdDetails;
-import com.android.classifiedapp.ActivityChat;
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.models.Order;
 import com.android.classifiedapp.models.User;
@@ -31,7 +27,6 @@ import com.blankj.utilcode.util.ToastUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -48,13 +43,11 @@ import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder> {
+public class ProductOrdersAdapter extends RecyclerView.Adapter<ProductOrdersAdapter.ViewHolder> {
     Context context;
     ArrayList<Order> orders;
 
-    String productTitle;
-
-    public OrdersAdapter(Context context, ArrayList<Order> orders) {
+    public ProductOrdersAdapter(Context context, ArrayList<Order> orders) {
         this.context = context;
         this.orders = orders;
     }
@@ -62,7 +55,7 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_order,parent,false));
+        return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_product_order,parent,false));
     }
 
     @Override
@@ -79,6 +72,13 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
         String shipped = context.getString(R.string.shipped);
         String received = context.getString(R.string.received);
         String delivered = context.getString(R.string.delivered);
+
+        if (order.getAddress()!=null){
+            holder.tvAddress.setText(order.getAddress());
+            holder.tvAddress.setVisibility(View.VISIBLE);
+        }else{
+            holder.tvAddress.setVisibility(View.GONE);
+        }
 
         String status = order.getStatus();
         long timestamp=0;
@@ -98,85 +98,62 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
         CharSequence ago = DateUtils.getRelativeTimeSpanString(date.getTime(), now, DateUtils.MINUTE_IN_MILLIS);
         holder.tvOrderedOn.setText(ago);
 
-            if (order.getStatus().equals(context.getString(R.string.order_confirmed))){
-                if (order.getAddress()!=null){
-                    holder.tvInstructions.setText(context.getString(R.string.preparing_order));
-                    holder.tvInstructions.setVisibility(View.VISIBLE);
-                    holder.vgConfirm.setVisibility(View.GONE);
-                }else{
-                    holder.tvInstructions.setText(context.getString(R.string.contact_seller_for_pickup_spot));
-                    holder.tvInstructions.setVisibility(View.VISIBLE);
-                    holder.vgConfirm.setVisibility(View.VISIBLE);
-                    holder.tvConfirmPickup.setVisibility(View.VISIBLE);
-                    holder.tvConfirmDelivery.setVisibility(View.GONE);
-                }
-            }else if (order.getStatus().equals(context.getString(R.string.shipped))){
-                holder.tvInstructions.setText(context.getString(R.string.confirm_product_received));
-                holder.tvInstructions.setVisibility(View.VISIBLE);
-                holder.vgConfirm.setVisibility(View.VISIBLE);
-                holder.tvConfirmPickup.setVisibility(View.GONE);
-                holder.tvConfirmDelivery.setVisibility(View.VISIBLE);
+        if (order.getStatus().equals(context.getString(R.string.paid))){
+            holder.tvConfirmOrder.setVisibility(View.VISIBLE);
+            holder.tvMarkShipped.setVisibility(View.GONE);
+        }else if (order.getStatus().equals(context.getString(R.string.order_confirmed))){
+            if (order.getAddress()!=null){
+                holder.tvMarkShipped.setVisibility(View.VISIBLE);
+                holder.tvConfirmOrder.setVisibility(View.GONE);
+            }else{
+                holder.tvMarkShipped.setVisibility(View.GONE);
+                holder.tvConfirmOrder.setVisibility(View.GONE);
             }
-
-        if (order.getAddress()!=null){
-            holder.tvAddress.setText(order.getAddress());
-            holder.tvAddress.setVisibility(View.VISIBLE);
-        }else{
-            holder.tvAddress.setVisibility(View.GONE);
+        }else if (status.equals(shipped)||status.equals(received)|| status.equals(delivered)){
+            holder.tvMarkShipped.setVisibility(View.GONE);
+            holder.tvConfirmOrder.setVisibility(View.GONE);
         }
 
-        LogUtils.e(order.getBuyerId());
-        LogUtils.e(FirebaseAuth.getInstance().getCurrentUser().getUid());
-
-        holder.tvContactSeller.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                context.startActivity(new Intent(context, ActivityChat.class)
-                        .putExtra("sellerId",order.getSellerId())
-                        .putExtra("adId",order.getProductId()));
-            }
-        });
-        holder.tvConfirmPickup.setOnClickListener(new View.OnClickListener() {
+        holder.tvMarkShipped.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 DatabaseReference orderReference=  FirebaseDatabase.getInstance().getReference().child("orders").child(order.getId());
                 Map<String, Object> updates = new HashMap<>();
-                updates.put("status", context.getString(R.string.received));
-                updates.put("pickedOn",String.valueOf(System.currentTimeMillis()));
-
+                updates.put("status", context.getString(R.string.shipped));
+                updates.put("shippedOn",String.valueOf(System.currentTimeMillis()));
                 orderReference.updateChildren(updates).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-                        holder.vgConfirm.setVisibility(View.GONE);
-                        holder.tvInstructions.setVisibility(View.GONE);
+                        holder.tvMarkShipped.setVisibility(View.GONE);
                     }
                 });
-                getUserFcm(order.getSellerId(),context.getString(R.string.item_received),context.getString(R.string.buyer_confirm_received),order.getProductId(),order.getTitle());
             }
         });
 
-        holder.tvConfirmDelivery.setOnClickListener(new View.OnClickListener() {
+        holder.tvConfirmOrder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 DatabaseReference orderReference=  FirebaseDatabase.getInstance().getReference().child("orders").child(order.getId());
                 Map<String, Object> updates = new HashMap<>();
-                updates.put("status", context.getString(R.string.delivered));
-                updates.put("deliveredOn",String.valueOf(System.currentTimeMillis()));
-
+                updates.put("status", context.getString(R.string.order_confirmed));
+                updates.put("confirmedOn",String.valueOf(System.currentTimeMillis()));
                 orderReference.updateChildren(updates).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-                        holder.vgConfirm.setVisibility(View.GONE);
-                        holder.tvInstructions.setVisibility(View.GONE);
+                        if (order.getAddress()!=null){
+                            holder.tvMarkShipped.setVisibility(View.VISIBLE);
+                            holder.tvConfirmOrder.setVisibility(View.GONE);
+                        }else{
+                            holder.tvMarkShipped.setVisibility(View.GONE);
+                            holder.tvConfirmOrder.setVisibility(View.GONE);
+                        }
+                        getUserFcm(order.getBuyerId(),context.getString(R.string.order_confirmed),context.getString(R.string.your_order_confirmed));
                     }
                 });
-                //get fcm token and send notification
-                getUserFcm(order.getSellerId(),context.getString(R.string.item_shipped),context.getString(R.string.confirm_delivery_product),order.getProductId(),order.getTitle());
             }
         });
-        getOrderedBy(context,order.getSellerId(),holder.tvUser,holder.imgUser);
 
+        getOrderedBy(context,order.getBuyerId(),holder.tvUser,holder.imgUser);
     }
 
     @Override
@@ -185,9 +162,8 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
     }
 
     class ViewHolder extends RecyclerView.ViewHolder{
-        TextView tvTitle,tvQuantity,tvTotal,tvStatus,tvUser,tvOrderedOn,tvAddress,tvOrderId,tvInstructions,tvConfirmDelivery,tvConfirmPickup,tvContactSeller;
+        TextView tvTitle,tvQuantity,tvTotal,tvStatus,tvUser,tvOrderedOn,tvAddress,tvConfirmOrder,tvOrderId,tvMarkShipped;
         CircleImageView imgUser;
-        LinearLayout vgConfirm;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitle = itemView.findViewById(R.id.tv_title);
@@ -198,14 +174,9 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
             tvOrderedOn = itemView.findViewById(R.id.tv_ordered_on);
             imgUser = itemView.findViewById(R.id.img_user);
             tvAddress = itemView.findViewById(R.id.tv_address);
+            tvConfirmOrder = itemView.findViewById(R.id.tv_confirm_order);
             tvOrderId = itemView.findViewById(R.id.tv_order_id);
-            tvInstructions = itemView.findViewById(R.id.tv_instructions);
-            vgConfirm = itemView.findViewById(R.id.vg_confirm);
-            tvConfirmDelivery  = itemView.findViewById(R.id.tv_confirm_delivery);
-            tvConfirmPickup = itemView.findViewById(R.id.tv_confirm_pickup);
-            tvContactSeller = itemView.findViewById(R.id.tv_contact_seller);
-
-
+            tvMarkShipped = itemView.findViewById(R.id.tv_mark_shipped);
         }
     }
 
@@ -243,7 +214,7 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
         });
     }
 
-    void getUserFcm(String buyerId,String title, String message,String adId,String productTitle){
+    void getUserFcm(String buyerId,String title, String message){
         FirebaseDatabase.getInstance().getReference().child("users").child(buyerId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -251,7 +222,7 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
                     User user = new User();
                     user.setFcmToken(snapshot.child("fcmToken").getValue(String.class));
                     try {
-                        sendPushNotification(title,message,buyerId, user.getFcmToken(), context ,adId,productTitle);
+                        sendPushNotification(title,message,buyerId, user.getFcmToken(), context);
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }
@@ -265,7 +236,7 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
         });
     }
 
-    void sendPushNotification(String title,String body,String userId,String fcmToken,Context context,String adId, String productTitle) throws JSONException {
+    void sendPushNotification(String title,String body,String userId,String fcmToken,Context context) throws JSONException {
         String accessToken = SharedPrefManager.getInstance(context).getAccessToken();
 
         JSONObject messageObject = new JSONObject();
@@ -277,17 +248,15 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
 
         messageObject.put("notification",notificationObject);
         messageObject.put("token",fcmToken);
-
         JSONObject dataObject = new JSONObject();
-        dataObject.put("adId",adId);
-        dataObject.put("title",productTitle);
-        dataObject.put("deepLink","https://classifiedadsapplication.page.link/user:"+adId+"_"+productTitle);
-        messageObject.put("data",dataObject);
+        dataObject.put("id",userId);
 
+        dataObject.put("deepLink","https://classifiedadsapplication.page.link/user:"+userId);
+        messageObject.put("data",dataObject);
 
         JSONObject androidObject = new JSONObject();
         JSONObject activityNotificationObject = new JSONObject();
-        activityNotificationObject.put("click_action","com.android.classifiedapp.ActivityViewOrders");
+        activityNotificationObject.put("click_action","com.android.classifiedapp.ActivityMyOrders");
 
         androidObject.put("notification",activityNotificationObject);
         messageObject.put("android",androidObject);

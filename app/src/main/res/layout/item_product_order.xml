@@ -2,8 +2,8 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    app:cardElevation="12dp"
     app:cardCornerRadius="12dp"
+    app:cardElevation="12dp"
     app:cardUseCompatPadding="true"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
@@ -13,7 +13,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         >
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -118,69 +117,42 @@
             android:id="@+id/tv_ordered_on"
             android:text="@string/ordered_on"
             android:layout_alignParentEnd="true"
-           android:layout_below="@id/view"
+            android:layout_below="@id/view"
             android:layout_marginEnd="8dp"
             />
-
-        <LinearLayout
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/tv_user"
-            android:id="@+id/vg_confirm"
-            android:visibility="gone"
-            android:layout_marginTop="12dp"
-            android:layout_marginStart="8dp"
+            android:text="@string/confirm_order"
+            android:layout_below="@id/img_user"
+            android:background="@drawable/btn_buy"
+            android:gravity="center_horizontal"
+            android:textSize="16sp"
+            android:textColor="@color/teal_200"
+            android:padding="8dp"
+            android:visibility="visible"
+            android:id="@+id/tv_confirm_order"
             android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
             android:layout_marginBottom="8dp"
-            >
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:background="@drawable/btn_buy"
-                android:gravity="center_horizontal"
-                android:textSize="16sp"
-                android:textColor="@color/teal_200"
-                android:padding="8dp"
-                android:id="@+id/tv_contact_seller"
-                android:layout_marginEnd="8dp"
-                android:text="@string/contact_seller"
-                />
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:background="@drawable/btn_buy"
-                android:gravity="center_horizontal"
-                android:textSize="16sp"
-                android:textColor="@color/teal_200"
-                android:padding="8dp"
-                android:id="@+id/tv_confirm_delivery"
-                android:text="@string/confirm_delivery"
-                />
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:background="@drawable/btn_buy"
-                android:gravity="center_horizontal"
-                android:textSize="16sp"
-                android:textColor="@color/teal_200"
-                android:padding="8dp"
-                android:id="@+id/tv_confirm_pickup"
-                android:text="@string/confirm_pickup"
-                />
-        </LinearLayout>
+            />
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/vg_confirm"
-            android:text="@string/no_listing_posted"
+            android:text="@string/mark_as_shipped"
+            android:layout_below="@id/img_user"
+            android:background="@drawable/btn_buy"
+            android:gravity="center_horizontal"
+            android:textSize="16sp"
+            android:textColor="@color/teal_200"
             android:padding="8dp"
             android:visibility="gone"
-            android:textStyle="italic"
-            android:id="@+id/tv_instructions"
+            android:id="@+id/tv_mark_shipped"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginBottom="8dp"
             />
+
     </RelativeLayout>
 
 

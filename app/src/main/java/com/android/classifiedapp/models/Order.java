@@ -17,6 +17,9 @@ public class Order implements Parcelable {
     String status;
 
     String currency,placeOn,address;
+    String confirmedOn,pickedOn,shippedOn,deliveredOn;
+
+    boolean isRated;
 
     public Order() {
     }
@@ -37,6 +40,11 @@ public class Order implements Parcelable {
         currency = in.readString();
         placeOn = in.readString();
         address = in.readString();
+        confirmedOn = in.readString();
+        pickedOn = in.readString();
+        shippedOn = in.readString();
+        deliveredOn = in.readString();
+        isRated = in.readInt() != 0;
     }
 
     public static final Creator<Order> CREATOR = new Creator<Order>() {
@@ -139,6 +147,46 @@ public class Order implements Parcelable {
         this.placeOn = placeOn;
     }
 
+    public String getConfirmedOn() {
+        return confirmedOn;
+    }
+
+    public void setConfirmedOn(String confirmedOn) {
+        this.confirmedOn = confirmedOn;
+    }
+
+    public String getPickedOn() {
+        return pickedOn;
+    }
+
+    public void setPickedOn(String pickedOn) {
+        this.pickedOn = pickedOn;
+    }
+
+    public String getShippedOn() {
+        return shippedOn;
+    }
+
+    public void setShippedOn(String shippedOn) {
+        this.shippedOn = shippedOn;
+    }
+
+    public boolean isRated() {
+        return isRated;
+    }
+
+    public void setRated(boolean rated) {
+        isRated = rated;
+    }
+
+    public String getDeliveredOn() {
+        return deliveredOn;
+    }
+
+    public void setDeliveredOn(String deliveredOn) {
+        this.deliveredOn = deliveredOn;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -162,5 +210,10 @@ public class Order implements Parcelable {
         dest.writeString(currency);
         dest.writeString(placeOn);
         dest.writeString(address);
+       dest.writeString(confirmedOn);
+       dest.writeString(pickedOn);
+       dest.writeString(shippedOn);
+       dest.writeString(deliveredOn);
+        dest.writeInt(isRated ? 1 : 0);
     }
 }

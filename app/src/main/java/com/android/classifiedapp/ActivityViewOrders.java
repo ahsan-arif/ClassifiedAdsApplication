@@ -1,5 +1,6 @@
 package com.android.classifiedapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -14,7 +15,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.classifiedapp.adapters.OrdersAdapter;
+import com.android.classifiedapp.adapters.ProductOrdersAdapter;
 import com.android.classifiedapp.models.Order;
+import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -43,11 +46,20 @@ public class ActivityViewOrders extends AppCompatActivity {
         adId = getIntent().getStringExtra("adId");
         title = getIntent().getStringExtra("title");
 
-        getOrders(adId,title);
+        LogUtils.e(adId);
+        LogUtils.e(title);
+
+        Bundle extras = getIntent().getExtras();
+        LogUtils.e(extras);
+        //getOrders(adId,title);
+        getOrdersNew(adId,title);
 
         imgBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (extras!=null){
+                    startActivity(new Intent(ActivityViewOrders.this, Home.class));
+                }
                 finish();
             }
         });
@@ -59,13 +71,17 @@ public class ActivityViewOrders extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()){
-                    ArrayList<Order> orders = new ArrayList<>();
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
-                        Order order = dataSnapshot.getValue(Order.class);
-                        orders.add(order);
-                    }
+                    try {
+                        ArrayList<Order> orders = new ArrayList<>();
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                            Order order = dataSnapshot.getValue(Order.class);
+                            orders.add(order);
+                        }
 
-                    setAdapter(orders,title);
+                        setAdapter(orders);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }else{
                     ToastUtils.showShort(getString(R.string.no_orders_for_listing));
                 }
@@ -77,8 +93,35 @@ public class ActivityViewOrders extends AppCompatActivity {
             }});
     }
 
-    void setAdapter(ArrayList<Order> orders,String title){
-        OrdersAdapter adapter = new OrdersAdapter(ActivityViewOrders.this,orders,false);
+    void getOrdersNew(String adId, String productTitle){
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("orders");
+        databaseReference.orderByChild("productId").equalTo(adId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    try {
+                        ArrayList<Order> orders = new ArrayList<>();
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                            Order order = dataSnapshot.getValue(Order.class);
+                            orders.add(order);
+                        }
+
+                        setAdapter(orders);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    void setAdapter(ArrayList<Order> orders){
+        ProductOrdersAdapter adapter = new ProductOrdersAdapter(ActivityViewOrders.this,orders);
         rvOrders.setAdapter(adapter);
         rvOrders.setLayoutManager(new LinearLayoutManager(ActivityViewOrders.this));
     }

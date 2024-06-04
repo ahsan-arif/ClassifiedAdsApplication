@@ -112,6 +112,8 @@ public class ActivityCheckout extends AppCompatActivity {
         tvTotal.setText(ad.getCurrency()+" "+total);
         if (!ad.isShippingAvailable()){
             containerAddress.setVisibility(View.GONE);
+        }else{
+            tvBuyerAddress.setText(location);
         }
 
         paymentButtonContainer.setup( new CreateOrder() {
@@ -145,10 +147,10 @@ public class ActivityCheckout extends AppCompatActivity {
                     @Override
                     public void onCaptureComplete(@NotNull CaptureOrderResult result) {
                         LogUtils.e(String.format("CaptureOrderResult: %s", result));
-                        ToastUtils.showShort( "Successful", Toast.LENGTH_SHORT);
+                        ToastUtils.showShort( getString(R.string.payment_successful), Toast.LENGTH_SHORT);
 
                         String uid= FirebaseAuth.getInstance().getCurrentUser().getUid();
-                        DatabaseReference databaseReference=  FirebaseDatabase.getInstance().getReference().child("users").child(uid).child("orders").push();
+                        DatabaseReference databaseReference=  FirebaseDatabase.getInstance().getReference().child("orders").push();
                         String key = databaseReference.getKey();
                         Order order = new Order();
                         order.setAmount(Double.valueOf(quantity)*Double.valueOf(ad.getPrice()));
@@ -167,8 +169,8 @@ public class ActivityCheckout extends AppCompatActivity {
 
                         databaseReference.setValue(order);
 
-                        DatabaseReference productReference=  FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId()).child("orders").child(key);
-                        productReference.setValue(order);
+                /*        DatabaseReference productReference=  FirebaseDatabase.getInstance().getReference().child("ads").child(ad.getId()).child("orders").child(key);
+                        productReference.setValue(order);*/
 
                         if (!isPremiumUser){
                             DatabaseReference userReference = FirebaseDatabase.getInstance().getReference().child("users").child(ad.getPostedBy()).child("maximumOrdersAvailable");
@@ -181,7 +183,8 @@ public class ActivityCheckout extends AppCompatActivity {
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
                         }
-                        startActivity(new Intent(ActivityCheckout.this, ActivityPaymentSuccessful.class).putExtra("order",order));
+                        startActivity(new Intent(ActivityCheckout.this, Home.class).putExtra("order",order));
+                        finish();
                     }
                 });
             }
@@ -200,14 +203,14 @@ public class ActivityCheckout extends AppCompatActivity {
         messageObject.put("token",sellerFCMTOken);
 
         JSONObject dataObject = new JSONObject();
-        dataObject.put("id",ad.getId());
-        dataObject.put("deepLink","https://classifiedadsapplication.page.link/adId:"+ad.getId());
-
+        dataObject.put("adId",ad.getId());
+        dataObject.put("title",ad.getTitle());
+        dataObject.put("deepLink","https://classifiedadsapplication.page.link/user:"+ad.getId()+"_"+ad.getTitle());
         messageObject.put("data",dataObject);
 
         JSONObject androidObject = new JSONObject();
         JSONObject activityNotificationObject = new JSONObject();
-        activityNotificationObject.put("click_action","com.android.classifiedapp.ActivityAdDetails");
+        activityNotificationObject.put("click_action","com.android.classifiedapp.ActivityViewOrders");
 
         androidObject.put("notification",activityNotificationObject);
         messageObject.put("android",androidObject);

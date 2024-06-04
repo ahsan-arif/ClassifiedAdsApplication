@@ -190,5 +190,5 @@
     <string name="item_shipped">Item Shipped</string>
     <string name="item_on_its_way">The product is on its way to you.</string>
     <string name="confirm_product_received">Press Confirm Delivery after receiving items to complete the order.</string>
-    <string name="buyer_received">The buyer has received items.</string>
+    <string name="confirm_delivery_product">The buyer has confirmed the items have been delivered.</string>
 </resources>

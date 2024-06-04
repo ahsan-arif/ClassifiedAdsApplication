@@ -20,6 +20,7 @@ import com.blankj.utilcode.util.ToastUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
@@ -47,7 +48,8 @@ RecyclerView rvOrders;
                 finish();
             }
         });
-        getOrders(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        //getOrders(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        getOrdersNew(FirebaseAuth.getInstance().getCurrentUser().getUid());
     }
 
     void getOrders(String userId){
@@ -80,8 +82,40 @@ RecyclerView rvOrders;
         });
     }
 
+    void getOrdersNew(String userId){
+        ProgressDialog progressDialog = new ProgressDialog(ActivityMyOrders.this);
+        progressDialog.setTitle(getString(R.string.please_wait));
+        progressDialog.setMessage(getString(R.string.fetching_orders));
+        progressDialog.show();
+        DatabaseReference databaseReference =FirebaseDatabase.getInstance().getReference().child("orders");
+        databaseReference.orderByChild("buyerId").equalTo(userId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                progressDialog.dismiss();
+                if(snapshot.exists()){
+                    try {
+                        ArrayList<Order> orders = new ArrayList<>();
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                            Order order = dataSnapshot.getValue(Order.class);
+                            orders.add(order);
+                        }
+
+                        setAdapter(orders);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+progressDialog.dismiss();
+            }
+        });
+    }
+
     void setAdapter(ArrayList<Order> orders){
-        OrdersAdapter adapter = new OrdersAdapter(ActivityMyOrders.this,orders,true);
+        OrdersAdapter adapter = new OrdersAdapter(ActivityMyOrders.this,orders);
         rvOrders.setAdapter(adapter);
         rvOrders.setLayoutManager(new LinearLayoutManager(ActivityMyOrders.this));
     }

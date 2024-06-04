@@ -43,13 +43,21 @@
             android:exported="false" />
         <activity
             android:name=".ActivityMyOrders"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTask"
+            >
+            <intent-filter>
+                <action android:name="com.android.classifiedapp.ActivityMyOrders" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ActivityViewOrders"
             android:exported="false"
             android:launchMode="singleTask">
             <intent-filter>
-                <action android:name="com.android.classifiedapp.ActivityMyOrders" />
+                <action android:name="com.android.classifiedapp.ActivityViewOrders" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
