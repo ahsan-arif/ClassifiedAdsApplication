@@ -54,9 +54,12 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
 
     String productTitle;
 
-    public OrdersAdapter(Context context, ArrayList<Order> orders) {
+    RateButtonClickListener listener;
+
+    public OrdersAdapter(Context context, ArrayList<Order> orders,RateButtonClickListener listener) {
         this.context = context;
         this.orders = orders;
+        this.listener = listener;
     }
 
     @NonNull
@@ -116,6 +119,17 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
                 holder.vgConfirm.setVisibility(View.VISIBLE);
                 holder.tvConfirmPickup.setVisibility(View.GONE);
                 holder.tvConfirmDelivery.setVisibility(View.VISIBLE);
+            }else if (order.getStatus().equals(context.getString(R.string.delivered))||order.getStatus().equals(context.getString(R.string.received))){
+                holder.tvInstructions.setVisibility(View.GONE);
+                holder.vgConfirm.setVisibility(View.VISIBLE);
+                holder.tvConfirmPickup.setVisibility(View.GONE);
+                holder.tvContactSeller.setVisibility(View.GONE);
+                holder.tvConfirmDelivery.setVisibility(View.GONE);
+                if (!order.isRated()){
+                    holder.tvRate.setVisibility(View.VISIBLE);
+                }else{
+                    holder.tvRate.setVisibility(View.GONE);
+                }
             }
 
         if (order.getAddress()!=null){
@@ -147,7 +161,11 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
                 orderReference.updateChildren(updates).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-                        holder.vgConfirm.setVisibility(View.GONE);
+                        holder.vgConfirm.setVisibility(View.VISIBLE);
+                        holder.tvConfirmDelivery.setVisibility(View.GONE);
+                        holder.tvContactSeller.setVisibility(View.GONE);
+                        holder.tvConfirmPickup.setVisibility(View.GONE);
+                        holder.tvRate.setVisibility(View.VISIBLE);
                         holder.tvInstructions.setVisibility(View.GONE);
                     }
                 });
@@ -167,12 +185,23 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
                 orderReference.updateChildren(updates).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-                        holder.vgConfirm.setVisibility(View.GONE);
+                        holder.vgConfirm.setVisibility(View.VISIBLE);
+                        holder.tvConfirmDelivery.setVisibility(View.GONE);
+                        holder.tvContactSeller.setVisibility(View.GONE);
+                        holder.tvConfirmPickup.setVisibility(View.GONE);
+                        holder.tvRate.setVisibility(View.VISIBLE);
                         holder.tvInstructions.setVisibility(View.GONE);
                     }
                 });
                 //get fcm token and send notification
                 getUserFcm(order.getSellerId(),context.getString(R.string.item_shipped),context.getString(R.string.confirm_delivery_product),order.getProductId(),order.getTitle());
+            }
+        });
+
+        holder.tvRate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listener.onRateButtonClicked(order);
             }
         });
         getOrderedBy(context,order.getSellerId(),holder.tvUser,holder.imgUser);
@@ -185,7 +214,7 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
     }
 
     class ViewHolder extends RecyclerView.ViewHolder{
-        TextView tvTitle,tvQuantity,tvTotal,tvStatus,tvUser,tvOrderedOn,tvAddress,tvOrderId,tvInstructions,tvConfirmDelivery,tvConfirmPickup,tvContactSeller;
+        TextView tvTitle,tvQuantity,tvTotal,tvStatus,tvUser,tvOrderedOn,tvAddress,tvOrderId,tvInstructions,tvConfirmDelivery,tvConfirmPickup,tvContactSeller,tvRate;
         CircleImageView imgUser;
         LinearLayout vgConfirm;
         public ViewHolder(@NonNull View itemView) {
@@ -204,6 +233,7 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
             tvConfirmDelivery  = itemView.findViewById(R.id.tv_confirm_delivery);
             tvConfirmPickup = itemView.findViewById(R.id.tv_confirm_pickup);
             tvContactSeller = itemView.findViewById(R.id.tv_contact_seller);
+            tvRate = itemView.findViewById(R.id.tv_rate);
 
 
         }
@@ -329,5 +359,9 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
         queue.add(request);
         //  This code will send a push notification to the device with the title "New Like!" and the body "Someone has liked your post!".
         //I hope this helps! Let me know if you have any other questions.
+    }
+
+    public interface RateButtonClickListener{
+        void onRateButtonClicked(Order order);
     }
 }

@@ -117,6 +117,7 @@ public class ActivityAdDetails extends AppCompatActivity {
     int ordersAvailable;
     boolean isPremiumUser;
     long benefitsExpiry;
+    RatingBar ratingbarProduct;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -151,6 +152,7 @@ public class ActivityAdDetails extends AppCompatActivity {
         tvBuy = findViewById(R.id.tv_buy);
         ratingbar = findViewById(R.id.ratingbar);
         tvViewOrders = findViewById(R.id.tv_view_orders);
+        ratingbarProduct = findViewById(R.id.ratingbar_product);
 
         ad = getIntent().getParcelableExtra("ad");
         String adId2 = getIntent().getStringExtra("adId");
@@ -710,19 +712,33 @@ public class ActivityAdDetails extends AppCompatActivity {
     }
 
     void getSellerRating(String uid){
-        FirebaseDatabase.getInstance().getReference().child("users").child(uid).child("ratings").addListenerForSingleValueEvent(new ValueEventListener() {
+
+        DatabaseReference sellerRef = FirebaseDatabase.getInstance().getReference().child("ratings");
+        sellerRef.orderByChild("sellerId").equalTo(uid).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()){
-                    float commulativeRating=0;
-                    List<Rating> ratings = new ArrayList<>();
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
-                        Rating rating = dataSnapshot.getValue(Rating.class);
-                        ratings.add(rating);
-                        commulativeRating = commulativeRating+rating.getRating();
+                    try {
+                        float commulativeRating=0;
+                        float productRating = 0;
+                        int totalRecords=0;
+                        List<Rating> ratings = new ArrayList<>();
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                            Rating rating = dataSnapshot.getValue(Rating.class);
+                            ratings.add(rating);
+                            commulativeRating = commulativeRating+rating.getSellerRating();
+                            if (rating.getProductId().equals(ad.getId())){
+                                productRating = productRating+rating.getProductRating();
+                                totalRecords++;
+                            }
+                        }
+                        float averageRating = commulativeRating / ratings.size();
+                        float averageProductRating = productRating/totalRecords;
+                        ratingbarProduct.setRating(averageProductRating);
+                        ratingbar.setRating(averageRating);
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
-                    float averageRating = commulativeRating / ratings.size();
-                    ratingbar.setRating(averageRating);
                 }
             }
 

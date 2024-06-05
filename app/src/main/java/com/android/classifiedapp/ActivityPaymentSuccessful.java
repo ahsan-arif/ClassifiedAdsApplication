@@ -75,7 +75,7 @@ public class ActivityPaymentSuccessful extends AppCompatActivity {
                 LogUtils.e(order.getSellerId());
                 DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(order.getSellerId()).child("ratings").push();
                 Rating r = new Rating();
-                r.setRating(rating1);
+                r.setSellerRating(rating1);
                 r.setRatedBy(order.getBuyerId());
                 r.setProductId(order.getProductId());
                 r.setRatedOn(String.valueOf(System.currentTimeMillis()));

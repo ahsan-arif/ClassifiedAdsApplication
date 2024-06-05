@@ -17,6 +17,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +38,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.android.classifiedapp.adapters.ImagePagerAdapter;
 import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.Order;
+import com.android.classifiedapp.models.Rating;
 import com.android.classifiedapp.models.Report;
 import com.android.classifiedapp.models.User;
 import com.android.classifiedapp.utilities.SharedPrefManager;
@@ -113,6 +115,9 @@ public class ActivityPageAdDetails extends AppCompatActivity {
     boolean isPremiumUser;
     long benefitsExpiry;
 
+    RatingBar ratingbarProduct;
+    RatingBar ratingbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -146,6 +151,8 @@ public class ActivityPageAdDetails extends AppCompatActivity {
         tvReport = findViewById(R.id.tv_report_listing);
         tvBuy = findViewById(R.id.tv_buy);
         tvViewOrders = findViewById(R.id.tv_view_orders);
+        ratingbar = findViewById(R.id.ratingbar);
+        ratingbarProduct = findViewById(R.id.ratingbar_product);
         String lastPathSeg = getIntent().getStringExtra("adId");
         String[] segs = lastPathSeg.split(":");
         adId="";
@@ -326,6 +333,7 @@ public class ActivityPageAdDetails extends AppCompatActivity {
                     tvBuy.setVisibility(View.GONE);
                     tvViewOrders.setVisibility(View.VISIBLE);
                 }
+                getSellerRating(ad.getPostedBy());
             }
 
             @Override
@@ -800,6 +808,44 @@ public class ActivityPageAdDetails extends AppCompatActivity {
                     proceedToPayment.setTextColor(getColor(R.color.red));
                     proceedToPayment.setBackgroundResource(R.drawable.bg_report_btn);
                     proceedToPayment.setOnClickListener(null);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    void getSellerRating(String uid){
+
+        DatabaseReference sellerRef = FirebaseDatabase.getInstance().getReference().child("ratings");
+        sellerRef.orderByChild("sellerId").equalTo(uid).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    try {
+                        float commulativeRating=0;
+                        float productRating = 0;
+                        int totalRecords=0;
+                        List<Rating> ratings = new ArrayList<>();
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                            Rating rating = dataSnapshot.getValue(Rating.class);
+                            ratings.add(rating);
+                            commulativeRating = commulativeRating+rating.getSellerRating();
+                            if (rating.getProductId().equals(ad1.getId())){
+                                productRating = productRating+rating.getProductRating();
+                                totalRecords++;
+                            }
+                        }
+                        float averageRating = commulativeRating / ratings.size();
+                        float averageProductRating = productRating/totalRecords;
+                        ratingbarProduct.setRating(averageProductRating);
+                        ratingbar.setRating(averageRating);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }
             }
 

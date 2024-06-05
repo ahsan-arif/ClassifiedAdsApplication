@@ -191,4 +191,9 @@
     <string name="item_on_its_way">The product is on its way to you.</string>
     <string name="confirm_product_received">Press Confirm Delivery after receiving items to complete the order.</string>
     <string name="confirm_delivery_product">The buyer has confirmed the items have been delivered.</string>
+    <string name="rate_experience">Rate Experience</string>
+    <string name="rate_seller">Rate Seller</string>
+    <string name="rate_product">Rate Product</string>
+    <string name="submit">Submit</string>
+    <string name="your_feedback_recorded">Your feedback has been recorded.</string>
 </resources>

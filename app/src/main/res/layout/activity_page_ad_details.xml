@@ -125,11 +125,23 @@
                 android:layout_marginBottom="8dp"
                 />
         </LinearLayout>
+        <RatingBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/vg_titleprice"
+            style="@android:style/Widget.Holo.Light.RatingBar.Small"
+            android:max="5"
+            android:id="@+id/ratingbar_product"
+            android:visibility="visible"
+            android:isIndicator="true"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="8dp"
+            />
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/app_name"
-            android:layout_below="@+id/vg_titleprice"
+            android:layout_below="@+id/ratingbar_product"
             android:textSize="14sp"
             android:textColor="@color/black"
             android:textStyle="bold"
@@ -160,24 +172,31 @@
                 android:layout_centerVertical="true"
                 android:layout_marginStart="8dp"
                 />
-            <TextView
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/tv_name"
-                android:layout_centerVertical="true"
+                android:orientation="vertical"
                 android:layout_toEndOf="@id/img_user"
-                android:layout_marginStart="8dp"
-                />
-            <RatingBar
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/tv_name"
-                style="@android:style/Widget.Holo.Light.RatingBar.Small"
-                android:layout_toEndOf="@id/img_user"
-                android:max="5"
-                android:visibility="gone"
-                android:isIndicator="true"
-                />
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tv_name"
+                    android:layout_marginStart="8dp"
+                    />
+                <RatingBar
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@android:style/Widget.Holo.Light.RatingBar.Small"
+                    android:max="5"
+                    android:id="@+id/ratingbar"
+                    android:visibility="visible"
+                    android:isIndicator="true"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="12dp"
+                    />
+            </LinearLayout>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

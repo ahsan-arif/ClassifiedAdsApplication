@@ -170,6 +170,18 @@
                 android:id="@+id/tv_confirm_pickup"
                 android:text="@string/confirm_pickup"
                 />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:background="@drawable/btn_buy"
+                android:gravity="center_horizontal"
+                android:textSize="16sp"
+                android:textColor="@color/teal_200"
+                android:padding="8dp"
+                android:id="@+id/tv_rate"
+                android:text="@string/rate_experience"
+                />
         </LinearLayout>
         <TextView
             android:layout_width="wrap_content"
@@ -182,7 +194,5 @@
             android:id="@+id/tv_instructions"
             />
     </RelativeLayout>
-
-
 
 </androidx.cardview.widget.CardView>

@@ -104,7 +104,7 @@ TextView tvNoListing;
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()){
                         Rating rating = dataSnapshot.getValue(Rating.class);
                         ratings.add(rating);
-                        commulativeRating = commulativeRating+rating.getRating();
+                        commulativeRating = commulativeRating+rating.getSellerRating();
                     }
                     float averageRating = commulativeRating / ratings.size();
                     ratingbar.setRating(averageRating);
