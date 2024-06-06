@@ -196,4 +196,6 @@
     <string name="rate_product">Rate Product</string>
     <string name="submit">Submit</string>
     <string name="your_feedback_recorded">Your feedback has been recorded.</string>
+    <string name="most_liked">Most Liked Products</string>
+    <string name="popular_products">Popular Products</string>
 </resources>

@@ -2,11 +2,14 @@ package com.android.classifiedapp;
 
 
 
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -31,9 +34,11 @@ import com.android.classifiedapp.models.PlatformPrefs;
 import com.android.classifiedapp.models.User;
 import com.android.classifiedapp.utilities.SharedPrefManager;
 import com.blankj.utilcode.util.LogUtils;
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationView;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -52,13 +57,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Home extends AppCompatActivity {
+import de.hdodenhof.circleimageview.CircleImageView;
+
+public class Home extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     BottomNavigationView bottomNavigation;
     private static final String[] SCOPES = {"https://www.googleapis.com/auth/firebase.messaging"};
     private GoogleCredentials googleCredentials;
     private InputStream jasonfile;
     private String beaerertoken;
     private String BEARERTOKEN;
+    NavigationView navigationView;
+    CircleImageView imgUser;
+    TextView tvName;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,6 +81,10 @@ public class Home extends AppCompatActivity {
         }
         setContentView(R.layout.activity_home);
         bottomNavigation = findViewById(R.id.bottom_navigation);
+        navigationView = findViewById(R.id.navigation_view);
+        View headerView = navigationView.getHeaderView(0);
+        imgUser = headerView.findViewById(R.id.img_user);
+        tvName = headerView.findViewById(R.id.tv_name);
   /*     insertData("ARS","Argentina","https://firebasestorage.googleapis.com/v0/b/ecommerceapp-65596.appspot.com/o/flags%2Fargentina_flag.svg?alt=media&token=7a28bf15-4773-4e3f-b906-d6acb25300e1");
        insertData("MXN","Mexico","https://firebasestorage.googleapis.com/v0/b/ecommerceapp-65596.appspot.com/o/flags%2Fmexico_flag.svg?alt=media&token=76c14093-9531-49e1-b6b5-d4b9f11d6de1");
        insertData("COP","Colombia","https://firebasestorage.googleapis.com/v0/b/ecommerceapp-65596.appspot.com/o/flags%2Fcolombia_flag.svg?alt=media&token=caa181c5-3b98-4171-8a0c-c138106cc534");
@@ -90,6 +104,7 @@ public class Home extends AppCompatActivity {
             //throw new RuntimeException(e);
         }
 
+        navigationView.setNavigationItemSelectedListener(this);
         bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
@@ -175,47 +190,58 @@ public class Home extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()){
-                    User user = snapshot.getValue(User.class);
-                    if (user.getBenefitsExpiry()<System.currentTimeMillis()){
-                        FirebaseDatabase.getInstance().getReference().child("platform_prefs").addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                if (snapshot.exists()){
-                                    PlatformPrefs prefs =snapshot.getValue(PlatformPrefs.class);
-                                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(uid);
-                                    // Create a Map to hold the child updates
-                                    Map<String, Object> updates = new HashMap<>();
-                                    updates.put("premiumUser", false);
-                                    updates.put("maximumOrdersAvailable",prefs.getMaximumOrdersAllowed() );
-                                    updates.put("freeMessagesAvailable",prefs.getFreeMessagesCount());
-                                    updates.put("freeAdsAvailable",prefs.getFreeAdsCount());
-                                    Calendar calendar = Calendar.getInstance();
-                                    calendar.setTimeInMillis(System.currentTimeMillis());
-                                    // Add one month to the calendar
-                                    calendar.add(Calendar.MONTH, 1);
-                                    // Get the new time in milliseconds
-                                    long newTimeMillis = calendar.getTimeInMillis();
-                                    updates.put("benefitsExpiry",newTimeMillis);
+                    try {
+                        User user = snapshot.getValue(User.class);
+                        tvName.setText(user.getName());
+                        if (user.getProfileImage()!=null){
+                            Glide.with(Home.this).load(user.getProfileImage()).into(imgUser);
+                        }else{
+                            imgUser.setImageResource(R.drawable.outline_account_circle_24);
+                        }
+                        if (user.getBenefitsExpiry()<System.currentTimeMillis()){
+                            FirebaseDatabase.getInstance().getReference().child("platform_prefs").addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    if (snapshot.exists()){
+                                        PlatformPrefs prefs =snapshot.getValue(PlatformPrefs.class);
+                                        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(uid);
+                                        // Create a Map to hold the child updates
+                                        Map<String, Object> updates = new HashMap<>();
+                                        updates.put("premiumUser", false);
+                                        updates.put("maximumOrdersAvailable",prefs.getMaximumOrdersAllowed() );
+                                        updates.put("freeMessagesAvailable",prefs.getFreeMessagesCount());
+                                        updates.put("freeAdsAvailable",prefs.getFreeAdsCount());
+                                        Calendar calendar = Calendar.getInstance();
+                                        calendar.setTimeInMillis(System.currentTimeMillis());
+                                        // Add one month to the calendar
+                                        calendar.add(Calendar.MONTH, 1);
+                                        // Get the new time in milliseconds
+                                        long newTimeMillis = calendar.getTimeInMillis();
+                                        updates.put("benefitsExpiry",newTimeMillis);
 
-                                    databaseReference.updateChildren(updates).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            if (task.isSuccessful()){
-                                                LogUtils.e("benefits updated");
-                                            }else{
-                                                LogUtils.e("failed to update benefits");
+                                        databaseReference.updateChildren(updates).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                if (task.isSuccessful()){
+                                                    LogUtils.e("benefits updated");
+                                                }else{
+                                                    LogUtils.e("failed to update benefits");
+                                                }
                                             }
-                                        }
-                                    });
+                                        });
+                                    }
                                 }
-                            }
 
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
 
-                            }
-                        });
+                                }
+                            });
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
+
                 }
             }
 
@@ -224,5 +250,14 @@ public class Home extends AppCompatActivity {
 
             }
         });
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+       if (menuItem.getItemId()==R.id.item_most_liked){
+           LogUtils.e("pressed");
+           startActivity(new Intent(Home.this,ActivityPopularAds.class));
+       }
+        return true;
     }
 }
