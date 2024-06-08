@@ -73,4 +73,8 @@ AutoCompleteTextView, which includes this spinner's dropdown/popup menu)
         <item name="android:maxLines">1</item>
         <item name="android:padding">16dp</item>
     </style>
+
+    <style name="RoundedSquare">
+        <item name="cornerSize">10%</item>
+    </style>
 </resources>

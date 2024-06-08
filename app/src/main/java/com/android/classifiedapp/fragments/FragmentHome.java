@@ -30,12 +30,15 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.classifiedapp.ActivitySelectFilters;
+import com.android.classifiedapp.ActivityViewedRecommendedProducts;
 import com.android.classifiedapp.Home;
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.adapters.AdsAdapter;
 import com.android.classifiedapp.adapters.HomeCategoriesAdapter;
+import com.android.classifiedapp.adapters.RecentlyViewedAdsAdapter;
 import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.Category;
+import com.android.classifiedapp.models.ViewedAd;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.github.dhaval2404.imagepicker.ImagePicker;
@@ -57,6 +60,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -80,6 +85,7 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
     FusedLocationProviderClient fusedLocationProviderClient;
     Double roundedLatitude;
     Double roundedLongitude;
+    TextView tvSeeAllRecent;
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -88,6 +94,14 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    ArrayList<Ad> recentAds;
+    LinearLayout vgRecentlyViewed;
+    RecyclerView rvRecentlyViewedAds;
+
+    LinearLayout vgRecommendedItems;
+    TextView tvSeeAllRecommendations;
+    RecyclerView rvRecommendedAds;
 
     public FragmentHome() {
         // Required empty public constructor
@@ -131,6 +145,12 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
         tvNoListing = view.findViewById(R.id.tv_no_listing);
         progressCircular = view.findViewById(R.id.progress_circular);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
+        vgRecentlyViewed = view.findViewById(R.id.vg_recently_viewed);
+        rvRecentlyViewedAds = view.findViewById(R.id.rv_recently_viewed_ads);
+        tvSeeAllRecent = view.findViewById(R.id.tv_see_all_recent);
+        vgRecommendedItems = view.findViewById(R.id.vg_recommended_items);
+        tvSeeAllRecommendations = view.findViewById(R.id.tv_see_all_recommendations);
+        rvRecommendedAds = view.findViewById(R.id.rv_recommended_ads);
 
         vgFilters.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -141,6 +161,9 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
         getCategories();
         //getAds();
         getLastKnownLocation();
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        getViewedAdIds(uid);
+        getInteractedCategories(uid);
         return view;
     }
 
@@ -224,13 +247,13 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                                 if (ad.getStatus()!=null){
                                     if (ad.getStatus().equals(getString(R.string.approved))){
                                         if (latitude>0){
-                                            LogUtils.e(latitude+" "+longitude);
-                                            LogUtils.e(ad.getLatitude(),ad.getLongitude());
+                                            //LogUtils.e(latitude+" "+longitude);
+                                            //LogUtils.e(ad.getLatitude(),ad.getLongitude());
                                             Double adLat = ad.getLatitude();
                                             Double adLong = ad.getLongitude();
                                             float[] results = new float[1]; // array to hold the result
                                             double distance = calculateDistance(latitude,longitude,adLat,adLong);
-                                            LogUtils.e(distance);
+                                           // LogUtils.e(distance);
                                             if (distance<=500){
                                                 ads.add(ad);
                                                 tvNoListing.setVisibility(View.GONE);
@@ -295,8 +318,8 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                         Geocoder geocoder = new Geocoder(context, Locale.getDefault());
                         try {
                             List<Address> addresses =geocoder.getFromLocation(location.getLatitude(),location.getLongitude(),1);
-                            LogUtils.e(location.getLatitude());
-                            LogUtils.e(location.getLongitude());
+//                            LogUtils.e(location.getLatitude());
+  //                          LogUtils.e(location.getLongitude());
                             // Assuming addresses.get(0) is a valid Address object
                             Double latitude = addresses.get(0).getLatitude();
                             Double longitude = addresses.get(0).getLongitude();
@@ -362,6 +385,175 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                     LogUtils.e(deniedList);
                     getAds();
                 }
+            }
+        });
+    }
+
+    void getViewedAdIds(String uid){
+        LogUtils.e(uid);
+        FirebaseDatabase.getInstance().getReference().child("users").child(uid).child("recentlyVisited").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    LogUtils.e("datasnapshot exists");
+                    LogUtils.e(snapshot);
+                    LogUtils.e(snapshot.getChildren());
+                    try {
+                        recentAds = new ArrayList<>();
+                        ArrayList<ViewedAd> viewedAds = new ArrayList<>();
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                            LogUtils.e(dataSnapshot);
+                            ViewedAd viewedAd = new ViewedAd();
+                            viewedAd.setViewedOn(dataSnapshot.child("visitedOn").getValue(Long.class));
+                            viewedAd.setAdId(dataSnapshot.getKey());
+                            LogUtils.e(dataSnapshot.getKey());
+                            viewedAds.add(viewedAd);
+                        }
+                        Collections.sort(viewedAds, new Comparator<ViewedAd>() {
+                            @Override
+                            public int compare(ViewedAd o1, ViewedAd o2) {
+                                return Long.compare(o1.getViewedOn(),o2.getViewedOn());
+                            }
+                        });
+                        getViewedAds(viewedAds);
+                    }catch (Exception e){
+                        LogUtils.e(e.getMessage());
+                        e.printStackTrace();
+                    }
+                }else{
+                    LogUtils.e("snapshot doesn't exist");
+                    vgRecentlyViewed.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                vgRecentlyViewed.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    void getViewedAds(ArrayList<ViewedAd> viewedAds){
+        //fetch the details of ad by AdID
+        for (ViewedAd viewedAd : viewedAds){
+            getAd(viewedAd.getAdId(),viewedAds);
+        }
+    }
+    void getAd(String adId,ArrayList<ViewedAd> viewedAds){
+        FirebaseDatabase.getInstance().getReference().child("ads").child(adId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    try {
+                        Ad ad = snapshot.getValue(Ad.class);
+                        recentAds.add(ad);
+                        LogUtils.e(recentAds.size(),viewedAds.size());
+                        if (recentAds.size()==viewedAds.size()){
+                            if (recentAds.size()<5){
+                                tvSeeAllRecent.setVisibility(View.GONE);
+                            }else{
+                                tvSeeAllRecent.setVisibility(View.VISIBLE);
+                                tvSeeAllRecent.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        startActivity(new Intent(context, ActivityViewedRecommendedProducts.class).putExtra("isRecommended",false));
+                                    }
+                                });
+                            }
+                            vgRecentlyViewed.setVisibility(View.VISIBLE);
+                            RecentlyViewedAdsAdapter adsAdapter = new RecentlyViewedAdsAdapter(context,recentAds);
+                            rvRecentlyViewedAds.setAdapter(adsAdapter);
+                            rvRecentlyViewedAds.setLayoutManager(new LinearLayoutManager(context,LinearLayoutManager.HORIZONTAL,false));
+
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    void getInteractedCategories(String uid){
+        FirebaseDatabase.getInstance().getReference().child("users").child(uid).child("interests").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    try {
+                        ArrayList<ViewedAd> viewedAds = new ArrayList<>();
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                            ViewedAd viewedAd = new ViewedAd();
+                            viewedAd.setViewedOn(dataSnapshot.child("visitedOn").getValue(Long.class));
+                            viewedAd.setAdId(dataSnapshot.getKey());
+                            LogUtils.e(dataSnapshot.getKey());
+                            viewedAds.add(viewedAd);
+                        }
+                        Collections.sort(viewedAds, new Comparator<ViewedAd>() {
+                            @Override
+                            public int compare(ViewedAd o1, ViewedAd o2) {
+                                return Long.compare(o1.getViewedOn(),o2.getViewedOn());
+                            }
+                        });
+                        getAdsByCategory(viewedAds);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    void getAdsByCategory(ArrayList<ViewedAd> interactedCategories){
+        FirebaseDatabase.getInstance().getReference().child("ads").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    try {
+                        ArrayList<Ad> ads = new ArrayList<>();
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                            Ad ad = dataSnapshot.getValue(Ad.class);
+                            for (ViewedAd interactedCat : interactedCategories){
+                                if (ad.getCategoryId().equals(interactedCat.getAdId())){
+                                    ads.add(ad);
+                                }
+                            }
+
+                        }
+                        if (ads.size()>0){
+                            vgRecommendedItems.setVisibility(View.VISIBLE);
+                            RecentlyViewedAdsAdapter adsAdapter = new RecentlyViewedAdsAdapter(context,ads);
+                            rvRecommendedAds.setAdapter(adsAdapter);
+                            rvRecommendedAds.setLayoutManager(new LinearLayoutManager(context,LinearLayoutManager.HORIZONTAL,false));
+                            tvSeeAllRecommendations.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    startActivity(new Intent(context, ActivityViewedRecommendedProducts.class).putExtra("isRecommended",true));
+                                }
+                            });
+                        }else{
+                            vgRecommendedItems.setVisibility(View.GONE);
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }else{
+                    vgRecommendedItems.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
             }
         });
     }

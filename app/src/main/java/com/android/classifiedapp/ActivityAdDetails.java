@@ -56,8 +56,10 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
@@ -86,6 +88,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -118,6 +121,8 @@ public class ActivityAdDetails extends AppCompatActivity {
     boolean isPremiumUser;
     long benefitsExpiry;
     RatingBar ratingbarProduct;
+
+    String adId;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -160,6 +165,7 @@ public class ActivityAdDetails extends AppCompatActivity {
         if (ad==null && extras!=null){
             LogUtils.e(extras);
             String adId = extras.getString("id");
+            this.adId = adId;
             getListing(adId);
             LogUtils.e(extras);
         }
@@ -179,6 +185,11 @@ public class ActivityAdDetails extends AppCompatActivity {
             }
             ImagePagerAdapter adapter = new ImagePagerAdapter(this,ad.getUrls(),false);
             pagerImages.setAdapter(adapter);
+            adId = ad.getId();
+            if (!ad.getPostedBy().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())){
+                addInHistory(adId);
+                addInInteractedCategories(ad.getCategoryId());
+            }
         }
 
 
@@ -896,9 +907,10 @@ public class ActivityAdDetails extends AppCompatActivity {
                             tvReportListing.setVisibility(View.GONE);
                             tvBuy.setVisibility(View.GONE);
                             tvViewOrders.setVisibility(View.VISIBLE);
-                        }
-                        if (fIrebaseUser.getUid().equals(ad.getPostedBy())){
                             imgChat.setVisibility(View.GONE);
+                        } else{
+                            addInHistory(ad.getId());
+                            addInInteractedCategories(ad.getCategoryId());
                         }
                         ImagePagerAdapter adapter = new ImagePagerAdapter(ActivityAdDetails.this,ad.getUrls(),false);
                         pagerImages.setAdapter(adapter);
@@ -916,6 +928,40 @@ public class ActivityAdDetails extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) {
                 progressDialog.dismiss();
 
+            }
+        });
+    }
+
+    void addInHistory(String adId){
+        String cUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+      DatabaseReference databaseReference =  FirebaseDatabase.getInstance().getReference().child("users").child(cUid).child("recentlyVisited").child(adId);
+      Map<String, Object> update = new HashMap<>();
+      update.put("visitedOn",System.currentTimeMillis());
+      databaseReference.updateChildren(update).addOnCompleteListener(new OnCompleteListener<Void>() {
+          @Override
+          public void onComplete(@NonNull Task<Void> task) {
+         if (task.isSuccessful()){
+             LogUtils.e("successful");
+         }else{
+             LogUtils.e("unsuccessful");
+         }
+          }
+      });
+    }
+
+    void addInInteractedCategories(String categoryId){
+        String cUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference databaseReference =  FirebaseDatabase.getInstance().getReference().child("users").child(cUid).child("interests").child(categoryId);
+        Map<String, Object> update = new HashMap<>();
+        update.put("visitedOn",System.currentTimeMillis());
+        databaseReference.updateChildren(update).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()){
+                    LogUtils.e("successful");
+                }else{
+                    LogUtils.e("unsuccessful");
+                }
             }
         });
     }

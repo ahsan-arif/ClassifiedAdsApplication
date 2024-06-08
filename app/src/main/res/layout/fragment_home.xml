@@ -13,77 +13,161 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:id="@+id/vg"
+        android:orientation="vertical"
         >
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/browse_by_category"
-            android:textStyle="bold"
-            android:textSize="20sp"
-            android:textColor="@color/black"
-            />
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:gravity="end"
-            android:id="@+id/vg_filters"
-            android:layout_height="wrap_content">
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/filter"
-                app:tint="@color/teal_200" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:id="@+id/vg"
+            >
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/apply_filters"
-                android:layout_marginStart="8dp"
-                android:textSize="14sp"
-                android:textColor="@color/teal_200"
+                android:text="@string/browse_by_category"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:textColor="@color/black"
                 />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:id="@+id/vg_filters"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/filter"
+                    app:tint="@color/teal_200" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/apply_filters"
+                    android:layout_marginStart="8dp"
+                    android:textSize="14sp"
+                    android:textColor="@color/teal_200"
+                    />
+            </LinearLayout>
+
+        </LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/rv_categories"
+            android:layout_marginTop="12dp"
+            android:layout_below="@id/vg_recently_viewed"
+            />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/vg_recently_viewed"
+            android:layout_marginTop="12dp"
+            android:visibility="gone"
+            >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.7"
+                    android:text="@string/your_recently_viewed_items"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:textSize="20sp"
+                    />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.3"
+                    android:text="@string/see_all"
+                    android:textColor="@color/teal_200"
+                    android:gravity="center_horizontal"
+                    android:id="@+id/tv_see_all_recent"
+                    />
+            </LinearLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:id="@+id/rv_recently_viewed_ads"
+                />
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/vg_recommended_items"
+            android:layout_marginTop="12dp"
+            android:visibility="gone"
+            >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.7"
+                    android:text="@string/more_items_based_likes"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:textSize="20sp"
+                    />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.3"
+                    android:text="@string/see_all"
+                    android:textColor="@color/teal_200"
+                    android:gravity="center_horizontal"
+                    android:id="@+id/tv_see_all_recommendations"
+                    />
+            </LinearLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:id="@+id/rv_recommended_ads"
+                />
+
         </LinearLayout>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/discover"
+            android:layout_marginTop="12dp"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:id="@+id/tv_discover"
+            android:layout_below="@+id/rv_categories"
+            />
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/rv_ads"
+            android:layout_below="@id/tv_discover"
+            android:layout_marginBottom="?attr/actionBarSize"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="8dp"
+            android:layout_centerInParent="true"
+            android:id="@+id/tv_no_listing"
+            android:visibility="gone"
+            android:text="@string/no_listings"
+            />
     </LinearLayout>
 
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/rv_categories"
-        android:layout_marginTop="12dp"
-        android:layout_below="@id/vg"
-        />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/discover"
-        android:layout_marginTop="12dp"
-        android:textColor="@color/black"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:id="@+id/tv_discover"
-        android:layout_below="@+id/rv_categories"
-        />
-    <androidx.recyclerview.widget.RecyclerView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/rv_ads"
-        android:layout_below="@id/tv_discover"
-        android:layout_marginBottom="?attr/actionBarSize"
-        />
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:padding="8dp"
-        android:layout_centerInParent="true"
-        android:id="@+id/tv_no_listing"
-        android:visibility="gone"
-        android:text="@string/no_listings"
-        />
 
     <ProgressBar
         android:layout_width="match_parent"
