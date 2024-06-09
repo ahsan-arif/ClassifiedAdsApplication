@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
@@ -39,6 +40,8 @@ import java.util.Map;
 public class ActivityMyOrders extends AppCompatActivity implements OrdersAdapter.RateButtonClickListener {
 ImageView imgBack;
 RecyclerView rvOrders;
+ProgressBar progressCircular;
+TextView tvNoOrders;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,6 +54,8 @@ RecyclerView rvOrders;
         });
         imgBack = findViewById(R.id.img_back);
         rvOrders = findViewById(R.id.rv_orders);
+        progressCircular = findViewById(R.id.progress_circular);
+        tvNoOrders = findViewById(R.id.tv_no_orders);
 
         imgBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -93,15 +98,12 @@ RecyclerView rvOrders;
     }
 
     void getOrdersNew(String userId){
-        ProgressDialog progressDialog = new ProgressDialog(ActivityMyOrders.this);
-        progressDialog.setTitle(getString(R.string.please_wait));
-        progressDialog.setMessage(getString(R.string.fetching_orders));
-        progressDialog.show();
+        progressCircular.setVisibility(View.VISIBLE);
+        tvNoOrders.setVisibility(View.GONE);
         DatabaseReference databaseReference =FirebaseDatabase.getInstance().getReference().child("orders");
         databaseReference.orderByChild("buyerId").equalTo(userId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                progressDialog.dismiss();
                 if(snapshot.exists()){
                     try {
                         ArrayList<Order> orders = new ArrayList<>();
@@ -112,19 +114,31 @@ RecyclerView rvOrders;
 
                         setAdapter(orders);
                     }catch (Exception e){
+                        progressCircular.setVisibility(View.GONE);
+                        tvNoOrders.setVisibility(View.VISIBLE);
                         e.printStackTrace();
                     }
+                }else {
+                    progressCircular.setVisibility(View.GONE);
+                    tvNoOrders.setVisibility(View.VISIBLE);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-progressDialog.dismiss();
+                progressCircular.setVisibility(View.GONE);
+                tvNoOrders.setVisibility(View.VISIBLE);
             }
         });
     }
 
     void setAdapter(ArrayList<Order> orders){
+        progressCircular.setVisibility(View.GONE);
+        if (orders.size()>0){
+            tvNoOrders.setVisibility(View.GONE);
+        }else{
+            tvNoOrders.setVisibility(View.VISIBLE);
+        }
         OrdersAdapter adapter = new OrdersAdapter(ActivityMyOrders.this,orders,this);
         rvOrders.setAdapter(adapter);
         rvOrders.setLayoutManager(new LinearLayoutManager(ActivityMyOrders.this));

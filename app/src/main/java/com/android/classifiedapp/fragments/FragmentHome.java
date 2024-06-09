@@ -34,10 +34,12 @@ import com.android.classifiedapp.ActivityViewedRecommendedProducts;
 import com.android.classifiedapp.Home;
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.adapters.AdsAdapter;
+import com.android.classifiedapp.adapters.GroupedAdsAdapter;
 import com.android.classifiedapp.adapters.HomeCategoriesAdapter;
 import com.android.classifiedapp.adapters.RecentlyViewedAdsAdapter;
 import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.Category;
+import com.android.classifiedapp.models.GroupedItem;
 import com.android.classifiedapp.models.ViewedAd;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
@@ -62,8 +64,10 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
@@ -79,7 +83,7 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
     RecyclerView rvCategories,rv_ads;
     LinearLayout vgFilters;
     TextView tvNoListing;
-    
+
     Context context;
     ProgressBar progressCircular;
     FusedLocationProviderClient fusedLocationProviderClient;
@@ -102,6 +106,10 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
     LinearLayout vgRecommendedItems;
     TextView tvSeeAllRecommendations;
     RecyclerView rvRecommendedAds;
+
+    DatabaseReference databaseReference;
+    private List<GroupedItem> groupedItemList;
+    GroupedAdsAdapter groupedAdsAdapter;
 
     public FragmentHome() {
         // Required empty public constructor
@@ -151,6 +159,12 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
         vgRecommendedItems = view.findViewById(R.id.vg_recommended_items);
         tvSeeAllRecommendations = view.findViewById(R.id.tv_see_all_recommendations);
         rvRecommendedAds = view.findViewById(R.id.rv_recommended_ads);
+        databaseReference = FirebaseDatabase.getInstance().getReference();
+        groupedItemList = new ArrayList<>();
+        rv_ads.setNestedScrollingEnabled(false);
+        groupedAdsAdapter = new GroupedAdsAdapter(groupedItemList,context);
+        rv_ads.setLayoutManager(new LinearLayoutManager(context));
+        rv_ads.setAdapter(groupedAdsAdapter);
 
         vgFilters.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -228,7 +242,7 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-               progressCircular.setVisibility(View.GONE);
+                progressCircular.setVisibility(View.GONE);
 
             }
         });
@@ -253,7 +267,7 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                                             Double adLong = ad.getLongitude();
                                             float[] results = new float[1]; // array to hold the result
                                             double distance = calculateDistance(latitude,longitude,adLat,adLong);
-                                           // LogUtils.e(distance);
+                                            // LogUtils.e(distance);
                                             if (distance<=500){
                                                 ads.add(ad);
                                                 tvNoListing.setVisibility(View.GONE);
@@ -319,7 +333,7 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                         try {
                             List<Address> addresses =geocoder.getFromLocation(location.getLatitude(),location.getLongitude(),1);
 //                            LogUtils.e(location.getLatitude());
-  //                          LogUtils.e(location.getLongitude());
+                            //                          LogUtils.e(location.getLongitude());
                             // Assuming addresses.get(0) is a valid Address object
                             Double latitude = addresses.get(0).getLatitude();
                             Double longitude = addresses.get(0).getLongitude();
@@ -327,9 +341,10 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                             BigDecimal latitudeBD = new BigDecimal(latitude).setScale(7, RoundingMode.HALF_UP);
                             BigDecimal longitudeBD = new BigDecimal(longitude).setScale(7, RoundingMode.HALF_UP);
 
-                             roundedLatitude = latitudeBD.doubleValue();
-                             roundedLongitude = longitudeBD.doubleValue();
-                            getAds(roundedLatitude,roundedLongitude);
+                            roundedLatitude = latitudeBD.doubleValue();
+                            roundedLongitude = longitudeBD.doubleValue();
+                            // getAds(roundedLatitude,roundedLongitude);
+                            getGroupedAdsAndCat(roundedLatitude,roundedLongitude);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -349,7 +364,7 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                     requestPermissionsBasedOnSdk();
 
                 }else{
-                    ToastUtils.showShort("Grant all permission to proceed");
+                    ToastUtils.showShort(context.getString(R.string.grant_all_to_see));
                     LogUtils.e(list1);
                 }
             }
@@ -381,7 +396,7 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                 if (allGranted) {
                     getLastKnownLocation();
                 } else {
-                    ToastUtils.showShort("Grant all permissions to proceed");
+                    ToastUtils.showShort(context.getString(R.string.grant_all_to_see));
                     LogUtils.e(deniedList);
                     getAds();
                 }
@@ -402,11 +417,17 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                         recentAds = new ArrayList<>();
                         ArrayList<ViewedAd> viewedAds = new ArrayList<>();
                         for (DataSnapshot dataSnapshot : snapshot.getChildren()){
-                            LogUtils.e(dataSnapshot);
+                          /*  LogUtils.e(dataSnapshot);
                             ViewedAd viewedAd = new ViewedAd();
                             viewedAd.setViewedOn(dataSnapshot.child("visitedOn").getValue(Long.class));
                             viewedAd.setAdId(dataSnapshot.getKey());
                             LogUtils.e(dataSnapshot.getKey());
+                            viewedAds.add(viewedAd);*/
+                            String adId = dataSnapshot.getKey();
+                            long timestamp = dataSnapshot.getValue(Long.class);
+                            ViewedAd viewedAd = new ViewedAd();
+                            viewedAd.setViewedOn(timestamp);
+                            viewedAd.setAdId(adId);
                             viewedAds.add(viewedAd);
                         }
                         Collections.sort(viewedAds, new Comparator<ViewedAd>() {
@@ -487,10 +508,11 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                     try {
                         ArrayList<ViewedAd> viewedAds = new ArrayList<>();
                         for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                            String categoryId = dataSnapshot.getKey();
+                            long timestamp = dataSnapshot.getValue(Long.class);
                             ViewedAd viewedAd = new ViewedAd();
-                            viewedAd.setViewedOn(dataSnapshot.child("visitedOn").getValue(Long.class));
-                            viewedAd.setAdId(dataSnapshot.getKey());
-                            LogUtils.e(dataSnapshot.getKey());
+                            viewedAd.setViewedOn(timestamp);
+                            viewedAd.setAdId(categoryId);
                             viewedAds.add(viewedAd);
                         }
                         Collections.sort(viewedAds, new Comparator<ViewedAd>() {
@@ -501,6 +523,7 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                         });
                         getAdsByCategory(viewedAds);
                     }catch (Exception e){
+                        LogUtils.e(e.getMessage());
                         e.printStackTrace();
                     }
                 }
@@ -534,12 +557,18 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                             RecentlyViewedAdsAdapter adsAdapter = new RecentlyViewedAdsAdapter(context,ads);
                             rvRecommendedAds.setAdapter(adsAdapter);
                             rvRecommendedAds.setLayoutManager(new LinearLayoutManager(context,LinearLayoutManager.HORIZONTAL,false));
-                            tvSeeAllRecommendations.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    startActivity(new Intent(context, ActivityViewedRecommendedProducts.class).putExtra("isRecommended",true));
-                                }
-                            });
+                            if (ads.size()>5){
+                                tvSeeAllRecommendations.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        startActivity(new Intent(context, ActivityViewedRecommendedProducts.class).putExtra("isRecommended",true));
+                                    }
+                                });
+                                tvSeeAllRecommendations.setVisibility(View.VISIBLE);
+                            }else{
+                                tvSeeAllRecommendations.setVisibility(View.GONE);
+                            }
+
                         }else{
                             vgRecommendedItems.setVisibility(View.GONE);
                         }
@@ -556,5 +585,86 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
 
             }
         });
+    }
+
+    //updated home view
+    void getGroupedAdsAndCat(double roundedLatitude,double roundedLongitude){
+        databaseReference.child("categories").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    try {
+                        for (DataSnapshot s : snapshot.getChildren()){
+                            Category category = new Category();
+                            category.setId(s.child("id").getValue(String.class));
+                            category.setName(s.child("name").getValue(String.class));
+                            category.setId(s.child("id").getValue(String.class));
+                            category.setImageUrl(s.child("imageUrl").getValue(String.class));
+                            fetchAdsForCategory(category, roundedLatitude, roundedLongitude, new AdsCallback() {
+                                @Override
+                                public void onAdsFetched(Category category, ArrayList<Ad> ads) {
+                                    if (!ads.isEmpty()){
+                                        GroupedItem categoryItem = new GroupedItem(GroupedItem.TYPE_CATEGORY, category, ads);
+                                        groupedItemList.add(categoryItem);
+                                        progressCircular.setVisibility(View.GONE);
+                                        tvNoListing.setVisibility(View.GONE);
+                                        groupedAdsAdapter.notifyDataSetChanged();
+                                    }
+                                }
+                            });
+
+                        }
+                        if (groupedItemList.isEmpty()){
+                            progressCircular.setVisibility(View.GONE);
+                            tvNoListing.setVisibility(View.VISIBLE);
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }else {
+                    progressCircular.setVisibility(View.GONE);
+                    tvNoListing.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    void fetchAdsForCategory(Category category ,double roundedLatitude,double roundedLongitude,AdsCallback callback){
+        FirebaseDatabase.getInstance().getReference().child("ads").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                ArrayList<Ad> ads = new ArrayList<>();
+                if (snapshot.exists()){
+                    try {
+
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                            Ad ad = dataSnapshot.getValue(Ad.class);
+                            if (ad.getCategoryId().equals(category.getId())){
+                                double distance = calculateDistance(ad.getLatitude(),ad.getLongitude(),roundedLatitude,roundedLongitude);
+                                if (distance<500)
+                                    ads.add(ad);
+                            }
+                        }
+                        callback.onAdsFetched(category,ads);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    private interface AdsCallback {
+        void onAdsFetched(Category category, ArrayList<Ad> ads);
     }
 }

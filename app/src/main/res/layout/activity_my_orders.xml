@@ -42,4 +42,19 @@
         android:id="@+id/rv_orders"
         />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_orders_placed"
+        android:layout_centerInParent="true"
+        android:id="@+id/tv_no_orders"
+        android:visibility="gone"
+        />
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:id="@+id/progress_circular"
+        />
+
 </RelativeLayout>

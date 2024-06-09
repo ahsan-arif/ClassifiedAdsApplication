@@ -934,35 +934,13 @@ public class ActivityAdDetails extends AppCompatActivity {
 
     void addInHistory(String adId){
         String cUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-      DatabaseReference databaseReference =  FirebaseDatabase.getInstance().getReference().child("users").child(cUid).child("recentlyVisited").child(adId);
-      Map<String, Object> update = new HashMap<>();
-      update.put("visitedOn",System.currentTimeMillis());
-      databaseReference.updateChildren(update).addOnCompleteListener(new OnCompleteListener<Void>() {
-          @Override
-          public void onComplete(@NonNull Task<Void> task) {
-         if (task.isSuccessful()){
-             LogUtils.e("successful");
-         }else{
-             LogUtils.e("unsuccessful");
-         }
-          }
-      });
+      DatabaseReference databaseReference =  FirebaseDatabase.getInstance().getReference().child("users").child(cUid).child("recentlyVisited");
+      databaseReference.child(adId).setValue(System.currentTimeMillis());
     }
 
     void addInInteractedCategories(String categoryId){
         String cUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference databaseReference =  FirebaseDatabase.getInstance().getReference().child("users").child(cUid).child("interests").child(categoryId);
-        Map<String, Object> update = new HashMap<>();
-        update.put("visitedOn",System.currentTimeMillis());
-        databaseReference.updateChildren(update).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()){
-                    LogUtils.e("successful");
-                }else{
-                    LogUtils.e("unsuccessful");
-                }
-            }
-        });
+        DatabaseReference databaseReference =  FirebaseDatabase.getInstance().getReference().child("users").child(cUid).child("interests");
+        databaseReference.child(categoryId).setValue(System.currentTimeMillis());
     }
 }

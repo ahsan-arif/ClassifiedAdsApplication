@@ -9,6 +9,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -16,8 +17,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
+import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -69,6 +72,9 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     NavigationView navigationView;
     CircleImageView imgUser;
     TextView tvName;
+    ImageView imgMenu;
+    DrawerLayout drawerLayout;
+    TextView tvSearch;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,6 +91,25 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         View headerView = navigationView.getHeaderView(0);
         imgUser = headerView.findViewById(R.id.img_user);
         tvName = headerView.findViewById(R.id.tv_name);
+        imgMenu = findViewById(R.id.img_menu);
+        drawerLayout = findViewById(R.id.main);
+        tvSearch = findViewById(R.id.tv_search);
+        imgMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                } else {
+                    drawerLayout.openDrawer(GravityCompat.START);
+                }
+            }
+        });
+        tvSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(Home.this, ActivitySearchAds.class));
+            }
+        });
   /*     insertData("ARS","Argentina","https://firebasestorage.googleapis.com/v0/b/ecommerceapp-65596.appspot.com/o/flags%2Fargentina_flag.svg?alt=media&token=7a28bf15-4773-4e3f-b906-d6acb25300e1");
        insertData("MXN","Mexico","https://firebasestorage.googleapis.com/v0/b/ecommerceapp-65596.appspot.com/o/flags%2Fmexico_flag.svg?alt=media&token=76c14093-9531-49e1-b6b5-d4b9f11d6de1");
        insertData("COP","Colombia","https://firebasestorage.googleapis.com/v0/b/ecommerceapp-65596.appspot.com/o/flags%2Fcolombia_flag.svg?alt=media&token=caa181c5-3b98-4171-8a0c-c138106cc534");
@@ -257,7 +282,17 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
        if (menuItem.getItemId()==R.id.item_most_liked){
            LogUtils.e("pressed");
            startActivity(new Intent(Home.this,ActivityPopularAds.class));
+       }else if (menuItem.getItemId()==R.id.item_my_orders){
+               startActivity(new Intent(Home.this,ActivityMyOrders.class));
+           }
+       else if (menuItem.getItemId()==R.id.item_favourites){
+           startActivity(new Intent(Home.this,ActivityMyWishlist.class));
+       }else if (menuItem.getItemId()==R.id.item_logout){
+           FirebaseAuth.getInstance().signOut();
+           startActivity(new Intent(Home.this, MainActivity.class));
+           finish();
        }
+
         return true;
     }
 }

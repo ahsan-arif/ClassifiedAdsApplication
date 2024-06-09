@@ -13,9 +13,38 @@
         android:layout_height="match_parent">
         <LinearLayout
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="?attr/actionBarSize"
+            android:id="@+id/vg_search"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="12dp"
+            >
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/menu"
+                android:id="@+id/img_menu"
+                />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/tv_search"
+                android:text="@string/search_a_product"
+                android:padding="8dp"
+                android:background="@drawable/btn_sign_in_opts"
+                android:layout_marginStart="12dp"
+
+                android:drawablePadding="8dp"
+                app:drawableStartCompat="@drawable/search" />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:layout_marginTop="?attr/actionBarSize"
+            android:layout_below="@+id/vg_search"
+            android:layout_marginTop="12dp"
             android:id="@+id/container"
             android:layout_marginBottom="?attr/actionBarSize"
             />

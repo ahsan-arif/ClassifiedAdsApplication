@@ -204,4 +204,10 @@
     <string name="recommended_products">Recommended Products</string>
     <string name="recently_viewed">Recently Viewed</string>
     <string name="not_interacted">You haven\'t interacted with any product yet</string>
+    <string name="grant_all_to_see">Grant all permissions to see products near you.</string>
+    <string name="search_a_product">Search a product</string>
+    <string name="search">Search</string>
+    <string name="no_product_around_you">No product around you.</string>
+    <string name="try_again">Try Again</string>
+    <string name="favourites">Favourites</string>
 </resources>
