@@ -156,6 +156,13 @@
                 android:id="@+id/rv_ads"
                 android:layout_marginBottom="?attr/actionBarSize"
                 />
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/rv_ads_by_category"
+                android:visibility="gone"
+                android:layout_marginBottom="?attr/actionBarSize"
+                />
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

@@ -1,10 +1,13 @@
 package com.android.classifiedapp.fragments;
 
+import static android.content.Context.LOCATION_SERVICE;
+import static androidx.core.content.ContextCompat.getSystemService;
 import static com.android.classifiedapp.utilities.Constants.calculateDistance;
 
 import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -14,7 +17,9 @@ import android.os.Build;
 import android.os.Bundle;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -55,7 +60,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.permissionx.guolindev.PermissionX;
 import com.permissionx.guolindev.callback.RequestCallback;
-
+import android.location.LocationManager;
+import android.provider.Settings;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -110,6 +116,10 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
     DatabaseReference databaseReference;
     private List<GroupedItem> groupedItemList;
     GroupedAdsAdapter groupedAdsAdapter;
+    private ActivityResultLauncher<Intent> enableGpsLauncher;
+    RecyclerView rvAdsByCategory;
+
+    boolean wasGPSPrompted = false;
 
     public FragmentHome() {
         // Required empty public constructor
@@ -160,11 +170,13 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
         tvSeeAllRecommendations = view.findViewById(R.id.tv_see_all_recommendations);
         rvRecommendedAds = view.findViewById(R.id.rv_recommended_ads);
         databaseReference = FirebaseDatabase.getInstance().getReference();
+        rvAdsByCategory = view.findViewById(R.id.rv_ads_by_category);
         groupedItemList = new ArrayList<>();
         rv_ads.setNestedScrollingEnabled(false);
         groupedAdsAdapter = new GroupedAdsAdapter(groupedItemList,context);
-        rv_ads.setLayoutManager(new LinearLayoutManager(context));
-        rv_ads.setAdapter(groupedAdsAdapter);
+        rvAdsByCategory.setLayoutManager(new LinearLayoutManager(context));
+        rvAdsByCategory.setAdapter(groupedAdsAdapter);
+        rvAdsByCategory.setNestedScrollingEnabled(false);
 
         vgFilters.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -172,6 +184,17 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                 startActivity(new Intent(context, ActivitySelectFilters.class));
             }
         });
+        enableGpsLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                   /* if (isGpsEnabled()) {
+                        getLastKnownLocation();
+                    } else {
+                        ToastUtils.showShort(requireContext().getString(R.string.enable_gps_to_continue));
+                        getAds();
+                    }*/
+                }
+        );
         getCategories();
         //getAds();
         getLastKnownLocation();
@@ -208,6 +231,7 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
     }
 
     void getAds(){
+        LogUtils.e("in get ads");
         FirebaseDatabase.getInstance().getReference().child("ads").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -232,10 +256,12 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                     }else{
                         progressCircular.setVisibility(View.GONE);
                         rv_ads.setVisibility(View.GONE);
+                        rvAdsByCategory.setVisibility(View.GONE);
                         tvNoListing.setVisibility(View.VISIBLE);
                     }
                 }catch (Exception e){
                     e.printStackTrace();
+                    LogUtils.e(e.getMessage());
                 }
 
             }
@@ -299,6 +325,8 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
     }
 
     void setAdsAdapter(ArrayList<Ad> ads){
+        rv_ads.setVisibility(View.VISIBLE);
+        rvAdsByCategory.setVisibility(View.GONE);
         progressCircular.setVisibility(View.GONE);
         if (ads.size()>0){
             rv_ads.setVisibility(View.VISIBLE);
@@ -324,33 +352,32 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
     }
 
     void getLastKnownLocation(){
+        LogUtils.e("inside getLastKnownLocation");
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)== PackageManager.PERMISSION_GRANTED){
-            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    if (location!=null){
-                        Geocoder geocoder = new Geocoder(context, Locale.getDefault());
-                        try {
-                            List<Address> addresses =geocoder.getFromLocation(location.getLatitude(),location.getLongitude(),1);
-//                            LogUtils.e(location.getLatitude());
-                            //                          LogUtils.e(location.getLongitude());
-                            // Assuming addresses.get(0) is a valid Address object
-                            Double latitude = addresses.get(0).getLatitude();
-                            Double longitude = addresses.get(0).getLongitude();
-
-                            BigDecimal latitudeBD = new BigDecimal(latitude).setScale(7, RoundingMode.HALF_UP);
-                            BigDecimal longitudeBD = new BigDecimal(longitude).setScale(7, RoundingMode.HALF_UP);
+            if (isGpsEnabled()){
+                fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        LogUtils.e("inside success");
+                        if (location!=null){
+                            LogUtils.e(location);
+                            BigDecimal latitudeBD = new BigDecimal(location.getLatitude()).setScale(7, RoundingMode.HALF_UP);
+                            BigDecimal longitudeBD = new BigDecimal(location.getLongitude()).setScale(7, RoundingMode.HALF_UP);
 
                             roundedLatitude = latitudeBD.doubleValue();
                             roundedLongitude = longitudeBD.doubleValue();
                             // getAds(roundedLatitude,roundedLongitude);
                             getGroupedAdsAndCat(roundedLatitude,roundedLongitude);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
+                        }else{
+                            LogUtils.e("location is null");
+                            getAds();
                         }
                     }
-                }
-            });
+                });
+            }else{
+                promptEnableGps();
+            }
+
         }else{
             askPermissions();
         }
@@ -394,8 +421,15 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
             @Override
             public void onResult(boolean allGranted, @NonNull List<String> grantedList, @NonNull List<String> deniedList) {
                 if (allGranted) {
-                    getLastKnownLocation();
+                    if (isGpsEnabled()){
+                        getLastKnownLocation();
+                    }else{
+                        promptEnableGps();
+                    }
+
                 } else {
+                    //uncomment if we want to impose user to grant all permissions
+                    //askPermissions();
                     ToastUtils.showShort(context.getString(R.string.grant_all_to_see));
                     LogUtils.e(deniedList);
                     getAds();
@@ -608,6 +642,8 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                                         groupedItemList.add(categoryItem);
                                         progressCircular.setVisibility(View.GONE);
                                         tvNoListing.setVisibility(View.GONE);
+                                        rv_ads.setVisibility(View.GONE);
+                                        rvAdsByCategory.setVisibility(View.VISIBLE);
                                         groupedAdsAdapter.notifyDataSetChanged();
                                     }
                                 }
@@ -620,6 +656,7 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
                         }
                     }catch (Exception e){
                         e.printStackTrace();
+                        LogUtils.e(e.getMessage());
                     }
                 }else {
                     progressCircular.setVisibility(View.GONE);
@@ -629,7 +666,9 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                progressCircular.setVisibility(View.GONE);
+                tvNoListing.setVisibility(View.VISIBLE);
+                LogUtils.e(error.getMessage());
             }
         });
     }
@@ -666,5 +705,41 @@ public class FragmentHome extends Fragment implements AdsAdapter.OnAdClickListen
 
     private interface AdsCallback {
         void onAdsFetched(Category category, ArrayList<Ad> ads);
+    }
+
+    private boolean isGpsEnabled() {
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    }
+    private void promptEnableGps() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle(context.getString(R.string.enable_gps))
+                .setMessage(context.getString(R.string.gps_is_required))
+                .setPositiveButton(context.getString(R.string.yes), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        wasGPSPrompted = true;
+                        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        enableGpsLauncher.launch(intent);
+                    }
+                })
+                .setNegativeButton(context.getString(R.string.no), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ToastUtils.showShort(requireContext().getString(R.string.enable_gps_to_continue));
+                        getAds();
+                    }
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (wasGPSPrompted&&isGpsEnabled()){
+            getLastKnownLocation();
+            wasGPSPrompted = false;
+        }
     }
 }

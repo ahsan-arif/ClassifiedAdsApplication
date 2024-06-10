@@ -5,6 +5,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -79,6 +81,26 @@ public class ActivityVerifyLogin extends AppCompatActivity {
         tvProvidePassword = findViewById(R.id.tv_provide_password);
 
         tvProvidePassword.setText(getString(R.string.please_enter_your_password_to_login_to_the_system)+" "+email);
+
+        etPassword.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String password = s.toString();
+                if (!password.isEmpty()){
+                    validateInput(password,etPassword);
+                }
+            }
+        });
 
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -318,5 +340,46 @@ ToastUtils.showShort(error.getMessage());
 
     interface OnAdDeletedListener {
         void onAdDeleted();
+    }
+
+    private void validateInput(String input,TextInputEditText etPassword) {
+        if (input.length()<10){
+            btnLogin.setEnabled(false);
+            btnLogin.setBackgroundResource(R.drawable.bg_report_btn);
+            etPassword.setError(getString(R.string.password_must_be_10));
+        }else{
+            if (!containsNumber(input)){
+                etPassword.setError(getString(R.string.password_1_number));
+                btnLogin.setEnabled(false);
+                btnLogin.setBackgroundResource(R.drawable.bg_report_btn);
+            }else if (!containsCapitalLetter(input)){
+                etPassword.setError(getString(R.string.password_1_character));
+                btnLogin.setEnabled(false);
+                btnLogin.setBackgroundResource(R.drawable.bg_report_btn);
+            }else{
+                etPassword.setError(null);
+                btnLogin.setEnabled(true);
+                btnLogin.setBackgroundResource(R.drawable.btn_sign_in_opts);
+                //ToastUtils.showShort("Valid password");
+            }
+        }
+    }
+
+    private boolean containsCapitalLetter(String input) {
+        for (char c : input.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean containsNumber(String input) {
+        for (char c : input.toCharArray()) {
+            if (Character.isDigit(c)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

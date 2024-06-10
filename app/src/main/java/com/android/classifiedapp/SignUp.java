@@ -8,6 +8,8 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -19,6 +21,8 @@ import android.widget.Toast;
 
 import com.android.classifiedapp.models.PlatformPrefs;
 import com.android.classifiedapp.models.User;
+import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.ToastUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
@@ -52,7 +56,55 @@ public class SignUp extends AppCompatActivity {
         btnCreateAccount = findViewById(R.id.btn_create_account);
         etName = findViewById(R.id.et_name);
         etEmail = findViewById(R.id.et_email);
+        etEmail.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String email = s.toString();
+                if (!email.isEmpty()){
+                    if (email.contains("hotmail")|| email.contains("gmail")||email.contains("live")||email.contains("outlook")){
+                        btnCreateAccount.setEnabled(true);
+                        btnCreateAccount.setBackgroundResource(R.drawable.btn_sign_in_opts);
+                    }else{
+                        LogUtils.e("In else");
+                        etEmail.setError(getString(R.string.only_google_allowed));
+                        btnCreateAccount.setEnabled(false);
+                        btnCreateAccount.setBackgroundResource(R.drawable.bg_report_btn);
+                    }
+                    LogUtils.e(email);
+                }
+            }
+        });
         etPassword = findViewById(R.id.et_password);
+
+        etPassword.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String password = s.toString();
+                if (!password.isEmpty()){
+                    validateInput(password,etPassword);
+                }
+            }
+        });
         boolean isEmailSignIn = getIntent().getBooleanExtra("isEmailSignIn",false);
         if (isEmailSignIn){
             String email = getIntent().getStringExtra("email");
@@ -79,6 +131,7 @@ public class SignUp extends AppCompatActivity {
                 String email = etEmail.getText().toString().trim();
                 String password = etPassword.getText().toString().trim();
 
+
                 if (etName.getText().toString().trim().isEmpty()){
                     etName.setError(getString(R.string.cannot_be_empty));
                     return;
@@ -90,6 +143,9 @@ public class SignUp extends AppCompatActivity {
                 }if (password.isEmpty()){
                     etPassword.setError(getString(R.string.cannot_be_empty));
                     return;
+                }
+                if (!email.contains("hotmail")|| !email.contains("google")||!email.contains("live")||!email.contains("outlook")){
+                    etEmail.setError(getString(R.string.only_google_allowed));
                 }
 
                 ProgressDialog progressDialog = new ProgressDialog(SignUp.this);
@@ -168,6 +224,47 @@ public class SignUp extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    private void validateInput(String input,TextInputEditText etPassword) {
+        if (input.length()<10){
+            btnCreateAccount.setEnabled(false);
+            btnCreateAccount.setBackgroundResource(R.drawable.bg_report_btn);
+            etPassword.setError(getString(R.string.password_must_be_10));
+        }else{
+            if (!containsNumber(input)){
+                etPassword.setError(getString(R.string.password_1_number));
+                btnCreateAccount.setEnabled(false);
+                btnCreateAccount.setBackgroundResource(R.drawable.bg_report_btn);
+            }else if (!containsCapitalLetter(input)){
+                etPassword.setError(getString(R.string.password_1_character));
+                btnCreateAccount.setEnabled(false);
+                btnCreateAccount.setBackgroundResource(R.drawable.bg_report_btn);
+            }else{
+                etPassword.setError(null);
+                btnCreateAccount.setEnabled(true);
+                btnCreateAccount.setBackgroundResource(R.drawable.btn_sign_in_opts);
+                //ToastUtils.showShort("Valid password");
+            }
+        }
+    }
+
+    private boolean containsCapitalLetter(String input) {
+        for (char c : input.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean containsNumber(String input) {
+        for (char c : input.toCharArray()) {
+            if (Character.isDigit(c)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
