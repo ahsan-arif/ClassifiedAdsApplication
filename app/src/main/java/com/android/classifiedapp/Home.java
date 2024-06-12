@@ -150,8 +150,27 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
             }
         });
         bottomNavigation.setSelectedItemId(R.id.item_home);
-        getUserBenefits();
-        getFCMToken();
+        FirebaseDatabase.getInstance().getReference().child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    getUserBenefits();
+                    getFCMToken();
+                }else{
+                    startActivity(new Intent(Home.this, MainActivity.class));
+                    FirebaseAuth.getInstance().signOut();
+                    finish();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                startActivity(new Intent(Home.this, SignUp.class));
+                FirebaseAuth.getInstance().signOut();
+                finish();
+            }
+        });
+
     }
 
     void insertData(String currency,String country,String url){
@@ -291,6 +310,8 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
            FirebaseAuth.getInstance().signOut();
            startActivity(new Intent(Home.this, MainActivity.class));
            finish();
+       }else if (menuItem.getItemId()==R.id.item_contact_support){
+           startActivity(new Intent(Home.this, ActivityAdminList.class ));
        }
 
         return true;

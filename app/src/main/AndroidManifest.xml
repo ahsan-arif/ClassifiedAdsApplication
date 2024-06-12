@@ -35,6 +35,12 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name=".ActivityCustomerSupportChat"
+            android:exported="false" />
+        <activity
+            android:name=".ActivityAdminList"
+            android:exported="false" />
+        <activity
             android:name=".ActivitySearchAds"
             android:exported="false" />
         <activity

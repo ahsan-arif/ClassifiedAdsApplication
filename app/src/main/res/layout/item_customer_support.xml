@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="70dp"
+    android:layout_marginTop="12dp"
+    >
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:id="@+id/img_admin"
+        android:src="@color/black"
+        android:layout_centerVertical="true"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv_admin_name"
+        android:layout_toEndOf="@id/img_admin"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="12dp"
+        android:text="@string/app_name"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv_last_message"
+        android:layout_below="@id/tv_admin_name"
+        android:layout_toEndOf="@id/img_admin"
+        android:text="@string/app_name"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="12dp"
+        android:visibility="gone"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:text="@string/app_name"
+        android:id="@+id/tv_time"
+        android:visibility="gone"
+        />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="@color/black"
+        android:alpha="0.5"
+        android:layout_alignParentBottom="true"
+        />
+
+</RelativeLayout>

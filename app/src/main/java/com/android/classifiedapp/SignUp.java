@@ -200,6 +200,7 @@ public class SignUp extends AppCompatActivity {
                                         user.setEmail(email);
                                         user.setName(etName.getText().toString().trim());
                                         user.setRole("user");
+                                        user.setId(userId);
                                         user.setPremiumUser(false);
                                         databaseRef.setValue(user);
                                         Toast.makeText(getApplicationContext(), "Account created!", Toast.LENGTH_SHORT).show();

@@ -1,10 +1,46 @@
 package com.android.classifiedapp.models;
 
-public class User {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import androidx.annotation.NonNull;
+
+public class User implements Parcelable {
     String name,email,profileImage,fcmToken,role;
     boolean isPremiumUser;
     int freeMessagesAvailable, freeAdsAvailable,maximumOrdersAvailable;
     long benefitsExpiry;
+
+    String id;
+
+    public User() {
+    }
+
+    protected User(Parcel in) {
+        name = in.readString();
+        email = in.readString();
+        profileImage = in.readString();
+        fcmToken = in.readString();
+        role = in.readString();
+        isPremiumUser = in.readByte() != 0;
+        freeMessagesAvailable = in.readInt();
+        freeAdsAvailable = in.readInt();
+        maximumOrdersAvailable = in.readInt();
+        benefitsExpiry = in.readLong();
+        id = in.readString();
+    }
+
+    public static final Creator<User> CREATOR = new Creator<User>() {
+        @Override
+        public User createFromParcel(Parcel in) {
+            return new User(in);
+        }
+
+        @Override
+        public User[] newArray(int size) {
+            return new User[size];
+        }
+    };
 
     public String getName() {
         return name;
@@ -84,5 +120,33 @@ public class User {
 
     public void setBenefitsExpiry(long benefitsExpiry) {
         this.benefitsExpiry = benefitsExpiry;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(@NonNull Parcel dest, int flags) {
+        dest.writeString(name);
+        dest.writeString(email);
+        dest.writeString(profileImage);
+        dest.writeString(fcmToken);
+        dest.writeString(role);
+        dest.writeByte((byte) (isPremiumUser ? 1 : 0));
+        dest.writeInt(freeMessagesAvailable);
+        dest.writeInt(freeAdsAvailable);
+        dest.writeInt(maximumOrdersAvailable);
+        dest.writeLong(benefitsExpiry);
+        dest.writeString(id);
     }
 }
