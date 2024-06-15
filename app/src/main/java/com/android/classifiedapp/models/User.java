@@ -6,7 +6,7 @@ import android.os.Parcelable;
 import androidx.annotation.NonNull;
 
 public class User implements Parcelable {
-    String name,email,profileImage,fcmToken,role;
+    String name,email,profileImage,fcmToken,role,paypalEmail;
     boolean isPremiumUser;
     int freeMessagesAvailable, freeAdsAvailable,maximumOrdersAvailable;
     long benefitsExpiry;
@@ -28,6 +28,7 @@ public class User implements Parcelable {
         maximumOrdersAvailable = in.readInt();
         benefitsExpiry = in.readLong();
         id = in.readString();
+        paypalEmail = in.readString();
     }
 
     public static final Creator<User> CREATOR = new Creator<User>() {
@@ -122,6 +123,14 @@ public class User implements Parcelable {
         this.benefitsExpiry = benefitsExpiry;
     }
 
+    public String getPaypalEmail() {
+        return paypalEmail;
+    }
+
+    public void setPaypalEmail(String paypalEmail) {
+        this.paypalEmail = paypalEmail;
+    }
+
     public String getId() {
         return id;
     }
@@ -148,5 +157,6 @@ public class User implements Parcelable {
         dest.writeInt(maximumOrdersAvailable);
         dest.writeLong(benefitsExpiry);
         dest.writeString(id);
+        dest.writeString(paypalEmail);
     }
 }

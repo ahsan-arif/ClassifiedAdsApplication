@@ -22,6 +22,8 @@ import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -112,7 +114,7 @@ public class FragmentProfile extends Fragment  {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-    TextInputEditText etName,etEmail;
+    TextInputEditText etName,etEmail,etPaypalId;
     TextView tvLogout;
     FloatingActionButton fabUpdateProfileImg;
 
@@ -133,6 +135,8 @@ public class FragmentProfile extends Fragment  {
     CardView cardPremium;
     CardView cardGoPremium;
     TextView tvBuyPro;
+    TextView tvUpdate;
+    String paypalId;
 
     public FragmentProfile() {
         // Required empty public constructor
@@ -185,6 +189,41 @@ public class FragmentProfile extends Fragment  {
         cardPremium = view.findViewById(R.id.card_premium);
         cardGoPremium = view.findViewById(R.id.card_go_premium);
         tvBuyPro = view.findViewById(R.id.tv_buy_pro);
+        tvUpdate = view.findViewById(R.id.tv_update);
+        etPaypalId = view.findViewById(R.id.et_paypal_id);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        etPaypalId.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String newPayplId = s.toString();
+                if (!newPayplId.isEmpty()&&!paypalId.isEmpty()){
+                    if (newPayplId.equals(paypalId)){
+                        tvUpdate.setVisibility(View.INVISIBLE);
+                    }else{
+                        tvUpdate.setVisibility(View.VISIBLE);
+                    }
+                }
+            }
+        });
+
+        tvUpdate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child("paypalEmail").setValue(etPaypalId.getText().toString());
+                tvUpdate.setVisibility(View.INVISIBLE);
+                ToastUtils.showShort(getString(R.string.paypal_email_updated));
+            }
+        });
 
         FirebaseDatabase.getInstance().getReference().child("platform_prefs").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -201,7 +240,7 @@ public class FragmentProfile extends Fragment  {
             }
         });
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
         getUserDetails(user.getUid());
         //etName.setText(user.getDisplayName());
         etEmail.setText(user.getEmail());
@@ -392,6 +431,15 @@ public class FragmentProfile extends Fragment  {
                                 Glide.with(context).load(user.getProfileImage()).into(imgProfile);
                             }else{
                                 imgProfile.setImageResource(R.drawable.outline_account_circle_24);
+                            }
+
+                            if (user.getPaypalEmail()!=null){
+                                tvUpdate.setVisibility(View.INVISIBLE);
+                                etPaypalId.setText(user.getPaypalEmail());
+                                paypalId = user.getPaypalEmail();
+                            }else{
+                                tvUpdate.setVisibility(View.VISIBLE);
+                                paypalId = "";
                             }
                         }
 

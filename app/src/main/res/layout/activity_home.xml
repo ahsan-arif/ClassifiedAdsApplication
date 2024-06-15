@@ -8,7 +8,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".Home">
-    <RelativeLayout
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <LinearLayout
@@ -41,7 +42,8 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:orientation="vertical"
             android:layout_below="@+id/vg_search"
             android:layout_marginTop="12dp"
@@ -59,7 +61,7 @@
             app:itemIconTint="@color/bnv_tab_item_foreground"
             app:itemTextColor="@color/bnv_tab_item_foreground"
             app:menu="@menu/bottom_nav_home" />
-    </RelativeLayout>
+    </LinearLayout>
     <com.google.android.material.navigation.NavigationView
         android:layout_width="match_parent"
         android:layout_height="match_parent"

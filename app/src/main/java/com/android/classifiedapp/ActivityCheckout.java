@@ -165,6 +165,7 @@ public class ActivityCheckout extends AppCompatActivity {
                         }
                         order.setCurrency(ad.getCurrency());
                         order.setPlaceOn(String.valueOf(System.currentTimeMillis()));
+                        order.setSettled(false);
                         order.setId(key);
 
                         databaseReference.setValue(order);

@@ -84,6 +84,29 @@
 
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:hint="@string/paypal_account_email"
+            android:layout_marginTop="16dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textEmailAddress"
+                android:id="@+id/et_paypal_email"
+                />
+
+        </com.google.android.material.textfield.TextInputLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/email_for_paypal_settlements"
+            android:textStyle="italic"
+            android:layout_marginTop="8dp"
+            />
+        <com.google.android.material.textfield.TextInputLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:hint="@string/password"
             android:layout_marginTop="16dp"
             app:passwordToggleEnabled="true"

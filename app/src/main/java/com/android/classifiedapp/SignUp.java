@@ -42,6 +42,7 @@ public class SignUp extends AppCompatActivity {
     TextInputEditText etName;
     TextInputEditText etEmail;
     TextInputEditText etPassword;
+    TextInputEditText etPaypalEmail;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +57,7 @@ public class SignUp extends AppCompatActivity {
         btnCreateAccount = findViewById(R.id.btn_create_account);
         etName = findViewById(R.id.et_name);
         etEmail = findViewById(R.id.et_email);
+        etPaypalEmail = findViewById(R.id.et_paypal_email);
         etEmail.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -130,6 +132,7 @@ public class SignUp extends AppCompatActivity {
             public void onClick(View view) {
                 String email = etEmail.getText().toString().trim();
                 String password = etPassword.getText().toString().trim();
+                String paypalEmail = etPaypalEmail.getText().toString().trim();
 
 
                 if (etName.getText().toString().trim().isEmpty()){
@@ -142,6 +145,10 @@ public class SignUp extends AppCompatActivity {
                     return;
                 }if (password.isEmpty()){
                     etPassword.setError(getString(R.string.cannot_be_empty));
+                    return;
+                }
+                if (paypalEmail.isEmpty()){
+                    etPaypalEmail.setError(getString(R.string.cannot_be_empty));
                     return;
                 }
                 if (!email.contains("hotmail")|| !email.contains("google")||!email.contains("live")||!email.contains("outlook")){
@@ -175,6 +182,7 @@ public class SignUp extends AppCompatActivity {
                                         user.setName(etName.getText().toString().trim());
                                         user.setRole("user");
                                         user.setPremiumUser(false);
+                                        user.setPaypalEmail(paypalEmail);
                                         user.setFreeAdsAvailable(prefs.getFreeAdsCount());
                                         user.setFreeMessagesAvailable(prefs.getFreeMessagesCount());
                                         user.setMaximumOrdersAvailable(prefs.getMaximumOrdersAllowed());

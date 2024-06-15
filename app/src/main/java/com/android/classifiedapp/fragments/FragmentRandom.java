@@ -2,6 +2,7 @@ package com.android.classifiedapp.fragments;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -18,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.android.classifiedapp.ActivityAdDetails;
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.adapters.AdsAdapter;
 import com.android.classifiedapp.models.Ad;
@@ -295,6 +297,13 @@ ProgressBar progressCircular;
             @Override
             public void onClick(View v) {
                 toggleLike(ad,fIrebaseUser.getUid(),imgLike);
+            }
+        });
+
+        cardProduct.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(context, ActivityAdDetails.class).putExtra("ad",ad));
             }
         });
 

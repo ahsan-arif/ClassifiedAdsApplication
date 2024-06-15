@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -75,6 +76,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     ImageView imgMenu;
     DrawerLayout drawerLayout;
     TextView tvSearch;
+    LinearLayout vgSearch;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,6 +96,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         imgMenu = findViewById(R.id.img_menu);
         drawerLayout = findViewById(R.id.main);
         tvSearch = findViewById(R.id.tv_search);
+        vgSearch = findViewById(R.id.vg_search);
         imgMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -136,8 +139,9 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
                 if (menuItem.getItemId()==R.id.item_home){
                     androidx.fragment.app.FragmentManager manager = getSupportFragmentManager(); // or getFragmentManager() if using android.app.Fragment
                     FragmentHome fragmentHome = new FragmentHome();
-                    startFragment(manager, fragmentHome);
+                    startHomeFragment(manager, fragmentHome);
                 }else if(menuItem.getItemId()==R.id.item_profile){
+
                     startFragment(getSupportFragmentManager(),new FragmentProfile());
                 }else if(menuItem.getItemId() == R.id.item_sell){
                     startFragment(getSupportFragmentManager(),new FragmentAddProduct());
@@ -184,6 +188,13 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     }
 
     public void startFragment(FragmentManager manager, Fragment fragment) {
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.replace(R.id.container, fragment);
+        transaction.commitAllowingStateLoss();
+        vgSearch.setVisibility(View.GONE);
+    }
+    public void startHomeFragment(FragmentManager manager, Fragment fragment) {
+        vgSearch.setVisibility(View.VISIBLE);
         FragmentTransaction transaction = manager.beginTransaction();
         transaction.replace(R.id.container, fragment);
         transaction.commitAllowingStateLoss();

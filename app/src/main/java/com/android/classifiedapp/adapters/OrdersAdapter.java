@@ -100,6 +100,7 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
         long now = System.currentTimeMillis();
         CharSequence ago = DateUtils.getRelativeTimeSpanString(date.getTime(), now, DateUtils.MINUTE_IN_MILLIS);
         holder.tvOrderedOn.setText(ago);
+        LogUtils.e(order.getStatus());
 
             if (order.getStatus().equals(context.getString(R.string.order_confirmed))){
                 if (order.getAddress()!=null){
@@ -112,6 +113,7 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.ViewHolder
                     holder.vgConfirm.setVisibility(View.VISIBLE);
                     holder.tvConfirmPickup.setVisibility(View.VISIBLE);
                     holder.tvConfirmDelivery.setVisibility(View.GONE);
+                    holder.tvRate.setVisibility(View.GONE);
                 }
             }else if (order.getStatus().equals(context.getString(R.string.shipped))){
                 holder.tvInstructions.setText(context.getString(R.string.confirm_product_received));

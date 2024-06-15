@@ -19,7 +19,7 @@ public class Order implements Parcelable {
     String currency,placeOn,address;
     String confirmedOn,pickedOn,shippedOn,deliveredOn;
 
-    boolean isRated;
+    boolean isRated,isSettled;
 
     public Order() {
     }
@@ -45,6 +45,7 @@ public class Order implements Parcelable {
         shippedOn = in.readString();
         deliveredOn = in.readString();
         isRated = in.readInt() != 0;
+        isSettled = in.readInt() != 0;
     }
 
     public static final Creator<Order> CREATOR = new Creator<Order>() {
@@ -187,6 +188,14 @@ public class Order implements Parcelable {
         this.deliveredOn = deliveredOn;
     }
 
+    public boolean isSettled() {
+        return isSettled;
+    }
+
+    public void setSettled(boolean settled) {
+        isSettled = settled;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -215,5 +224,6 @@ public class Order implements Parcelable {
        dest.writeString(shippedOn);
        dest.writeString(deliveredOn);
         dest.writeInt(isRated ? 1 : 0);
+        dest.writeInt(isSettled ? 1 : 0);
     }
 }

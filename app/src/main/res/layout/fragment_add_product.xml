@@ -3,13 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginBottom="?attr/actionBarSize"
+    android:fillViewport="true"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".fragments.FragmentAddProduct">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
         android:orientation="vertical"
         android:layout_marginStart="12dp"
         android:layout_marginEnd="12dp"
@@ -337,6 +338,7 @@
             android:id="@+id/btn_create_ad"
             android:background="@drawable/btn_sign_in_opts"
             android:gravity="center"
+            android:layout_marginBottom="8dp"
             />
 
     </LinearLayout>

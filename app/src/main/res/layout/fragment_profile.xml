@@ -12,16 +12,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:layout_marginTop="?attr/actionBarSize"
             >
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/my_profile"
-                    android:textColor="@color/black"
-                    android:textStyle="bold"
-                    android:textSize="16sp"
-                    android:layout_marginTop="16dp"
-                    />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -101,6 +93,41 @@
                                     />
 
                         </com.google.android.material.textfield.TextInputLayout>
+
+                       <LinearLayout
+                           android:layout_width="match_parent"
+                           android:layout_height="wrap_content"
+                           android:layout_marginTop="16dp"
+                           >
+                               <com.google.android.material.textfield.TextInputLayout
+                                   android:layout_width="0dp"
+                                   android:layout_weight="1"
+                                   android:layout_height="wrap_content"
+                                   android:hint="@string/paypal_account_email"
+                                   android:focusable="false"
+                                   android:focusableInTouchMode="false"
+                                   style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                                       <com.google.android.material.textfield.TextInputEditText
+                                           android:layout_width="match_parent"
+                                           android:layout_height="wrap_content"
+                                           android:inputType="textEmailAddress"
+                                           android:id="@+id/et_paypal_id"
+                                           />
+
+                               </com.google.android.material.textfield.TextInputLayout>
+                               <TextView
+                                   android:layout_width="wrap_content"
+                                   android:layout_height="wrap_content"
+                                   android:text="@string/update"
+                                   android:layout_gravity="center_vertical"
+                                   android:padding="8dp"
+                                   android:visibility="invisible"
+                                   android:layout_margin="4dp"
+                                   android:textStyle="italic"
+                                   android:id="@+id/tv_update"
+                                   />
+                       </LinearLayout>
                         <androidx.cardview.widget.CardView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

@@ -219,4 +219,7 @@
     <string name="password_1_number">Password must contain 1 number</string>
     <string name="password_1_character">Password must contain at least 1 capital letter</string>
     <string name="contact_support">Contact Support</string>
+    <string name="paypal_account_email">Paypal Account Email</string>
+    <string name="email_for_paypal_settlements">This email will be used to send funds to your account after completion of orders.</string>
+    <string name="paypal_email_updated">Paypal email has been updated and will be used to transfer escrowed amount.</string>
 </resources>
