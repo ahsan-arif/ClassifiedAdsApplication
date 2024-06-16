@@ -16,7 +16,7 @@
             android:id="@+id/img_back"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="12dp"
             android:src="@drawable/ic_baseline_keyboard_backspace_24"
             app:tint="@color/black" />
 
@@ -26,8 +26,9 @@
             android:layout_marginStart="16dp"
             android:layout_weight="1"
             android:text="@string/my_listings"
+            android:textSize="16sp"
             android:textColor="@color/black"
-            android:textSize="18sp" />
+            android:textStyle="bold" />
 
     </LinearLayout>
     <LinearLayout

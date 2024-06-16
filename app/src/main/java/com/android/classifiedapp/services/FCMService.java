@@ -19,6 +19,7 @@ import androidx.core.app.NotificationManagerCompat;
 
 import com.android.classifiedapp.ActivityAdDetails;
 import com.android.classifiedapp.ActivityChat;
+import com.android.classifiedapp.ActivityCustomerSupportChat;
 import com.android.classifiedapp.ActivityEditAd;
 import com.android.classifiedapp.ActivityMyOrders;
 import com.android.classifiedapp.ActivityPageAdDetails;
@@ -92,6 +93,8 @@ public class FCMService extends FirebaseMessagingService {
             notificationIntent = new Intent(getBaseContext(), ActivityMyOrders.class);
         }else if (clickAction.equals("com.android.classifiedapp.ActivityViewOrders")){
             notificationIntent = new Intent(getBaseContext(), ActivityViewOrders.class).putExtra("adId",adId).putExtra("title",productTitle);
+        }else if (clickAction.equals("com.android.classifiedapp.ActivityCustomerSupportChat")){
+            notificationIntent = new Intent(getBaseContext(), ActivityCustomerSupportChat.class).putExtra("id",id);
         }
         else{
             notificationIntent = new Intent(getBaseContext(),Home.class);
