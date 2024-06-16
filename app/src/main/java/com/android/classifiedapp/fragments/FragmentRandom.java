@@ -134,7 +134,7 @@ ProgressBar progressCircular;
         cardProduct.setVisibility(View.GONE);
         tvNoListing.setVisibility(View.GONE);
         tvTryAgain.setVisibility(View.GONE);
-        FirebaseDatabase.getInstance().getReference().child("ads").addValueEventListener(new ValueEventListener() {
+        FirebaseDatabase.getInstance().getReference().child("ads").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()){
