@@ -91,20 +91,25 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
     Application application;
     PaymentButtonClickListener listener;
 
-    public MyAdsAdapter(ArrayList<Ad> ads, Context context,Application application,PaymentButtonClickListener listener) {
+    String featureAdFee;
+
+    public MyAdsAdapter(ArrayList<Ad> ads, Context context,Application application,String featureAdFee,PaymentButtonClickListener listener) {
         this.ads = ads;
         this.context = context;
         this.application = application;
         this.listener = listener;
+
+        this.featureAdFee = featureAdFee;
     }
 
-    public MyAdsAdapter(ArrayList<Ad> ads, Context context, boolean unApprovedAd,Application application,PaymentButtonClickListener listener) {
+    public MyAdsAdapter(ArrayList<Ad> ads, Context context, boolean unApprovedAd,Application application,String featureAdFee,PaymentButtonClickListener listener) {
         this.ads = ads;
         this.context = context;
         getUser(ads.get(0));
         this.unApprovedAd = unApprovedAd;
         this.application = application;
         this.listener = listener;
+        this.featureAdFee = featureAdFee;
     }
 
     @NonNull
@@ -117,7 +122,6 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         int pos = position;
         Ad ad = ads.get(position);
-        final String[] featureAdFee = new String[1];
         holder.tvTitle.setText(ad.getTitle());
         holder.tvPrice.setText(ad.getCurrency()+" "+ad.getPrice());
         holder.tvAddress.setText(ad.getAddress());
@@ -141,35 +145,7 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
             }
         }
 
-        if (ad.getFeatured()!=null){
-            if (ad.getFeatured().equals("1")){
-                holder.tvMakeFeatured.setVisibility(View.GONE);
-                holder.tvFeatured.setVisibility(View.VISIBLE);
-            }else {
-                FirebaseDatabase.getInstance().getReference().child("platform_prefs").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.exists()){
-                            holder.tvMakeFeatured.setVisibility(View.VISIBLE);
-                            PlatformPrefs prefs = snapshot.getValue(PlatformPrefs.class);
-                             holder.tvMakeFeatured.setText(context.getString(R.string.to_make_featured_for_24h)+" "+ad.getCurrency()+" "+prefs.getFeaturedAdFee());
-                            featureAdFee[0] =prefs.getFeaturedAdFee();
-                        }else{
-                            holder.tvMakeFeatured.setVisibility(View.GONE);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-                });
-                holder.tvFeatured.setVisibility(View.GONE);
-            }
-        }
-
-
-        getPostedBy(context,ad.getPostedBy(),holder.tvPostedBy,holder.imgUser);
+        getPostedBy(context,ad.getPostedBy(),holder.tvPostedBy,holder.imgUser,holder.tvFeatured,holder.tvMakeFeatured,ad);
 
         // holder.tvPostedBy.setText(user.getName());
 
@@ -218,7 +194,7 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
                 databaseReference.setValue(ad);
                 holder.tvMakeFeatured.setVisibility(View.GONE);
                 holder.tvFeatured.setVisibility(View.VISIBLE);*/
-                showPaypalSheet(holder.tvMakeFeatured,holder.tvFeatured,ad,context,featureAdFee[0],ad.getCurrency(),pos);
+                showPaypalSheet(holder.tvMakeFeatured,holder.tvFeatured,ad,context,featureAdFee,ad.getCurrency(),pos);
             }
         });
 
@@ -299,8 +275,7 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
         }
     }
 
-    void getPostedBy(Context context, String uid, TextView postedBy, CircleImageView circleImageView
-    ){
+    void getPostedBy(Context context, String uid, TextView postedBy, CircleImageView circleImageView,TextView tvFeatured,TextView tvMakeFeatured,Ad ad){
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(uid);
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -313,6 +288,31 @@ public class MyAdsAdapter extends RecyclerView.Adapter<MyAdsAdapter.ViewHolder> 
                     // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
                     user.setName(snapshot.child("name").getValue(String.class));
                     user.setFcmToken(snapshot.child("fcmToken").getValue(String.class));
+                    user.setBenefitsExpiry(snapshot.child("benefitsExpiry").getValue(Long.class));
+                    user.setPremiumUser(snapshot.child("premiumUser").getValue(Boolean.class));
+
+                    if (user.isPremiumUser()){
+                        long now = System.currentTimeMillis();
+                        if (now<user.getBenefitsExpiry()){
+                            tvFeatured.setVisibility(View.VISIBLE);
+                            tvMakeFeatured.setVisibility(View.INVISIBLE);
+                        }else{
+                            tvFeatured.setVisibility(View.GONE);
+                            tvMakeFeatured.setVisibility(View.VISIBLE);
+                        }
+                    }else{
+                        if (ad.getFeatured()!=null){
+                            if (ad.getFeatured().equals("1")){
+                                tvMakeFeatured.setVisibility(View.INVISIBLE);
+                                tvFeatured.setVisibility(View.VISIBLE);
+                            }else {
+                                tvMakeFeatured.setVisibility(View.VISIBLE);
+                                tvMakeFeatured.setText(context.getString(R.string.to_make_featured_for_24h)+" "+ad.getCurrency()+" "+featureAdFee);
+                                tvFeatured.setVisibility(View.GONE);
+                            }
+                        }
+                    }
+
                     postedBy.setText(user.getName());
                     if (snapshot.hasChild("profileImage")){
                         user.setProfileImage(snapshot.child("profileImage").getValue(String.class));

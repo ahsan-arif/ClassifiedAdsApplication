@@ -209,7 +209,6 @@
                             app:cardUseCompatPadding="true"
                             android:layout_marginTop="16dp"
                             android:id="@+id/card_go_premium"
-                            android:visibility="gone"
                             >
                                 <RelativeLayout
                                     android:layout_width="match_parent"
@@ -219,7 +218,6 @@
                                             android:layout_height="wrap_content"
                                             android:text="@string/buy_pro"
                                             android:padding="8dp"
-                                            android:layout_centerInParent="true"
                                             android:id="@+id/tv_buy_pro"
                                             />
                                         <ImageView
@@ -228,6 +226,17 @@
                                             android:layout_alignParentEnd="true"
                                             android:src="@drawable/ic_baseline_keyboard_arrow_right_24"
                                             />
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/show_benefits"
+                                        android:padding="8dp"
+                                        android:textColor="@color/teal_200"
+                                        android:layout_marginStart="12dp"
+                                        android:layout_toEndOf="@id/tv_buy_pro"
+                                        android:textStyle="italic"
+                                        android:id="@+id/tv_show_benefits"
+                                        />
                                 </RelativeLayout>
                         </androidx.cardview.widget.CardView>
                         <androidx.cardview.widget.CardView

@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.android.classifiedapp.ActivityAdDetails;
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.models.Ad;
+import com.android.classifiedapp.models.User;
 import com.appbroker.roundedimageview.RoundedImageView;
 import com.blankj.utilcode.util.LogUtils;
 import com.bumptech.glide.Glide;
@@ -97,6 +98,8 @@ public class RecentlyViewedAdsAdapter extends RecyclerView.Adapter<RecentlyViewe
                 toggleLike(ad,fIrebaseUser.getUid(),holder.getAdapterPosition(),holder.imgLike,false);
             }
         });
+
+        getPostedBy(ad.getPostedBy(),holder.tvFeatured,ad);
     }
 
     @Override
@@ -171,5 +174,54 @@ public class RecentlyViewedAdsAdapter extends RecyclerView.Adapter<RecentlyViewe
     public void removeAd(Ad ad) {
         ads.remove(ad);
         notifyDataSetChanged();
+    }
+
+    void getPostedBy( String uid, TextView tvFeatured,Ad ad){
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(uid);
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    // LogUtils.e(snapshot);
+                    //   for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                    User user = new User();
+                    user.setEmail(snapshot.child("email").getValue(String.class));
+                    // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
+                    user.setName(snapshot.child("name").getValue(String.class));
+                    user.setFcmToken(snapshot.child("fcmToken").getValue(String.class));
+                    user.setBenefitsExpiry(snapshot.child("benefitsExpiry").getValue(Long.class));
+                    user.setPremiumUser(snapshot.child("premiumUser").getValue(Boolean.class));
+                    if (user.isPremiumUser()){
+                        LogUtils.e("premium user");
+                        long now = System.currentTimeMillis();
+                        if (now<user.getBenefitsExpiry()){
+                            tvFeatured.setVisibility(View.VISIBLE);
+                        }else{
+                            tvFeatured.setVisibility(View.GONE);
+                        }
+                    }else{
+                        LogUtils.e("not premium user");
+                        if (ad.getFeatured().equals("1")){
+                            tvFeatured.setVisibility(View.VISIBLE);
+                        }else{
+                            tvFeatured.setVisibility(View.GONE);
+                        }
+                    }
+                    /*postedBy.setText(user.getName());
+                    if (snapshot.hasChild("profileImage")){
+                        user.setProfileImage(snapshot.child("profileImage").getValue(String.class));
+                        Glide.with(context).load(user.getProfileImage()).into(circleImageView);
+                    }*/
+                    // }
+
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 }

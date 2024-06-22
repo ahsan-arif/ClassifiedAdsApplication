@@ -32,6 +32,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.Calendar;
@@ -42,7 +43,7 @@ public class SignUp extends AppCompatActivity {
     TextInputEditText etName;
     TextInputEditText etEmail;
     TextInputEditText etPassword;
-    TextInputEditText etPaypalEmail;
+    //TextInputEditText etPaypalEmail;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,7 +58,7 @@ public class SignUp extends AppCompatActivity {
         btnCreateAccount = findViewById(R.id.btn_create_account);
         etName = findViewById(R.id.et_name);
         etEmail = findViewById(R.id.et_email);
-        etPaypalEmail = findViewById(R.id.et_paypal_email);
+        //etPaypalEmail = findViewById(R.id.et_paypal_email);
         etEmail.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -71,7 +72,7 @@ public class SignUp extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                String email = s.toString();
+                String email = s.toString().toLowerCase();
                 if (!email.isEmpty()){
                     if (email.contains("hotmail")|| email.contains("gmail")||email.contains("live")||email.contains("outlook")){
                         btnCreateAccount.setEnabled(true);
@@ -132,7 +133,7 @@ public class SignUp extends AppCompatActivity {
             public void onClick(View view) {
                 String email = etEmail.getText().toString().trim();
                 String password = etPassword.getText().toString().trim();
-                String paypalEmail = etPaypalEmail.getText().toString().trim();
+               // String paypalEmail = etPaypalEmail.getText().toString().trim();
 
 
                 if (etName.getText().toString().trim().isEmpty()){
@@ -147,13 +148,14 @@ public class SignUp extends AppCompatActivity {
                     etPassword.setError(getString(R.string.cannot_be_empty));
                     return;
                 }
-                if (paypalEmail.isEmpty()){
+                /*if (paypalEmail.isEmpty()){
                     etPaypalEmail.setError(getString(R.string.cannot_be_empty));
                     return;
-                }
-                if (!email.contains("hotmail")|| !email.contains("google")||!email.contains("live")||!email.contains("outlook")){
+                }*/
+               /* if (email.contains("hotmail")|| email.contains("google")||email.contains("live")||email.contains("outlook")){
                     etEmail.setError(getString(R.string.only_google_allowed));
-                }
+                    return;
+                }*/
 
                 ProgressDialog progressDialog = new ProgressDialog(SignUp.this);
                 progressDialog.setCancelable(false);
@@ -161,76 +163,93 @@ public class SignUp extends AppCompatActivity {
                 progressDialog.setMessage(getString(R.string.creating_account));
                 progressDialog.show();
 
+                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users");
+                Query query = databaseReference.orderByChild("email").equalTo(email);
+                query.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                if (snapshot.exists()){
+                                    ToastUtils.showLong(getString(R.string.users_already_exists));
+                                    progressDialog.dismiss();
+                                }else{
+                                    mAuth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<AuthResult> task) {
+                                            progressDialog.dismiss();
+                                            if (task.isSuccessful()) {
+                                                // Account creation successful
+                                                // Handle success scenario (e.g., navigate to home screen)
+                                                FirebaseDatabase.getInstance().getReference().child("platform_prefs").addListenerForSingleValueEvent(new ValueEventListener() {
+                                                    @Override
+                                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                        if (snapshot.exists()){
+                                                            PlatformPrefs prefs = snapshot.getValue(PlatformPrefs.class);
+                                                            String userId = mAuth.getUid();
+                                                            Log.e("userId ",userId);
+                                                            DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference().getDatabase().getReference("users").child(userId);
+                                                            User user = new User();
+                                                            user.setEmail(email);
+                                                            user.setName(etName.getText().toString().trim());
+                                                            user.setRole("user");
+                                                            user.setPremiumUser(false);
+                                                           // user.setPaypalEmail(paypalEmail);
+                                                            user.setFreeAdsAvailable(prefs.getFreeAdsCount());
+                                                            user.setFreeMessagesAvailable(prefs.getFreeMessagesCount());
+                                                            user.setMaximumOrdersAvailable(prefs.getMaximumOrdersAllowed());
+                                                            long currentTimeMillis = System.currentTimeMillis();
 
-                mAuth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        progressDialog.dismiss();
-                        if (task.isSuccessful()) {
-                            // Account creation successful
-                            // Handle success scenario (e.g., navigate to home screen)
-                            FirebaseDatabase.getInstance().getReference().child("platform_prefs").addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                    if (snapshot.exists()){
-                                        PlatformPrefs prefs = snapshot.getValue(PlatformPrefs.class);
-                                        String userId = mAuth.getUid();
-                                        Log.e("userId ",userId);
-                                        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference().getDatabase().getReference("users").child(userId);
-                                        User user = new User();
-                                        user.setEmail(email);
-                                        user.setName(etName.getText().toString().trim());
-                                        user.setRole("user");
-                                        user.setPremiumUser(false);
-                                        user.setPaypalEmail(paypalEmail);
-                                        user.setFreeAdsAvailable(prefs.getFreeAdsCount());
-                                        user.setFreeMessagesAvailable(prefs.getFreeMessagesCount());
-                                        user.setMaximumOrdersAvailable(prefs.getMaximumOrdersAllowed());
-                                        long currentTimeMillis = System.currentTimeMillis();
+                                                            // Create a Calendar object and set it to the current time
+                                                            Calendar calendar = Calendar.getInstance();
+                                                            calendar.setTimeInMillis(currentTimeMillis);
+                                                            // Add one month to the calendar
+                                                            calendar.add(Calendar.MONTH, 1);
+                                                            // Get the new time in milliseconds
+                                                            long newTimeMillis = calendar.getTimeInMillis();
+                                                            user.setBenefitsExpiry(newTimeMillis);
+                                                            databaseRef.setValue(user);
+                                                            Toast.makeText(getApplicationContext(), "Account created!", Toast.LENGTH_SHORT).show();
+                                                            startActivity(new Intent(SignUp.this, Home.class));
+                                                            finish();
+                                                        }else{
+                                                            String userId = mAuth.getUid();
+                                                            Log.e("userId ",userId);
+                                                            DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference().getDatabase().getReference("users").child(userId);
+                                                            User user = new User();
+                                                            user.setEmail(email);
+                                                            user.setName(etName.getText().toString().trim());
+                                                            user.setRole("user");
+                                                            user.setId(userId);
+                                                            user.setPremiumUser(false);
+                                                            databaseRef.setValue(user);
+                                                            Toast.makeText(getApplicationContext(), "Account created!", Toast.LENGTH_SHORT).show();
+                                                            startActivity(new Intent(SignUp.this, Home.class));
+                                                            finish();
+                                                        }
+                                                    }
 
-                                        // Create a Calendar object and set it to the current time
-                                        Calendar calendar = Calendar.getInstance();
-                                        calendar.setTimeInMillis(currentTimeMillis);
-                                        // Add one month to the calendar
-                                        calendar.add(Calendar.MONTH, 1);
-                                        // Get the new time in milliseconds
-                                        long newTimeMillis = calendar.getTimeInMillis();
-                                        user.setBenefitsExpiry(newTimeMillis);
-                                        databaseRef.setValue(user);
-                                        Toast.makeText(getApplicationContext(), "Account created!", Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(SignUp.this, Home.class));
-                                        finish();
-                                    }else{
-                                        String userId = mAuth.getUid();
-                                        Log.e("userId ",userId);
-                                        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference().getDatabase().getReference("users").child(userId);
-                                        User user = new User();
-                                        user.setEmail(email);
-                                        user.setName(etName.getText().toString().trim());
-                                        user.setRole("user");
-                                        user.setId(userId);
-                                        user.setPremiumUser(false);
-                                        databaseRef.setValue(user);
-                                        Toast.makeText(getApplicationContext(), "Account created!", Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(SignUp.this, Home.class));
-                                        finish();
-                                    }
+                                                    @Override
+                                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                                    }
+                                                });
+                                            } else {
+                                                progressDialog.dismiss();
+                                                // Account creation failed
+                                                // Handle failure scenario (e.g., show error message)
+                                                Exception e = task.getException();
+                                                Toast.makeText(getApplicationContext(), "Account creation failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    });
                                 }
+                            }
 
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError error) {
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                                progressDialog.dismiss();
+                            }
+                        });
 
-                                }
-                            });
-                        } else {
-                            progressDialog.dismiss();
-                            // Account creation failed
-                            // Handle failure scenario (e.g., show error message)
-                            Exception e = task.getException();
-                            Toast.makeText(getApplicationContext(), "Account creation failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
             }
         });
     }

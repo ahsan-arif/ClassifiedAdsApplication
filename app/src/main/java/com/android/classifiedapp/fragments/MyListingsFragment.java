@@ -19,6 +19,7 @@ import com.android.classifiedapp.ActivityMyAds;
 import com.android.classifiedapp.R;
 import com.android.classifiedapp.adapters.MyAdsAdapter;
 import com.android.classifiedapp.models.Ad;
+import com.android.classifiedapp.models.PlatformPrefs;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.google.firebase.auth.FirebaseAuth;
@@ -79,6 +80,8 @@ public class MyListingsFragment extends Fragment implements MyAdsAdapter.Payment
     int position;
     Context context;
     MyAdsAdapter adapter;
+
+    String featureAdFee;
     public static MyListingsFragment newInstance(String param1, String param2) {
         MyListingsFragment fragment = new MyListingsFragment();
         Bundle args = new Bundle();
@@ -113,12 +116,8 @@ public class MyListingsFragment extends Fragment implements MyAdsAdapter.Payment
         tvNoItem = view.findViewById(R.id.tv_no_item);
         rvAds = view.findViewById(R.id.rv_ads);
         progressCircular = view.findViewById(R.id.progress_circular);
-        if (position==0)
-        getMyApprovedListings(FirebaseAuth.getInstance().getCurrentUser().getUid());
-        else if (position==1)
-            getPendingApprovalAds(true,FirebaseAuth.getInstance().getCurrentUser().getUid());
-        else
-            getRequireUpdateAds(true,FirebaseAuth.getInstance().getCurrentUser().getUid());
+        getPlatformPrefs(position);
+
         return view;
     }
 
@@ -237,12 +236,12 @@ public class MyListingsFragment extends Fragment implements MyAdsAdapter.Payment
     }
 
     void setMyListingsAdapter(){
-        rvAds.setAdapter(new MyAdsAdapter(ads, context,getActivity().getApplication(),this));
+        rvAds.setAdapter(new MyAdsAdapter(ads, context,getActivity().getApplication(),featureAdFee,this));
         rvAds.setLayoutManager(new LinearLayoutManager(context));
     }
 
     void setMyListingsAdapter(boolean isApproved){
-        adapter = new MyAdsAdapter(ads, context,isApproved,getActivity().getApplication(),this);
+        adapter = new MyAdsAdapter(ads, context,isApproved,getActivity().getApplication(),featureAdFee,this);
         rvAds.setAdapter(adapter);
         rvAds.setLayoutManager(new LinearLayoutManager(context));
     }
@@ -279,5 +278,29 @@ public class MyListingsFragment extends Fragment implements MyAdsAdapter.Payment
         databaseReference.setValue(ad);
         tvFeatured.setVisibility(View.VISIBLE);
         tvFeatured.setVisibility(View.GONE);
+    }
+
+    void getPlatformPrefs(int position){
+        FirebaseDatabase.getInstance().getReference().child("platform_prefs").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()){
+                    PlatformPrefs prefs = snapshot.getValue(PlatformPrefs.class);
+                    featureAdFee =prefs.getFeaturedAdFee();
+
+                    if (position==0)
+                        getMyApprovedListings(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    else if (position==1)
+                        getPendingApprovalAds(true,FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    else
+                        getRequireUpdateAds(true,FirebaseAuth.getInstance().getCurrentUser().getUid());
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 }

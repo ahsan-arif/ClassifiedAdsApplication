@@ -4,8 +4,10 @@ import static android.app.Activity.RESULT_OK;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -47,10 +49,12 @@ import com.android.classifiedapp.models.User;
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.github.dhaval2404.imagepicker.ImagePicker;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -201,6 +205,11 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         Places.initialize(context, getString(R.string.places_api_key), Locale.US);
         fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS
         );
+        // Define the rectangular bounds for Spain
+        RectangularBounds spainBounds = RectangularBounds.newInstance(
+                new LatLng(36.0, -9.5), // Southwest corner (approx)
+                new LatLng(43.8, 3.3)   // Northeast corner (approx)
+        );
         placesIntent = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult o) {
@@ -276,6 +285,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         etLocation.setOnClickListener((v) -> {
             @SuppressLint("ClickableViewAccessibility") Intent intent = new Autocomplete.IntentBuilder(
                     AutocompleteActivityMode.FULLSCREEN, fields)
+                    .setLocationRestriction(spainBounds)
                     .build(context);
             placesIntent.launch(intent);
         });
@@ -401,7 +411,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         });
         getCurrencies();
         getCurrentUser();
-        getCategories();
+
 
         return view;
     }
@@ -811,6 +821,8 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                 currentUser.setPremiumUser(snapshot.child("premiumUser").getValue(Boolean.class));
                 currentUser.setFreeMessagesAvailable(snapshot.child("freeMessagesAvailable").getValue(Integer.class));
                 currentUser.setFreeAdsAvailable(snapshot.child("freeAdsAvailable").getValue(Integer.class));
+                currentUser.setBenefitsExpiry(snapshot.child("benefitsExpiry").getValue(Long.class));
+                currentUser.setPaypalEmail(snapshot.child("paypalEmail").getValue(String.class));
 
                 if (!currentUser.isPremiumUser()&&currentUser.getFreeAdsAvailable()==0){
                     btnCreateAd.setOnClickListener(new View.OnClickListener() {
@@ -821,6 +833,12 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                     });
                     btnCreateAd.setBackgroundResource(R.drawable.bg_report_btn);
                 etLocation.setOnClickListener(null);
+
+                }
+                if (currentUser.getPaypalEmail()!=null){
+                    getCategories();
+                }else{
+                    showPaypalNotSetDialog();
                 }
             }
 
@@ -835,5 +853,47 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         this.context = context;
+    }
+
+    void showPaypalNotSetDialog(){
+        // Create an AlertDialog.Builder object
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+
+        // Set the title of the alert dialog
+        builder.setTitle(context.getString(R.string.paypal_id_required));
+
+        // Set the message of the alert dialog
+        builder.setMessage(context.getString(R.string.paypal_required_to_receive));
+
+        // Set the positive button and its click listener
+        builder.setPositiveButton(context.getString(R.string.set_now), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Handle positive button click
+                // Navigate to item_profile
+                BottomNavigationView bottomNavigationView = getActivity().findViewById(R.id.bottom_navigation);
+                bottomNavigationView.setSelectedItemId(R.id.item_profile);
+                dialog.dismiss();
+            }
+        });
+
+        // Set the negative button and its click listener
+        builder.setNegativeButton(context.getString(R.string.back_home), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Handle negative button click
+                // Navigate to item_home
+                BottomNavigationView bottomNavigationView = getActivity().findViewById(R.id.bottom_navigation);
+                bottomNavigationView.setSelectedItemId(R.id.item_home);
+                dialog.dismiss();
+            }
+        });
+
+        // Create the AlertDialog object
+        AlertDialog alertDialog = builder.create();
+        alertDialog.setCancelable(false);
+
+        // Show the alert dialog
+        alertDialog.show();
     }
 }

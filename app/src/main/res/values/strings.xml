@@ -214,7 +214,7 @@
     <string name="gps_is_required">GPS is required for this app. Would you like to enable it in settings?</string>
     <string name="enable_gps">Enable GPS</string>
     <string name="only_google_allowed">Only Google and Microsoft (Hotmail, Live, Outlook) emails allowed</string>
-    <string name="password_checks">Password must be at least 10 characters long and must contain at least 1 symbols and atl east 1 number</string>
+    <string name="password_checks">Password must be at least 10 characters long and must contain at least 1 capital letter and at least 1 number.</string>
     <string name="password_must_be_10">Password must be 10 characters long</string>
     <string name="password_1_number">Password must contain 1 number</string>
     <string name="password_1_character">Password must contain at least 1 capital letter</string>
@@ -222,4 +222,16 @@
     <string name="paypal_account_email">Paypal Account Email</string>
     <string name="email_for_paypal_settlements">This email will be used to send funds to your account after completion of orders.</string>
     <string name="paypal_email_updated">Paypal email has been updated and will be used to transfer escrowed amount.</string>
+    <string name="users_already_exists">User with email already exists.</string>
+    <string name="paypal_id_required">PayPal ID Required</string>
+    <string name="paypal_required_to_receive">PayPal ID is required to receive amount paid by the buyers.</string>
+    <string name="set_now">Set Now</string>
+    <string name="back_home">Go Back</string>
+    <string name="show_benefits">Show Benefits</string>
+    <string name="membership_benefits">Membership Benefits</string>
+    <string name="send_unlimited_messages">* Send unlimited messages.</string>
+    <string name="post_unlimited_advertisements">* Post unlimited advertisements.</string>
+    <string name="receive_unlimited_orders_from_buyers">* Receive unlimited orders from buyers.</string>
+    <string name="all_your_ads_will_be_featured_until_the_membership_expires">* All your ads will be featured until the membership expires.</string>
+    <string name="here_are_some_the_benefits_you_really_donot_want_to_miss">Here are some the benefits you really donot want to miss.</string>
 </resources>

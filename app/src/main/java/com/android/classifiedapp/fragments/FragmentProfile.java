@@ -138,6 +138,8 @@ public class FragmentProfile extends Fragment  {
     TextView tvUpdate;
     String paypalId;
 
+    TextView tvShowBenefits;
+
     public FragmentProfile() {
         // Required empty public constructor
     }
@@ -191,6 +193,7 @@ public class FragmentProfile extends Fragment  {
         tvBuyPro = view.findViewById(R.id.tv_buy_pro);
         tvUpdate = view.findViewById(R.id.tv_update);
         etPaypalId = view.findViewById(R.id.et_paypal_id);
+        tvShowBenefits = view.findViewById(R.id.tv_show_benefits);
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         etPaypalId.addTextChangedListener(new TextWatcher() {
             @Override
@@ -222,6 +225,13 @@ public class FragmentProfile extends Fragment  {
                 FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child("paypalEmail").setValue(etPaypalId.getText().toString());
                 tvUpdate.setVisibility(View.INVISIBLE);
                 ToastUtils.showShort(getString(R.string.paypal_email_updated));
+            }
+        });
+
+        tvShowBenefits.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showBenefitsSheet();
             }
         });
 
@@ -342,7 +352,7 @@ public class FragmentProfile extends Fragment  {
                         }
                     }
                 });*/
-                showGoPremiumSheet();
+                showBenefitsSheet();
             }
         });
         tvCancelMembership.setOnClickListener(new View.OnClickListener() {
@@ -650,6 +660,21 @@ public class FragmentProfile extends Fragment  {
             }
         });
 
+        bottomSheetDialog.show();
+    }
+
+    void showBenefitsSheet(){
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(context);
+        bottomSheetDialog.setContentView(R.layout.bottom_sheet_dialog_benefits);
+
+        TextView tvBuyPremium = bottomSheetDialog.findViewById(R.id.tv_buyPremium);
+        tvBuyPremium.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bottomSheetDialog.dismiss();
+                showGoPremiumSheet();
+            }
+        });
         bottomSheetDialog.show();
     }
 }

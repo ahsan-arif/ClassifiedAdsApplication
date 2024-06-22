@@ -75,8 +75,6 @@ public class AdsAdapter extends RecyclerView.Adapter<AdsAdapter.ProductsViewHold
         CharSequence ago = DateUtils.getRelativeTimeSpanString(date.getTime(), now, DateUtils.MINUTE_IN_MILLIS);
         holder.tvPostedOn.setText(posted+" "+ago);
 
-        getPostedBy(context,ad.getPostedBy(),holder.tvPostedBy,holder.imgUser);
-
         if (ad.getLikedByUsers()!=null){
             if (!ad.getLikedByUsers().isEmpty()){
                 if (ad.getLikedByUsers().contains(fIrebaseUser.getUid())){
@@ -101,12 +99,6 @@ public class AdsAdapter extends RecyclerView.Adapter<AdsAdapter.ProductsViewHold
             }
         }
 
-        if (ad.getFeatured().equals("1")){
-            holder.tvFeatured.setVisibility(View.VISIBLE);
-        }else{
-            holder.tvFeatured.setVisibility(View.GONE);
-        }
-
         holder.imgLike.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -122,7 +114,7 @@ public class AdsAdapter extends RecyclerView.Adapter<AdsAdapter.ProductsViewHold
                 context.startActivity(new Intent(context, ActivityAdDetails.class).putExtra("ad",ad));
             }
         });
-
+        getPostedBy(context,ad.getPostedBy(),holder.tvPostedBy,holder.imgUser,holder.tvFeatured,ad);
     }
 
     @Override
@@ -148,8 +140,7 @@ public class AdsAdapter extends RecyclerView.Adapter<AdsAdapter.ProductsViewHold
         }
     }
 
-    void getPostedBy(Context context, String uid, TextView postedBy, CircleImageView circleImageView
-    ){
+    void getPostedBy(Context context, String uid, TextView postedBy, CircleImageView circleImageView,TextView tvFeatured,Ad ad){
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(uid);
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -162,6 +153,24 @@ public class AdsAdapter extends RecyclerView.Adapter<AdsAdapter.ProductsViewHold
                     // LogUtils.e(dataSnapshot.child("email").getValue(String.class));
                     user.setName(snapshot.child("name").getValue(String.class));
                     user.setFcmToken(snapshot.child("fcmToken").getValue(String.class));
+                    user.setBenefitsExpiry(snapshot.child("benefitsExpiry").getValue(Long.class));
+                    user.setPremiumUser(snapshot.child("premiumUser").getValue(Boolean.class));
+                    if (user.isPremiumUser()){
+                        LogUtils.e("premium user");
+                        long now = System.currentTimeMillis();
+                            if (now<user.getBenefitsExpiry()){
+                                tvFeatured.setVisibility(View.VISIBLE);
+                            }else{
+                                tvFeatured.setVisibility(View.GONE);
+                            }
+                    }else{
+                        LogUtils.e("not premium user");
+                        if (ad.getFeatured().equals("1")){
+                            tvFeatured.setVisibility(View.VISIBLE);
+                        }else{
+                            tvFeatured.setVisibility(View.GONE);
+                        }
+                    }
                     postedBy.setText(user.getName());
                     if (snapshot.hasChild("profileImage")){
                         user.setProfileImage(snapshot.child("profileImage").getValue(String.class));
