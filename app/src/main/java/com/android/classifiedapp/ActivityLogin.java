@@ -178,6 +178,7 @@ TextView btnLogin,tvForgot;
                     User user =snapshot.getValue(User.class);
                     if (user.getRole().equals("user")){
                         startActivity(new Intent(ActivityLogin.this,Home.class));
+                        finish();
                     }else{
                         ToastUtils.showShort(getString(R.string.admin_cannot));
                     }

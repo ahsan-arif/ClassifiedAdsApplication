@@ -41,7 +41,7 @@ public class SharedPrefManager {
 
     public String getAppLocale(){
         SharedPreferences sharedPreferences=context.getSharedPreferences(SHARED_PREF_NAME,Context.MODE_PRIVATE);
-        return sharedPreferences.getString(APP_LOCALE,"ur");
+        return sharedPreferences.getString(APP_LOCALE,"es");
     }
 
     public void setCookies(String cookies){

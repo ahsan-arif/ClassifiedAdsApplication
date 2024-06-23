@@ -37,6 +37,7 @@ import com.android.classifiedapp.fragments.FragmentAddProduct;
 import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.Category;
 import com.android.classifiedapp.models.Currency;
+import com.android.classifiedapp.models.PlatformPrefs;
 import com.android.classifiedapp.models.SubCategory;
 import com.android.classifiedapp.models.User;
 import com.android.classifiedapp.utilities.SharedPrefManager;
@@ -122,6 +123,8 @@ public class ActivityEditAd extends AppCompatActivity {
 
     boolean isUnApprovedAd;
     String accessToken;
+    double maxPrice;
+    TextInputLayout tilPrice;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -176,6 +179,7 @@ public class ActivityEditAd extends AppCompatActivity {
         rbMe = findViewById(R.id.rb_me);
         rbBuyer = findViewById(R.id.rb_buyer);
         etQuantity = findViewById(R.id.et_quantity);
+        tilPrice = findViewById(R.id.til_price);
         if (ad!=null) {
             latitude = ad.getLatitude();
             longitude = ad.getLongitude();
@@ -375,6 +379,8 @@ public class ActivityEditAd extends AppCompatActivity {
             getCategoryDetails(ad.getCategoryId());
         }
 
+        getPlatformPreferences();
+
 
     }
 
@@ -529,6 +535,11 @@ public class ActivityEditAd extends AppCompatActivity {
                     return false;
                 }
             }
+        }
+        double amount = Double.parseDouble(etPrice.getText().toString());
+        if (amount>maxPrice){
+            etPrice.setError(getString(R.string.cannot_exceed_max_price)+maxPrice);
+            return false;
         }
 /*        if (!selectedCategory.getSubCategories().isEmpty()){
             if (selectedSubcategory==null){
@@ -725,6 +736,21 @@ public class ActivityEditAd extends AppCompatActivity {
         queue.add(request);
         //  This code will send a push notification to the device with the title "New Like!" and the body "Someone has liked your post!".
         //I hope this helps! Let me know if you have any other questions.
+    }
+    void getPlatformPreferences(){
+        FirebaseDatabase.getInstance().getReference().child("platform_prefs").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                PlatformPrefs platformPrefs = snapshot.getValue(PlatformPrefs.class);
+                maxPrice = platformPrefs.getMaximumListingPrice();
+                tilPrice.setHint(getString(R.string.price)+" ("+getString(R.string.max)+maxPrice+")");
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 
 }

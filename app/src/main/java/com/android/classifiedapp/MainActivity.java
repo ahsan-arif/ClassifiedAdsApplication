@@ -86,23 +86,23 @@ LinearLayout btnGoogleSignIn;
             LogUtils.e(user.getEmail());
             startActivity(new Intent(MainActivity.this,Home.class));
             finish();
-        }else{
+        }/*else{
             ToastUtils.showShort("no user logged in");
-        }
+        }*/
          gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 //.requestIdToken(getString(R.string.google_client_id))
                 .requestEmail()
                 .build();
         GoogleSignInClient signInClient = GoogleSignIn.getClient(this, gso);
         signInClient.signOut();
-        SpannableString spannableString = new SpannableString("Signup or login with email");
+        SpannableString spannableString = new SpannableString(getString(R.string.signup_or_login));
 
         // Create ClickableSpan for "Signup"
         ClickableSpan signupClickableSpan = new ClickableSpan() {
             @Override
             public void onClick(View view) {
                 // Add your signup functionality here
-                Toast.makeText(MainActivity.this, "Signup Clicked", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(MainActivity.this, "Signup Clicked", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(MainActivity.this, SignUp.class));
             }
 
@@ -119,7 +119,7 @@ LinearLayout btnGoogleSignIn;
             @Override
             public void onClick(View view) {
                 // Add your login functionality here
-                Toast.makeText(MainActivity.this, "Login Clicked", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(MainActivity.this, "Login Clicked", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(MainActivity.this,ActivityLogin.class));
             }
             @Override
@@ -144,7 +144,7 @@ LinearLayout btnGoogleSignIn;
             if (result.getResultCode() == RESULT_OK) {
                 handleSignInResult(result.getData());
             } else {
-                Toast.makeText(this, "Sign in failed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.sign_in_failed), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -166,7 +166,7 @@ signIn(signInClient);
         try {
             GoogleSignInAccount account = task.getResult(ApiException.class);
             LogUtils.e(account.getEmail(),account.getId());
-            Toast.makeText(this, "Sign in success: " + account.getEmail(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.sign_in_success) + account.getEmail(), Toast.LENGTH_SHORT).show();
 
             DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users");
             databaseReference.orderByChild("email").equalTo(account.getEmail()).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -230,10 +230,8 @@ signIn(signInClient);
             });*/
         } catch (ApiException e) {
             Log.w(TAG, "signInResult:failed code=" + e.getMessage());
-            Toast.makeText(this, "Sign in failed "+e.getStatusCode(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.sign_in_failed)+e.getStatusCode(), Toast.LENGTH_SHORT).show();
         }
     }
-
-
 }
 

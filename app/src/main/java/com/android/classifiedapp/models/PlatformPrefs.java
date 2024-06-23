@@ -8,6 +8,8 @@ public class PlatformPrefs {
 
     int maximumOrdersAllowed;
 
+    double maximumListingPrice;
+
     public String getPlatformFee() {
         return platformFee;
     }
@@ -46,5 +48,13 @@ public class PlatformPrefs {
 
     public void setMaximumOrdersAllowed(int maximumOrdersAllowed) {
         this.maximumOrdersAllowed = maximumOrdersAllowed;
+    }
+
+    public double getMaximumListingPrice() {
+        return maximumListingPrice;
+    }
+
+    public void setMaximumListingPrice(double maximumListingPrice) {
+        this.maximumListingPrice = maximumListingPrice;
     }
 }

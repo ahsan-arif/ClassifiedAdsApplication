@@ -44,6 +44,7 @@ import com.android.classifiedapp.adapters.SubcategoriesRecyclerAdapter;
 import com.android.classifiedapp.models.Ad;
 import com.android.classifiedapp.models.Category;
 import com.android.classifiedapp.models.Currency;
+import com.android.classifiedapp.models.PlatformPrefs;
 import com.android.classifiedapp.models.SubCategory;
 import com.android.classifiedapp.models.User;
 import com.blankj.utilcode.util.LogUtils;
@@ -142,8 +143,11 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
     Double latitude,longitude;
     String address;
     Context context;
+    TextInputLayout tilPrice;
 
     BottomNavigationView bottomNavigationView;
+
+    double maxPrice;
 
     public FragmentAddProduct() {
         // Required empty public constructor
@@ -200,6 +204,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         etPrice = view.findViewById(R.id.et_price);
         btnCreateAd = view.findViewById(R.id.btn_create_ad);
         etQuantity = view.findViewById(R.id.et_quantity);
+        tilPrice = view.findViewById(R.id.til_price);
 
         //bottomNavigationView = getActivity().findViewById(R.id.bottom_navigation);
         Places.initialize(context, getString(R.string.places_api_key), Locale.US);
@@ -383,7 +388,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                     vgShippingPayer.setVisibility(View.INVISIBLE);
                     isShippingAvailable = false;
                     shippingPayer = null;
-                }else{
+                }else if (selectedText.equals(getString(R.string.yes))){
                     vgShippingPayer.setVisibility(View.VISIBLE);
                     isShippingAvailable = true;
                 }
@@ -411,6 +416,7 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
         });
         getCurrencies();
         getCurrentUser();
+        getPlatformPreferences();
 
 
         return view;
@@ -803,6 +809,11 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
                 }
             }
         }
+        double amount = Double.parseDouble(etPrice.getText().toString());
+        if (amount>maxPrice){
+            etPrice.setError(context.getString(R.string.cannot_exceed_max_price)+maxPrice);
+            return false;
+        }
 
         return true;
     }
@@ -895,5 +906,21 @@ public class FragmentAddProduct extends Fragment implements CategoriesRecyclerAd
 
         // Show the alert dialog
         alertDialog.show();
+    }
+
+    void getPlatformPreferences(){
+        FirebaseDatabase.getInstance().getReference().child("platform_prefs").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                PlatformPrefs platformPrefs = snapshot.getValue(PlatformPrefs.class);
+                maxPrice = platformPrefs.getMaximumListingPrice();
+                tilPrice.setHint(context.getString(R.string.price)+" ("+getString(R.string.max)+maxPrice+")");
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 }

@@ -33,7 +33,7 @@
     <string name="invalid_password">Password must be >5 characters</string>
     <string name="login_failed">"Login failed"</string>
     <string name="forgot_password">Forgot Password</string>
-    <string name="already_have_an_account_signup">Already have an account? Signup</string>
+    <string name="already_have_an_account_signup">Already have an account? Sign in</string>
     <string name="my_profile">My Profile</string>
     <string name="logout">Logout</string>
     <string name="sell_item">Sell Item</string>
@@ -234,4 +234,9 @@
     <string name="receive_unlimited_orders_from_buyers">* Receive unlimited orders from buyers.</string>
     <string name="all_your_ads_will_be_featured_until_the_membership_expires">* All your ads will be featured until the membership expires.</string>
     <string name="here_are_some_the_benefits_you_really_donot_want_to_miss">Here are some the benefits you really donot want to miss.</string>
+    <string name="signup_or_login">Signup or login with email</string>
+    <string name="sign_in_failed">Sign in failed</string>
+    <string name="sign_in_success">Sign in success: </string>
+    <string name="cannot_exceed_max_price">Cannot be greater than  </string>
+    <string name="max">MAX</string>
 </resources>
