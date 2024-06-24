@@ -125,8 +125,8 @@ TextView btnLogin,tvForgot;
                     return;
                 }
                 ProgressDialog progressDialog = new ProgressDialog(ActivityLogin.this);
-                progressDialog.setTitle("Please Wait");
-                progressDialog.setMessage("Logging in");
+                progressDialog.setTitle(getString(R.string.please_wait));
+                progressDialog.setMessage(getString(R.string.logging_in));
                 progressDialog.setCancelable(false);
                 progressDialog.show();
                 mAuth.signInWithEmailAndPassword(email, password)

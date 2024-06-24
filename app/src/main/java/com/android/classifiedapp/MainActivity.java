@@ -131,10 +131,10 @@ LinearLayout btnGoogleSignIn;
         };
 
         // Set the clickable spans and styles
-        spannableString.setSpan(signupClickableSpan, 0, 6, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        spannableString.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, 6, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        spannableString.setSpan(loginClickableSpan, 10, 15, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        spannableString.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 10, 15, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        spannableString.setSpan(signupClickableSpan, 0, 10, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        spannableString.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, 10, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        spannableString.setSpan(loginClickableSpan, 12, 26, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        spannableString.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 12, 26, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         // Set the SpannableString to TextView
         tvSignup.setMovementMethod(LinkMovementMethod.getInstance());
